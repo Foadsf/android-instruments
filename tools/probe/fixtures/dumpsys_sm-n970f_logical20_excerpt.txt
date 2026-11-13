@@ -1,0 +1,8 @@
+== Camera HAL device device@3.5/legacy/20 (v3.5) static information: ==
+      android.logicalMultiCamera.physicalIds (1a0000): byte[7]
+        [48 0 53 50 0 50 0 ]
+      android.logicalMultiCamera.sensorSyncType (1a0001): byte[1]
+        [CALIBRATED ]
+      android.request.availableCapabilities (c000c): byte[9]
+        [BACKWARD_COMPATIBLE MANUAL_SENSOR READ_SENSOR_SETTINGS MANUAL_POST_PROCESSING BURST_CAPTURE PRIVATE_REPROCESSING CONSTRAINED_HIGH_SPEED_VIDEO MOTION_TRACKING LOGICAL_MULTI_CAMERA ]
+      android.request.availableRequestKeys (c000d): int32[58]

@@ -1,0 +1,169 @@
+{
+  "cameras": {
+    "0": [
+      {
+        "field": "android.lens.facing",
+        "verdict": "match",
+        "probe": 1,
+        "dumpsys": [
+          "BACK"
+        ]
+      },
+      {
+        "field": "android.lens.info.minimumFocusDistance",
+        "verdict": "match",
+        "probe": 10.0,
+        "dumpsys": [
+          "10.00000000"
+        ]
+      },
+      {
+        "field": "android.lens.info.availableFocalLengths",
+        "verdict": "match",
+        "probe": [
+          4.3
+        ],
+        "dumpsys": [
+          "4.30000019"
+        ]
+      },
+      {
+        "field": "android.sensor.info.physicalSize",
+        "verdict": "match",
+        "probe": [
+          5.645,
+          4.234
+        ],
+        "dumpsys": [
+          "5.64499998",
+          "4.23400021"
+        ]
+      },
+      {
+        "field": "android.sensor.info.pixelArraySize",
+        "verdict": "match",
+        "probe": [
+          4032,
+          3024
+        ],
+        "dumpsys": [
+          "4032",
+          "3024"
+        ]
+      },
+      {
+        "field": "android.sensor.info.activeArraySize",
+        "verdict": "match",
+        "probe": [
+          0,
+          0,
+          4032,
+          3024
+        ],
+        "dumpsys": [
+          "0",
+          "0",
+          "4032",
+          "3024"
+        ]
+      },
+      {
+        "field": "android.lens.poseTranslation (present)",
+        "verdict": "match",
+        "probe": false,
+        "dumpsys": false
+      },
+      {
+        "field": "android.lens.intrinsicCalibration (present)",
+        "verdict": "match",
+        "probe": false,
+        "dumpsys": false
+      }
+    ],
+    "1": [
+      {
+        "field": "android.lens.facing",
+        "verdict": "match",
+        "probe": 0,
+        "dumpsys": [
+          "FRONT"
+        ]
+      },
+      {
+        "field": "android.lens.info.minimumFocusDistance",
+        "verdict": "match",
+        "probe": 10.0,
+        "dumpsys": [
+          "10.00000000"
+        ]
+      },
+      {
+        "field": "android.lens.info.availableFocalLengths",
+        "verdict": "match",
+        "probe": [
+          2.95
+        ],
+        "dumpsys": [
+          "2.95000005"
+        ]
+      },
+      {
+        "field": "android.sensor.info.physicalSize",
+        "verdict": "match",
+        "probe": [
+          4.002,
+          3.006
+        ],
+        "dumpsys": [
+          "4.00199986",
+          "3.00600004"
+        ]
+      },
+      {
+        "field": "android.sensor.info.pixelArraySize",
+        "verdict": "match",
+        "probe": [
+          3264,
+          2448
+        ],
+        "dumpsys": [
+          "3264",
+          "2448"
+        ]
+      },
+      {
+        "field": "android.sensor.info.activeArraySize",
+        "verdict": "match",
+        "probe": [
+          0,
+          0,
+          3264,
+          2448
+        ],
+        "dumpsys": [
+          "0",
+          "0",
+          "3264",
+          "2448"
+        ]
+      },
+      {
+        "field": "android.lens.poseTranslation (present)",
+        "verdict": "match",
+        "probe": false,
+        "dumpsys": false
+      },
+      {
+        "field": "android.lens.intrinsicCalibration (present)",
+        "verdict": "match",
+        "probe": false,
+        "dumpsys": false
+      }
+    ]
+  },
+  "only_in_probe": [],
+  "only_in_dumpsys": [],
+  "matches": 16,
+  "mismatches": 0,
+  "verdict": "pass"
+}

@@ -1,0 +1,13 @@
+# Every version is pinned exactly (taken from android-microscope 0.3.1). Bump deliberately,
+# rebuild, and re-run the probe on a phone.
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.21"
+junit = "4.13.2"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
