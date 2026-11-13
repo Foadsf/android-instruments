@@ -2,7 +2,7 @@
  * halprobe: ask a legacy camera HAL module directly how many cameras it has and what each one
  * is, bypassing the camera service and any wrapper. Read-only: it never opens a camera device.
  *
- *   halprobe <module.so> [max_id]
+ *   halprobe <module.so> [id ...]      (default ids: 0-7 20-23 50-53, the Samsung candidates)
  *
  * Prints one JSON object. Exit 0 when the module loaded, 3 when it could not be loaded.
  * Struct layouts follow AOSP hardware/libhardware include/hardware/{hardware,camera_common}.h.
@@ -91,11 +91,13 @@ static void print_ints(const char *key, find_entry_fn find, const void *meta, ui
     printf("]");
 }
 
-static void probe_id(const camera_module_t *m, int id, find_entry_fn find, count_fn count) {
+static void probe_id(const camera_module_t *m, int id, int first, find_entry_fn find, count_fn count) {
     camera_info_t info;
     memset(&info, 0, sizeof info);
+    printf("%s\n    {\"id\": %d", first ? "" : ",", id);
+    fflush(stdout); /* if the HAL crashes on this id, the output still names it */
     int rc = m->get_camera_info(id, &info);
-    printf("%s\n    {\"id\": %d, \"rc\": %d", id ? "," : "", id, rc);
+    printf(", \"rc\": %d", rc);
     if (rc == 0) {
         const void *meta = info.static_camera_characteristics;
         printf(", \"facing\": %d, \"orientation\": %d, \"device_version\": \"0x%x\", \"metadata_entries\": %zu",
@@ -110,11 +112,12 @@ static void probe_id(const camera_module_t *m, int id, find_entry_fn find, count
 }
 
 int main(int argc, char **argv) {
+    static const int default_ids[] = {0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23, 50, 51, 52, 53};
     if (argc < 2) {
-        fprintf(stderr, "usage: halprobe <camera module .so> [max_id]\n");
+        fprintf(stderr, "usage: halprobe <camera module .so> [id ...]\n");
         return 2;
     }
-    int max_id = argc > 2 ? atoi(argv[2]) : 8;
+    int n_ids = argc > 2 ? argc - 2 : (int)(sizeof default_ids / sizeof default_ids[0]);
     void *meta_lib = dlopen("libcamera_metadata.so", RTLD_NOW);
     find_entry_fn find = meta_lib ? (find_entry_fn)dlsym(meta_lib, "find_camera_metadata_ro_entry") : NULL;
     count_fn count = meta_lib ? (count_fn)dlsym(meta_lib, "get_camera_metadata_entry_count") : NULL;
@@ -130,11 +133,14 @@ int main(int argc, char **argv) {
     }
     if (m->init) m->init();
     printf("{\"module\": \"%s\", \"name\": \"%s\", \"module_api_version\": \"0x%x\", "
-           "\"get_number_of_cameras\": %d, \"probed_up_to\": %d, \"cameras\": [",
+           "\"get_number_of_cameras\": %d, \"cameras\": [",
            argv[1], m->common.name ? m->common.name : "", m->common.module_api_version,
-           m->get_number_of_cameras(), max_id);
+           m->get_number_of_cameras());
     fflush(stdout);
-    for (int id = 0; id <= max_id; ++id) probe_id(m, id, find, count);
+    for (int k = 0; k < n_ids; ++k) {
+        int id = argc > 2 ? atoi(argv[2 + k]) : default_ids[k];
+        probe_id(m, id, k == 0, find, count);
+    }
     printf("\n]}\n");
     return 0;
 }
