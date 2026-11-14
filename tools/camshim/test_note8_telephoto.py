@@ -34,6 +34,31 @@ class Plans(unittest.TestCase):
         self.assertLess(with_lib.index(mount_lib), with_lib.index("setprop ctl.restart vendor.camera-provider-2-5"))
 
 
+class Persist(unittest.TestCase):
+    def test_rc_binds_the_shim_in_post_fs_data_before_the_hal_class_starts(self):
+        rc = t.rc_text()
+        lines = [ln.strip() for ln in rc.splitlines() if ln.strip() and not ln.startswith("#")]
+        self.assertEqual(lines[0], "on post-fs-data")
+        self.assertEqual(lines[1], f"mount none {t.REMOTE_SHIM} {t.TARGET} bind")
+        self.assertEqual(len(lines), 2)
+
+    def test_persist_writes_only_the_rc_file_and_remounts_read_only_again(self):
+        steps = [s[1] for s in t.persist_plan()]
+        self.assertEqual(steps[0], "mount -o remount,rw /")
+        self.assertEqual(steps[-1], "mount -o remount,ro /")
+        writes = [s for s in steps if s.startswith(("cp ", "mv ", "rm ", "chmod ", "chcon "))]
+        self.assertTrue(writes and all(t.RC_TARGET in s for s in writes), writes)
+        self.assertFalse(any("disable-verity" in s for s in steps))
+
+    def test_unpersist_removes_the_same_rc_file(self):
+        steps = [s[1] for s in t.unpersist_plan()]
+        self.assertIn(f"rm -f {t.RC_TARGET}", steps)
+        self.assertEqual((steps[0], steps[-1]), ("mount -o remount,rw /", "mount -o remount,ro /"))
+
+    def test_rc_target_is_an_init_directory(self):
+        self.assertTrue(t.RC_TARGET.startswith("/system/etc/init/") and t.RC_TARGET.endswith(".rc"))
+
+
 class Parsers(unittest.TestCase):
     def test_camera_count_from_real_note8_dumpsys(self):
         self.assertEqual(t.camera_count(NOTE8_DUMPSYS_HEAD), 2)

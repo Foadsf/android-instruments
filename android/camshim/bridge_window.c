@@ -3,6 +3,7 @@
  * registered at start_preview); enqueue only queues the filled buffer, and a copier thread copies
  * it into the framework buffer of the oldest pending request and delivers the result. Copying or
  * calling the framework on HAL1's enqueue thread stalled Samsung's dual pipeline after ~50 frames.
+ * The same ring and copier serve telephoto-only mode, whose frames come from bridge_tele.c slots.
  */
 #include <android/log.h>
 #include <errno.h>
@@ -31,7 +32,12 @@ static void count_frame(bridge_t *b, int outcome) {
     pthread_mutex_unlock(&b->lock);
 }
 
-/* Copies one filled pool buffer into the oldest pending request's buffer, or drops it. */
+static void release_source(bridge_t *b, int index) {
+    if (b->tele) tele_release(b, index);
+    else pool_release(b->pool, index);
+}
+
+/* Copies one filled frame into the oldest pending request's buffer, or drops it. */
 static void copy_one(bridge_t *b, filled_t f) {
     pthread_mutex_lock(&b->lock);
     bq_slot_t *s = bq_dequeue(&b->q);
@@ -41,13 +47,14 @@ static void copy_one(bridge_t *b, filled_t f) {
     camera3_stream_t *stream = b->stream;
     pthread_mutex_unlock(&b->lock);
     if (!target) {
-        pool_release(b->pool, f.index);
+        release_source(b, f.index);
         count_frame(b, 1);
         return;
     }
     wait_fence(fence);
-    int rc = pool_copy_to(b->pool, f.index, (buffer_handle_t *)target, stream);
-    pool_release(b->pool, f.index);
+    int rc = b->tele ? tele_copy_to(b, f.index, (buffer_handle_t *)target, stream)
+                     : pool_copy_to(b->pool, f.index, (buffer_handle_t *)target, stream);
+    release_source(b, f.index);
     pthread_mutex_lock(&b->lock);
     if (rc == 0) bq_enqueue(&b->q, target, f.ts);
     else bq_fail(&b->q, target);
@@ -77,18 +84,26 @@ static int win_dequeue(preview_stream_ops_t *w, buffer_handle_t **buffer, int *s
     return pool_dequeue(of_window(w)->pool, buffer, stride);
 }
 
+int bridge_queue_filled(bridge_t *b, int index, int64_t ts) {
+    pthread_mutex_lock(&b->lock);
+    int ok = b->filled_count < FILLED_CAP;
+    if (ok) {
+        b->filled[(b->filled_head + b->filled_count++) % FILLED_CAP] = (filled_t){index, ts};
+        pthread_cond_signal(&b->filled_cv);
+    }
+    pthread_mutex_unlock(&b->lock);
+    return ok ? 0 : -1;
+}
+
 static int win_enqueue(preview_stream_ops_t *w, buffer_handle_t *buffer) {
     bridge_t *b = of_window(w);
     int index = pool_index(b->pool, buffer);
     if (index < 0) return -EINVAL;
     pthread_mutex_lock(&b->lock);
-    int ok = b->filled_count < FILLED_CAP;
-    if (ok) {
-        b->filled[(b->filled_head + b->filled_count++) % FILLED_CAP] = (filled_t){index, b->last_ts};
-        pthread_cond_signal(&b->filled_cv);
-    }
+    int64_t ts = b->last_ts;
     pthread_mutex_unlock(&b->lock);
-    if (!ok) pool_release(b->pool, index); /* cannot happen with a pool smaller than the ring */
+    /* a full ring cannot happen with a pool smaller than the ring */
+    if (bridge_queue_filled(b, index, ts) != 0) pool_release(b->pool, index);
     return 0;
 }
 

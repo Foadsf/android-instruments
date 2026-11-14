@@ -118,6 +118,23 @@ Third attempt (14:18-14:19), phone pointed up at the ceiling and a daylit skylig
 
 **Camera 2 through the bridge delivered the telephoto image to an app at 2x.** The phone moved between captures (shift about 470 px), which changes position but not scale. Limits: one frame of one run was checked, so a switch to the wide crop mid-stream (Samsung's lux and distance fallback, as seen in the dim close scene) is still possible and is not flagged by the bridge. For close-range work the fallback is expected to pick the wide crop.
 
+## Telephoto-only mode, now the default (2026-11-14)
+
+Dual mode hands the output to Samsung's fusion stage, which picks a wide-camera crop for dim or close scenes: the wrong choice for microscope work. Camera 2 now opens HAL1 `"3"` (the telephoto alone) by default; `persist.instruments.camera.bridge_mode=dual` restores dual mode. `"3"` rejects standard window buffers (milestone 1), so the bridge sets no window and enables `CAMERA_MSG_PREVIEW_FRAME`: each NV21 callback frame is copied into one of 4 CPU slots on HAL1's thread (the callback memory is freed when it returns) and the existing copier thread copies the slot into the framework buffer (`bridge_tele.c`; packed NV21 is described for `yuv420_copy` by the new host-tested `yuv_describe_nv21`). Shutter timestamps are `CLOCK_BOOTTIME`, matching camera 3's `timestampSource` REALTIME. Cost: two CPU copies per frame.
+
+Device results, phone close to a wall:
+
+- 8 s camera 2 trial: WORKS, 231 frames copied, 5 dropped (no free slot), 0 failed (`results/sm-n950f/probe_20261114_143141-8f3d.json`).
+- Which sensor runs, from the kernel log (cleared before the run): in telephoto-only mode only sensor position 2 opens (`REAR_2ND(Tele)`), and position 0 (wide) never starts (`probe_20261114_143451-a71d`). The same check in dual mode opened positions 0 and 2.
+- Image: copied frame 150 against hal1probe frames of `"3"` and `"0"` taken right after. ORB found too few features on the blurred wall, so scale was found by normalised cross-correlation (scratch `ncc_scale.py`, checked on the daylight set: 1.87, the same as ORB). Bridge vs telephoto: best scale 0.99 (NCC 0.983); bridge vs wide: 1.89; telephoto vs wide: 1.92.
+- Not shown: that dual mode would have cropped the wide camera at this scene. Its frame also measured 0.99 against the telephoto (`probe_20261114_143401-5075`), so this scene does not separate the modes by image. The kernel log does: telephoto-only mode never starts the wide sensor, so its output cannot be a wide crop.
+
+## Surviving reboots (2026-11-14)
+
+`tools/camshim/note8_telephoto.py persist` installs one init script, `/system/etc/init/instruments_camshim.rc`, that bind-mounts `/data/local/tmp/instruments/camera.universal8895.so` over the camera HAL `on post-fs-data`. The camera provider is `class hal`, started `on boot`, so the mount is in place first. `/` is plain ext4 on this build (`/dev/block/sda15`, no dm-verity device), so the one-time remount turns off no verification. `unpersist` deletes the script. A ROM update replaces `/system` and removes it.
+
+Verified: after `adb reboot` (boot completed in about 32 s), with adb back to non-root, `/proc/mounts` showed the bind mount, the camera service listed 3 devices, and the probe app's camera 2 trial was WORKS with 232 frames in 8 s through `open_legacy("3")` (`probe_20261114_143841-bc75`).
+
 ## Thresholds
 
 As in `device-probe.md`: a trial WORKS at >= 10 frames per stream in 2 s.

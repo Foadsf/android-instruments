@@ -46,3 +46,12 @@ int yuv420_copy(const yuv_image_t *src, const yuv_image_t *dst, uint32_t w, uint
     copy_plane(&src->plane[2], &dst->plane[2], w / 2, h / 2);
     return 0;
 }
+
+int yuv_describe_nv21(uint8_t *buf, uint32_t w, uint32_t h, yuv_image_t *out) {
+    if (!buf || !out || w == 0 || h == 0 || (w & 1u) || (h & 1u)) return -1;
+    uint8_t *vu = buf + (size_t)w * h;
+    out->plane[0] = (yuv_plane_t){buf, w, 1};
+    out->plane[1] = (yuv_plane_t){vu + 1, w, 2};
+    out->plane[2] = (yuv_plane_t){vu, w, 2};
+    return 0;
+}

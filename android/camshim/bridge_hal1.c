@@ -9,6 +9,7 @@
 #include <sys/system_properties.h>
 
 #include "bridge.h"
+#include "bridge_internal.h"
 
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "InstrumentsCameraBridge", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "InstrumentsCameraBridge", __VA_ARGS__)
@@ -33,8 +34,10 @@ static void on_notify(int32_t msg, int32_t e1, int32_t e2, void *u) {
     if (msg == CAMERA_MSG_ERROR) LOGE("HAL1 error %d %d", e1, e2);
 }
 
+/* Preview frames only arrive in telephoto-only mode (the message is enabled only there). */
 static void on_data(int32_t m, const camera_memory_t *d, unsigned int i, camera_frame_metadata_t *md, void *u) {
-    (void)m, (void)d, (void)i, (void)md, (void)u;
+    (void)md;
+    if ((m & CAMERA_MSG_PREVIEW_FRAME) && d && u) tele_on_frame(u, d->data, d->size, i);
 }
 
 static void on_data_ts(int64_t t, int32_t m, const camera_memory_t *d, unsigned int i, void *u) {
@@ -62,7 +65,7 @@ static camera_memory_t *on_memory(int fd, size_t size, unsigned int n, void *u) 
     return m;
 }
 
-void bridge_hal1_set_callbacks(camera_device_t *dev) {
-    dev->ops->set_callbacks(dev, on_notify, on_data, on_data_ts, on_memory, NULL);
-    dev->ops->enable_msg_type(dev, CAMERA_MSG_ERROR);
+void bridge_hal1_set_callbacks(camera_device_t *dev, struct bridge *b, int preview_frames) {
+    dev->ops->set_callbacks(dev, on_notify, on_data, on_data_ts, on_memory, b);
+    dev->ops->enable_msg_type(dev, CAMERA_MSG_ERROR | (preview_frames ? CAMERA_MSG_PREVIEW_FRAME : 0));
 }

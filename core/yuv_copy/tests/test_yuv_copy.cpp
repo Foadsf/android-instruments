@@ -80,6 +80,29 @@ INSTRUMENTS_TEST(padding_bytes_of_destination_are_not_touched) {
     INSTRUMENTS_CHECK(d.mem[W] == 0xEE && d.mem[W + 3] == 0xEE);  // row 0 padding of Y
 }
 
+// A packed NV21 frame (HAL1 preview callback): Y rows of W bytes, then V,U pairs.
+INSTRUMENTS_TEST(packed_nv21_is_described_and_copies) {
+    std::vector<uint8_t> nv21(W * H * 3 / 2);
+    for (size_t i = 0; i < nv21.size(); ++i) nv21[i] = static_cast<uint8_t>(i);
+    yuv_image_t s{};
+    INSTRUMENTS_CHECK(yuv_describe_nv21(nv21.data(), W, H, &s) == 0);
+    INSTRUMENTS_CHECK(s.plane[0].data == nv21.data() && s.plane[0].row_stride == W);
+    INSTRUMENTS_CHECK(s.plane[2].data == nv21.data() + W * H && s.plane[1].data == nv21.data() + W * H + 1);
+    INSTRUMENTS_CHECK(s.plane[1].pixel_stride == 2 && s.plane[2].row_stride == W);
+    Img d('p', 0);
+    INSTRUMENTS_CHECK(yuv420_copy(&s, &d.im, W, H) == 0);
+    INSTRUMENTS_CHECK(d.at(0, 5, 3) == nv21[3 * W + 5]);
+    INSTRUMENTS_CHECK(d.at(2, 1, 1) == nv21[W * H + W + 2] && d.at(1, 1, 1) == nv21[W * H + W + 3]);
+}
+
+INSTRUMENTS_TEST(packed_nv21_refuses_bad_sizes) {
+    uint8_t buf[64];
+    yuv_image_t s{};
+    INSTRUMENTS_CHECK(yuv_describe_nv21(buf, W - 1, H, &s) == -1);
+    INSTRUMENTS_CHECK(yuv_describe_nv21(buf, W, 0, &s) == -1);
+    INSTRUMENTS_CHECK(yuv_describe_nv21(nullptr, W, H, &s) == -1);
+}
+
 INSTRUMENTS_TEST(bad_arguments_are_refused) {
     Img s('n', 0), d('n', 0);
     INSTRUMENTS_CHECK(yuv420_copy(&s.im, &d.im, W - 1, H) == -1);

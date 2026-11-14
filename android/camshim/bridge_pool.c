@@ -170,6 +170,10 @@ static void dump_nv21(const yuv_image_t *im, uint32_t w, uint32_t h) {
     LOGI("dumped %ux%u NV21 to %s", w, h, path);
 }
 
+void bridge_dump_maybe(int frame, const void *yuv_image, uint32_t w, uint32_t h) {
+    if (frame == dump_at()) dump_nv21(yuv_image, w, h);
+}
+
 int pool_copy_to(bridge_pool_t *p, int index, buffer_handle_t *fw, const camera3_stream_t *s) {
     pthread_mutex_lock(&p->lock);
     AHardwareBuffer *src = index >= 0 && index < p->allocated ? p->ahb[index] : NULL;
@@ -187,7 +191,7 @@ int pool_copy_to(bridge_pool_t *p, int index, buffer_handle_t *fw, const camera3
         for (int i = 0; i < 3; ++i)
             si.plane[i] = (yuv_plane_t){sp.planes[i].data, sp.planes[i].rowStride, sp.planes[i].pixelStride};
         rc = yuv420_copy(&si, &di, w & ~1u, h & ~1u) == 0 ? 0 : -EINVAL;
-        if (rc == 0 && frame == dump_at()) dump_nv21(&di, w, h);
+        if (rc == 0) bridge_dump_maybe(frame, &di, w, h);
         gr1_unlock(*fw);
     }
     AHardwareBuffer_unlock(src, NULL);

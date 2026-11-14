@@ -17,6 +17,7 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 #define ZOOM_PROP "persist.instruments.camera.bridge_zoom"
+#define MODE_PROP "persist.instruments.camera.bridge_mode" /* "dual", else telephoto only */
 #define FRAMEWORK_USAGE 0x33u /* CPU read and write often: the bridge copies into these buffers */
 
 static bridge_t *of(const camera3_device_t *d) { return (bridge_t *)d; }
@@ -123,7 +124,9 @@ static int b_configure(const camera3_device_t *d, camera3_stream_configuration_t
     char size[32];
     snprintf(size, sizeof size, "%ux%u", s->width, s->height);
     int rc = size_supported(b, s->width, s->height) ? hal1_set(b, "preview-size", size) : -EINVAL;
-    if (rc == 0) rc = b->hal1->ops->set_preview_window(b->hal1, &b->window.ops);
+    if (rc == 0 && b->tele) rc = hal1_set(b, "preview-format", "yuv420sp"); /* NV21 callbacks */
+    if (rc == 0 && b->tele) rc = tele_alloc(b, s->width, s->height);
+    if (rc == 0) rc = b->hal1->ops->set_preview_window(b->hal1, b->tele ? NULL : &b->window.ops);
     if (rc == 0) {
         s->usage |= FRAMEWORK_USAGE;
         s->max_buffers = 6;
@@ -210,6 +213,7 @@ static int b_close(hw_device_t *dev) {
     b->hal1->common.close(&b->hal1->common);
     bridge_window_stop(b);
     pool_destroy(b->pool);
+    tele_free(b);
     LOGI("closing: copied %d, dropped %d, copy failed %d", b->stats[0], b->stats[1], b->stats[2]);
     for (int i = 0; i < MAX_TEMPLATES; ++i)
         if (b->defaults[i]) b->meta.release(b->defaults[i]);
@@ -248,9 +252,15 @@ int bridge_open(camera_module_t *vendor, const hw_module_t *module, const camera
         free(b);
         return -ENODEV;
     }
+    /* Default: the telephoto alone ("3"). "dual" opens Samsung's dual mode ("20") at 2x zoom,
+     * which falls back to a wide-camera crop for dim or close scenes. */
+    char mode[PROP_VALUE_MAX] = {0};
+    __system_property_get(MODE_PROP, mode);
+    b->tele = strcmp(mode, "dual") != 0;
+    const char *id = b->tele ? "3" : "20";
     hw_device_t *dev = NULL;
-    int rc = vendor->open_legacy(&vendor->common, "20", HAL_CAMERA_DEVICE_API_VERSION_1_0, &dev);
-    LOGI("open_legacy(\"20\"): %d", rc);
+    int rc = vendor->open_legacy(&vendor->common, id, HAL_CAMERA_DEVICE_API_VERSION_1_0, &dev);
+    LOGI("open_legacy(\"%s\"): %d", id, rc);
     if (rc != 0 || !dev) {
         pool_destroy(b->pool);
         free(b);
@@ -259,10 +269,12 @@ int bridge_open(camera_module_t *vendor, const hw_module_t *module, const camera
     init_tables(b);
     b->dev.common.module = (struct hw_module_t *)module;
     b->hal1 = (camera_device_t *)dev;
-    bridge_hal1_set_callbacks(b->hal1);
-    char zoom[PROP_VALUE_MAX] = {0};
-    if (__system_property_get(ZOOM_PROP, zoom) <= 0) strcpy(zoom, "30");
-    LOGI("zoom=%s: %d", zoom, hal1_set(b, "zoom", zoom));
+    bridge_hal1_set_callbacks(b->hal1, b, b->tele);
+    if (!b->tele) {
+        char zoom[PROP_VALUE_MAX] = {0};
+        if (__system_property_get(ZOOM_PROP, zoom) <= 0) strcpy(zoom, "30");
+        LOGI("zoom=%s: %d", zoom, hal1_set(b, "zoom", zoom));
+    }
     camera_metadata_ro_entry_t e;
     if (static_info && b->meta.find_ro(static_info, TAG_REQUEST_PARTIAL_RESULT_COUNT, &e) == 0 && e.count == 1)
         b->partial_count = e.data.i32[0];

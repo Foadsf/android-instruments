@@ -27,6 +27,10 @@ typedef struct {
  * NULL, a pixel stride is 0, or a row stride is too small for its row. */
 int yuv420_copy(const yuv_image_t *src, const yuv_image_t *dst, uint32_t w, uint32_t h);
 
+/* Describes a packed NV21 frame (w x h luma rows, then w/2 x h/2 V,U pairs; the HAL1 preview
+ * callback format) as planes. Returns 0, or -1 if buf is NULL or a size is odd or zero. */
+int yuv_describe_nv21(uint8_t *buf, uint32_t w, uint32_t h, yuv_image_t *out);
+
 #ifdef __cplusplus
 }
 #endif

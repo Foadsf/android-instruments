@@ -11,6 +11,7 @@
 
 #define MAX_TEMPLATES 8
 #define FILLED_CAP 16 /* more than the pool: every entry holds a pool buffer */
+#define TELE_SLOTS 4  /* CPU frames between HAL1's data callback and the copier */
 
 typedef struct bridge bridge_t;
 typedef struct {
@@ -46,6 +47,12 @@ struct bridge {
     int filled_head, filled_count, copier_stop, copier_valid;
     pthread_cond_t filled_cv;
     pthread_t copier;
+    /* Telephoto-only mode (bridge_tele.c): HAL1 "3" delivers NV21 by data callback into these. */
+    int tele, tele_frames;
+    uint8_t *slot[TELE_SLOTS];
+    int slot_busy[TELE_SLOTS];
+    uint32_t slot_w, slot_h;
+    size_t slot_cap;
 };
 
 /* Pops every result that is ready, in frame order, and sends it to the framework. */
@@ -54,5 +61,16 @@ void bridge_deliver_ready(bridge_t *b);
 void bridge_window_init(bridge_t *b);
 /* Stops and joins the copier thread (after HAL1 has stopped). */
 void bridge_window_stop(bridge_t *b);
+/* Hands a filled frame (pool index, or tele slot) to the copier; 0, or -1 if the ring is full. */
+int bridge_queue_filled(bridge_t *b, int index, int64_t ts);
+
+/* Telephoto-only mode. Sizes the CPU slots for w x h NV21 (preview stopped); 0 or negative. */
+int tele_alloc(bridge_t *b, uint32_t w, uint32_t h);
+void tele_free(bridge_t *b);
+/* HAL1 data callback: copies the frame into a free slot and queues it for the copier. */
+void tele_on_frame(bridge_t *b, const void *data, size_t size, unsigned int index);
+/* Copier side: slot into the framework buffer (gralloc1), then free the slot. */
+int tele_copy_to(bridge_t *b, int slot, buffer_handle_t *framework, const camera3_stream_t *stream);
+void tele_release(bridge_t *b, int slot);
 
 #endif

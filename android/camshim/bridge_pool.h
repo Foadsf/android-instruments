@@ -24,5 +24,8 @@ int pool_index(bridge_pool_t *p, buffer_handle_t *buffer);
 void pool_release(bridge_pool_t *p, int index);
 /* Copies pool buffer index into the framework buffer (locked through gralloc1); 0 or negative. */
 int pool_copy_to(bridge_pool_t *p, int index, buffer_handle_t *framework, const camera3_stream_t *stream);
+/* Debug evidence: writes im as NV21 to persist.instruments.camera.bridge_dump when frame equals
+ * persist.instruments.camera.bridge_dump_at (default 30). */
+void bridge_dump_maybe(int frame, const void *yuv_image, uint32_t w, uint32_t h); /* a yuv_image_t */
 
 #endif

@@ -3,11 +3,15 @@
 
     status   is the shim mounted, and how many cameras does the camera service see?
     install  push the shim, label it, bind-mount it over the 32-bit camera HAL, restart cameras
-    revert   unmount and restart cameras (a reboot also reverts: nothing on /system changes)
+    revert   unmount and restart cameras (a reboot also reverts, unless persist was run)
+    persist  survive reboots: one init script, /system/etc/init/instruments_camshim.rc, bind-mounts
+             the shim at post-fs-data, before the camera provider starts
+    unpersist  remove that init script (the current mount stays until revert or reboot)
 
-install and revert need adb running as root (Developer options -> Rooted debugging, then
-`adb root`). Nothing is written to /system: the shim lives in /data/local/tmp and is
-bind-mounted, so dm-verity and the system image stay untouched.
+All actions but status need adb running as root (Developer options -> Rooted debugging, then
+`adb root`). install and revert write nothing to /system: the shim lives in /data/local/tmp and
+is bind-mounted. persist writes only the init script (/ is plain ext4 on this build, no
+dm-verity device); unpersist removes it.
 
 Exit codes: 0 done (status: shim active and >= 3 cameras); 1 checked and not active / verify
 failed; 2 usage error; 3 could not tell (no phone, not root).
@@ -31,6 +35,10 @@ SERVICES = ["vendor.camera-provider-2-5", "cameraserver"]
 # Optional: the patched libexynoscamera3.so (tools/camshim/patch_exynoscamera3.py).
 REMOTE_LIB = f"{REMOTE_DIR}/libexynoscamera3.so"
 LIB_TARGET = "/system/lib/libexynoscamera3.so"
+# persist: one init script, the only file written under /system.
+REMOTE_RC = f"{REMOTE_DIR}/instruments_camshim.rc"
+RC_TARGET = "/system/etc/init/instruments_camshim.rc"
+RC_LABEL = "u:object_r:system_file:s0"
 
 
 def _mount_steps(src: str, dst: str) -> list[list[str]]:
@@ -56,6 +64,33 @@ def revert_plan() -> list[list[str]]:
 
 def restart_plan() -> list[list[str]]:
     return [["shell", f"setprop ctl.restart {s}"] for s in SERVICES]
+
+
+def rc_text() -> str:
+    """The init script persist installs. Pure: unit-tested."""
+    return (
+        "# android-instruments: bind-mount the camera shim over the camera HAL at every boot, before\n"
+        "# the camera provider starts (class hal, on boot). Written by tools/camshim/note8_telephoto.py\n"
+        "# persist; removed by unpersist. The shim itself stays in /data/local/tmp/instruments.\n"
+        "on post-fs-data\n"
+        f"    mount none {REMOTE_SHIM} {TARGET} bind\n"
+    )
+
+
+def persist_plan() -> list[list[str]]:
+    """adb steps that install the init script (pushed to REMOTE_RC first). / is plain ext4 on the
+    Note8 build (no dm-verity device), so a remount touches no verification. Pure: unit-tested."""
+    return [
+        ["shell", "mount -o remount,rw /"],
+        ["shell", f"cp {REMOTE_RC} {RC_TARGET}"],
+        ["shell", f"chmod 644 {RC_TARGET}"],
+        ["shell", f"chcon {RC_LABEL} {RC_TARGET}"],
+        ["shell", "mount -o remount,ro /"],
+    ]
+
+
+def unpersist_plan() -> list[list[str]]:
+    return [["shell", "mount -o remount,rw /"], ["shell", f"rm -f {RC_TARGET}"], ["shell", "mount -o remount,ro /"]]
 
 
 def camera_count(dumpsys: str) -> int | None:
@@ -89,7 +124,9 @@ def status(adb: Adb) -> int:
     mounted = shim_mounted(mounts)
     lib = shim_mounted(mounts, LIB_TARGET)
     count = camera_count(adb.run(["shell", "dumpsys media.camera"]))
-    print(f"shim mounted: {mounted}; patched libexynoscamera3 mounted: {lib}; camera service devices: {count}")
+    rc = "post-fs-data" in adb.run(["shell", f"cat {RC_TARGET} 2>/dev/null"], check=False)
+    print(f"shim mounted: {mounted}; patched libexynoscamera3 mounted: {lib}; camera service devices: {count}; "
+          f"persists across reboot: {rc}")
     return 0 if mounted and (count or 0) >= 3 else 1
 
 
@@ -133,9 +170,45 @@ def revert(adb: Adb) -> int:
     return 0 if status(adb) == 1 else 1
 
 
+def persist(adb: Adb, shim: Path) -> int:
+    """Survive reboots: push the shim (if needed) and install the init script; reboot to verify."""
+    if not adb.dry_run and not shim.is_file():
+        print(f"missing: {shim}", file=sys.stderr)
+        return 2
+    adb.run(["shell", f"mkdir -p {REMOTE_DIR}"])
+    mounted = not adb.dry_run and shim_mounted(adb.run(["shell", "cat /proc/mounts"]))
+    if not mounted:  # pushing over a mounted shim would change the running provider's file
+        adb.run(["push", str(shim), REMOTE_SHIM])
+        for step in _mount_steps(REMOTE_SHIM, TARGET)[:2]:  # chmod + chcon, no mount
+            adb.run(step)
+    local_rc = Path(__file__).resolve().parent / "instruments_camshim.rc.tmp"
+    local_rc.write_text(rc_text(), encoding="utf-8", newline="\n")
+    try:
+        adb.run(["push", str(local_rc), REMOTE_RC])
+    finally:
+        local_rc.unlink(missing_ok=True)
+    for step in persist_plan():
+        adb.run(step, check=step[1] != "mount -o remount,ro /")  # ro can be EBUSY; the rc is written
+    if adb.dry_run:
+        return 0
+    ok = "post-fs-data" in adb.run(["shell", f"cat {RC_TARGET}"], check=False)
+    print(f"init script {RC_TARGET}: {'installed' if ok else 'MISSING'}; takes effect at the next boot")
+    return 0 if ok else 1
+
+
+def unpersist(adb: Adb) -> int:
+    for step in unpersist_plan():
+        adb.run(step, check=step[1] != "mount -o remount,ro /")
+    if adb.dry_run:
+        return 0
+    gone = adb.run(["shell", f"ls {RC_TARGET} 2>/dev/null"], check=False).strip() == ""
+    print(f"init script removed: {gone}; the shim stays mounted until revert or reboot")
+    return 0 if gone else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("action", choices=["status", "install", "revert"])
+    ap.add_argument("action", choices=["status", "install", "revert", "persist", "unpersist"])
     ap.add_argument("--serial")
     ap.add_argument("--shim", type=Path, default=SHIM_BUILD)
     ap.add_argument("--patched-lib", type=Path,
@@ -151,6 +224,10 @@ def main(argv: list[str] | None = None) -> int:
             print("could not tell: adb is not root. Enable Developer options -> Rooted debugging, then retry.",
                   file=sys.stderr)
             return 3
+        if args.action == "persist":
+            return persist(adb, args.shim)
+        if args.action == "unpersist":
+            return unpersist(adb)
         return install(adb, args.shim, args.patched_lib) if args.action == "install" else revert(adb)
     except (RuntimeError, subprocess.TimeoutExpired) as e:
         print(f"could not tell: {e}", file=sys.stderr)
