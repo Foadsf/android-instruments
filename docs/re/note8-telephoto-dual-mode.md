@@ -38,3 +38,11 @@ Samsung's own 2x mode (Android 8, stock firmware) went through the HAL1 dual ent
 | B | `getUsePureBayerReprocessing()` returns false | raw buffers 15.2 MB instead of 24.4 MB | Switches every camera to the dirty-bayer reprocessing path, which this build may never exercise |
 
 Every wrong guess can panic the kernel, as both device attempts on 2026-11-14 did.
+
+## Option A tried (2026-11-14, run 084854-f68b)
+
+32-bit patch sites (file offset = vaddr - 0x4000): `0x8e192` `movs r0,#7` in `m_setConfigInform` (stores to the config field read back at `+0x388`) and `0x9e52c` `movs r1,#7` before `setContigBufCount` in `m_setBuffers`, both set to 5. Result on the phone: both cameras' buffers allocated (memory problem solved), then `SetMasterInformation wrong camera type(0)` from the ISP firmware wrapper and a kernel panic from `fimc_is_gw0`.
+
+## Next wall: master/follower setup for the ISP firmware
+
+The firmware wants to be told which camera is the master and which the follower. Samsung's code path that does this is not reached by two independent HAL3 sessions. Static next step (no device risk): find where `libexynoscamera3.so` and the vendor module set the dual master/slave information (search for the camera-type field passed to the firmware, the `dual` V4L2 controls, and what `setDualMode(true)` changes beyond the flag), and whether camera 0 must also be switched into dual mode as master.
