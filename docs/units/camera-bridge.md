@@ -48,6 +48,23 @@ Way forward, found on the phone: the ROM ships the legacy gralloc module `grallo
 - **1b.** Allocate the window buffers in the HAL's own format `0x11e` and verify the saved frame holds an image (zero copy inside the bridge's private buffers).
 - **Copy path for the bridge.** Lock the framework's output buffer with the gralloc0 module inside the camera provider and copy each HAL1 frame into it (NV21 to the buffer's real plane layout).
 
+## Dual mode with the stock fusion plugins (2026-11-14)
+
+Source: Foad's own stock firmware backup `N950FXXUGDZEB` (Android 9) from his Drive, system image extracted with `tools/re/samsung_system_image.py`. LineageOS's `libexynoscamera.so` differs from stock only in build ID, build-date string and the compressed debug section (7 runs, same size); `libuniplugin.so` is identical. The three missing libraries (32-bit) were pushed to `/data/local/tmp/instruments/stocklib` and given to `hal1probe` alone through `LD_LIBRARY_PATH` (nothing on `/system` changed):
+
+| File | SHA-256 |
+|---|---|
+| `libdualpreview_interface.so` | `d81b9de9b825e24cea750b1fb113d7e557a84b6a634f0fe8205f93e70d02a333` |
+| `libdualcapture_interface.so` | `21f951a10805ac3eec9d9fd01c00ae33478859fe0ca63d167ae2ef1ac9d352c6` |
+| `libdualcam_optical_zoom.so` (needs only `libOpenCL.so`) | `c7196103fa0bb23ff47f35eac64b050df1dc613223f5ecb93293753931d12c99` |
+
+Results:
+
+- Both plugins load (`dlopen(17:DualPreviewPlugin) is succeeded`).
+- Without a window, dual `start_preview` crashes the process (not the phone) in `ExynosCameraGrallocAllocator::setBufferCount` (NULL allocator): dual mode needs a preview window.
+- **With the window, dual mode runs: `start_preview` 0, 81 frames in 3 s, 24 fps by the HAL's own timestamps, and the frames hold a real image in the standard `0x23` buffers** (the fusion stage writes them, unlike the single-camera ISP path). Both cameras run: `CAM_ID(3)` starts, sensor 33 / `REAR_2ND(Tele)`, `DualPreviewSelector` pairs frames.
+- **At `zoom=30` (2.0x) the output is still the wide camera, digitally cropped.** Log: wide `cropRect(1014, 570, 2006, 1128)`, tele zoom 1.0, sync type stays 1. Geometry agrees: the wall mark lands where a 2x crop of the wide frame predicts (about 1094, 468 vs observed 1060, 470) and not where the telephoto frame has it (1150, 710). Inference: Samsung's fallback (`setMasterLuxFBCond`, `setMasterDistanceFBCond`) kept the wide camera as master because the scene was dim and close; not yet tested in daylight at a distance.
+
 ## Thresholds
 
 As in `device-probe.md`: a trial WORKS at >= 10 frames per stream in 2 s.

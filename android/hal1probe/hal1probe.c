@@ -126,6 +126,9 @@ static int apply_params(camera_device_t *d, int argc, char **argv) {
     char v[64];
     if (camera_params_get(a, "preview-size", v, sizeof v)) printf("{\"event\":\"param\",\"preview-size\":\"%s\"}\n", v);
     if (camera_params_get(a, "preview-format", v, sizeof v)) printf("{\"event\":\"param\",\"preview-format\":\"%s\"}\n", v);
+    if (camera_params_get(a, "max-zoom", v, sizeof v)) printf("{\"event\":\"param\",\"max-zoom\":\"%s\"}\n", v);
+    static char ratios[2048];
+    if (camera_params_get(a, "zoom-ratios", ratios, sizeof ratios)) printf("{\"event\":\"param\",\"zoom-ratios\":\"%s\"}\n", ratios);
     for (int i = 0; i < argc; ++i) {
         char key[96];
         const char *eq = strchr(argv[i], '=');
