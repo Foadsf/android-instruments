@@ -114,6 +114,16 @@ class StartArgs(unittest.TestCase):
         self.assertNotIn("cameras", b)
         c = run_live.start_args("r1", "0", 4000, 16, ois="off")
         self.assertEqual(c[c.index("ois") + 1], "off")
+        self.assertNotIn("series", c)
+
+    def test_series_extras_are_passed_only_for_a_series(self):
+        import run_live
+        a = run_live.start_args("r1", "0,2", 800, 4, ois="off", series=15, still_ms=1200, focus=3.5)
+        self.assertEqual(a[a.index("series") - 1: a.index("series") + 2], ["--ei", "series", "15"])
+        self.assertEqual(a[a.index("still_ms") + 1], "1200")
+        self.assertEqual(a[a.index("focus_diopters") - 1: a.index("focus_diopters") + 2], ["--ef", "focus_diopters", "3.5"])
+        b = run_live.start_args("r1", "0,2", 800, 4, series=3)
+        self.assertNotIn("focus_diopters", b)
 
 
 if __name__ == "__main__":

@@ -46,6 +46,7 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
     val size get() = camera.size
     val openAttempts get() = camera.openAttempts
     var oisOff by camera::oisOff
+    var focusDiopters by camera::focusDiopters
 
     fun cameras(): Pair<List<String>, Set<String>> = camera.listed() to camera.rear()
 

@@ -76,6 +76,10 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
      *  move the image between burst frames. The result's mode is recorded per frame. */
     @Volatile var oisOff = false
 
+    /** Manual focus in diopters for every request (AF off), set before [open]; null = the camera's AF.
+     *  The bridged camera 2 ignores it; the reported focus per frame shows what each camera did. */
+    @Volatile var focusDiopters: Float? = null
+
     /** FLASH_MODE_TORCH in the repeating request of the open camera (re-issued at once). */
     @Volatile var flashTorch = false
         private set
@@ -181,6 +185,10 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
         dev.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
             addTarget(ir.surface)
             if (oisOff) set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+            focusDiopters?.let {
+                set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
+                set(CaptureRequest.LENS_FOCUS_DISTANCE, it)
+            }
             if (flashTorch) {
                 set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
                 set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH)

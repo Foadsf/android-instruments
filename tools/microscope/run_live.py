@@ -38,14 +38,40 @@ TORCH_MODES = ("off", "on", "request", "mode")
 
 
 def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
-               ois: str = "default") -> list[str]:
+               ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None) -> list[str]:
     """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
     request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
-    ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested)."""
+    ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested).
+    series > 0: the calibration capture series of that many poses (camera-calibration.md)."""
     args = ["shell", "am", "start", "-W", "-n", ACTIVITY, "--es", "run_id", run_id,
             "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst), "--es", "torch", torch,
             "--es", "ois", ois]
+    if series > 0:
+        args += ["--ei", "series", str(series), "--el", "still_ms", str(still_ms)]
+        if focus is not None:
+            args += ["--ef", "focus_diopters", str(focus)]
     return args + (["--es", "cameras", cameras] if cameras else [])
+
+
+def run_series(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
+    """Waits for the series report (minutes: Foad moves the phone), pulls it and the series folder."""
+    name = f"microscope_series_{run_id}.json"
+    timeout = max(args.timeout, args.series * 90)
+    print(f"series {run_id}: move the phone to a pose, hold it still until the beep, repeat ({args.series} poses)")
+    if not wait_for(adb, name, timeout):
+        print(f"could not tell: no report {name} after {timeout} s", file=sys.stderr)
+        return 3
+    out.mkdir(parents=True, exist_ok=True)
+    local = out / f"microscope_series_{dt.date.today():%Y%m%d}_{run_id}.json"
+    adb.run("pull", f"{REMOTE_DIR}/{name}", str(local))
+    args.bursts.mkdir(parents=True, exist_ok=True)
+    adb.run("pull", f"{REMOTE_DIR}/captures/{run_id}_series", str(args.bursts), timeout=1800)
+    report = json.loads(local.read_text(encoding="utf-8"))
+    ok = sum(1 for p in report.get("poses", []) if p.get("status") == "ok")
+    print(json.dumps({"report": str(local), "series": str(args.bursts / f"{run_id}_series"), "end": report.get("end"),
+                      "poses": len(report.get("poses", [])), "still_poses": ok}, indent=2))
+    print(f"next: python tools/calib/calibrate.py {args.bursts / (run_id + '_series')} --board-mm W,H [--displacement A,B,100]")
+    return 0
 
 
 def wait_for(adb: Adb, name: str, timeout_s: int) -> bool:
@@ -84,7 +110,13 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
         adb.run("install", "-r", "-g", str(args.apk), timeout=300)
     adb.run("shell", "pm", "grant", PACKAGE, "android.permission.CAMERA", check=False)
     adb.run("shell", "am", "force-stop", PACKAGE)
-    adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, args.ois))
+    # A calibration series always runs with OIS off (camera-calibration.md): the stabiliser moves
+    # the image by ~1 px between frames of a still phone (burst-merge.md run 3).
+    ois = "off" if args.series > 0 else args.ois
+    adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, ois,
+                        args.series, args.still_ms, args.focus))
+    if args.series > 0:
+        return run_series(adb, args, run_id, out)
     name = f"microscope_live_{run_id}.json"
     if not wait_for(adb, name, args.timeout):
         print(f"could not tell: no report {name} after {args.timeout} s", file=sys.stderr)
@@ -116,6 +148,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--burst", type=int, default=16)
     ap.add_argument("--torch", choices=TORCH_MODES, default="off", help="flash LED during the run")
     ap.add_argument("--ois", choices=("default", "off"), default="default", help="optical stabilisation")
+    ap.add_argument("--series", type=int, default=0, help="calibration series of N poses (OIS off unless --ois default)")
+    ap.add_argument("--still-ms", type=int, default=1000, help="series: stillness needed before each pose")
+    ap.add_argument("--focus", type=float, help="series: manual focus in diopters (camera 0)")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")
@@ -126,6 +161,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if not 1 <= args.burst <= 32 or not 500 <= args.stream_ms <= 60_000:
         print("--burst must be 1..32 and --stream-ms 500..60000", file=sys.stderr)
+        return 2
+    if args.series and not (1 <= args.series <= 40 and args.cameras):
+        print("--series needs 1..40 poses and --cameras (e.g. 0,2)", file=sys.stderr)
         return 2
     try:
         return run(Adb(args.serial, args.verbose, False), args)

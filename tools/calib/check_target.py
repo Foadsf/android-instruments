@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from calib_core import detect_corners  # noqa: E402
 from make_target import board_object  # noqa: E402  (the board definition, not the drawing)
 
 MAX_CORNER_ERR_MM = 0.1
@@ -37,18 +38,15 @@ def render(pdf: Path, dpi: int):
 
 
 def board_checks(img, spec: dict, dpi: int) -> list[dict]:
-    import cv2
     import numpy as np
     b = spec["board"]
-    det = cv2.aruco.CharucoDetector(board_object(b))
-    corners, ids, _, _ = det.detectBoard(img)
+    corners, ids = detect_corners(img, board_object(b))  # re-refined: the raw detector is +0.5 px off
     expected = (b["cols"] - 1) * (b["rows"] - 1)
     n = 0 if ids is None else len(ids)
     out = [check("ChArUco inner corners detected", n == expected, n, expected)]
     if n == 0:
         return out
-    mm = corners.reshape(-1, 2) * 25.4 / dpi
-    ids = ids.ravel()
+    mm = corners * 25.4 / dpi
     # OpenCV's corner id i sits at column i % (cols-1), row i // (cols-1), one square in from the edge.
     ex = b["origin_mm"][0] + (ids % (b["cols"] - 1) + 1) * b["square_mm"]
     ey = b["origin_mm"][1] + (ids // (b["cols"] - 1) + 1) * b["square_mm"]

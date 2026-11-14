@@ -1,0 +1,57 @@
+{
+  "unit": "camera_calibration_series",
+  "run_id": "224759-33ab",
+  "model": "SM-N950F",
+  "cameras": [
+    "0",
+    "2"
+  ],
+  "poses_requested": 2,
+  "still_ms": 1000,
+  "still_rad_s": 0.01,
+  "moved_rad_s": 0.02,
+  "focus_diopters": 3.5,
+  "ois": "camera default",
+  "gyroscope": true,
+  "end": "no movement after pose 0",
+  "poses": [
+    {
+      "index": 0,
+      "dir": "pose_00",
+      "status": "ok",
+      "gyro_max_rad_s": 0.0020644963095232294,
+      "accel_mean": [
+        9.825612819100929,
+        0.16390855627970433,
+        2.3535286066100354
+      ],
+      "gyro_mean": [
+        7.900363379458285E-4,
+        -6.926346100581714E-4,
+        4.0283434462640066E-5
+      ],
+      "accel_samples": 254,
+      "capture_s": 5.091754419,
+      "bursts": {
+        "0": "pose_00\/cam0",
+        "2": "pose_00\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 39981000,
+          "ois_mode": 1
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": null
+        }
+      }
+    }
+  ]
+}

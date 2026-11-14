@@ -1,0 +1,247 @@
+{
+  "unit": "microscope-live",
+  "run_id": "222032-95ad",
+  "model": "SM-N950F",
+  "android_release": "13",
+  "listed_ids": [
+    "0",
+    "1",
+    "2"
+  ],
+  "rear_ids": [
+    "0",
+    "2"
+  ],
+  "stream_ms": 3000,
+  "burst_frames": 8,
+  "torch": "off",
+  "ois": "off",
+  "cameras": [
+    {
+      "camera_id": "0",
+      "width": 1440,
+      "height": 1080,
+      "open_attempts": 1,
+      "torch": {
+        "requested": "off",
+        "method": "off",
+        "flash_ids": [
+          "0",
+          "2"
+        ]
+      },
+      "stream": {
+        "frames": 37,
+        "elapsed_s": 3,
+        "fps": 13.654295253390947,
+        "capture_failures": 0,
+        "work_ms_mean": 73.95122132432432,
+        "work_ms_max": 115.544923
+      },
+      "burst": {
+        "dir": "222032-95ad_cam0",
+        "format": "I420",
+        "width": 1440,
+        "height": 1080,
+        "frames_requested": 8,
+        "frames": 8,
+        "complete": true,
+        "timestamps_ns": [
+          27754464238917,
+          27754530849956,
+          27754597458225,
+          27754664078187,
+          27754763996071,
+          27754830606571,
+          27754930528263,
+          27754997141302
+        ],
+        "fps": 13.135613945507112,
+        "sharpness_frame0": 772.6793136655932,
+        "sharpness_roi": "centre half",
+        "focus_distance_diopters": [
+          2.8129742,
+          2.8129742,
+          2.8129742,
+          2.8129742,
+          2.8129742,
+          2.8129742,
+          2.8129742,
+          2.8129742
+        ],
+        "af_mode": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "af_state": [
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "exposure_ns": [
+          30006000,
+          30006000,
+          30006000,
+          30006000,
+          30006000,
+          30006000,
+          30006000,
+          30006000
+        ],
+        "frame_duration_ns": [
+          33333000,
+          33333000,
+          33333000,
+          33333000,
+          33333000,
+          33333000,
+          33333000,
+          33333000
+        ],
+        "ois_mode": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "torch": {
+          "requested": "off",
+          "method": "off",
+          "flash_ids": [
+            "0",
+            "2"
+          ]
+        },
+        "camera_id": "0"
+      }
+    },
+    {
+      "camera_id": "2",
+      "width": 1440,
+      "height": 1080,
+      "open_attempts": 1,
+      "torch": {
+        "requested": "off",
+        "method": "off",
+        "flash_ids": [
+          "0",
+          "2"
+        ]
+      },
+      "stream": {
+        "frames": 79,
+        "elapsed_s": 3,
+        "fps": 21.73522135462387,
+        "capture_failures": 0,
+        "work_ms_mean": 15.102003936708861,
+        "work_ms_max": 38.169692
+      },
+      "burst": {
+        "dir": "222032-95ad_cam2",
+        "format": "I420",
+        "width": 1440,
+        "height": 1080,
+        "frames_requested": 8,
+        "frames": 8,
+        "complete": true,
+        "timestamps_ns": [
+          27759972792029,
+          27760008358721,
+          27760039756644,
+          27760073434760,
+          27760105778606,
+          27760139063529,
+          27760172310529,
+          27760205837606
+        ],
+        "fps": 30.037042925727786,
+        "sharpness_frame0": 22.690403951496826,
+        "sharpness_roi": "centre half",
+        "focus_distance_diopters": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "af_mode": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "af_state": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "exposure_ns": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "frame_duration_ns": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "ois_mode": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "torch": {
+          "requested": "off",
+          "method": "off",
+          "flash_ids": [
+            "0",
+            "2"
+          ]
+        },
+        "camera_id": "2"
+      }
+    }
+  ]
+}

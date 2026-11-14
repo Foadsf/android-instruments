@@ -9,7 +9,8 @@
 v1 (portrait) printed from a viewer came out at 0.947 scale: Foad measured about 142 mm for the 150 mm ruler. The Epson XP-3100's IPP Class Driver fits every page to its printable area after the app (about 0.971, measured 2026-10-07), and the viewer's own fit adds more. The established fix is `tpdprint`, which blits at the driver's true pitch with a per-printer, per-orientation calibration measured on paper. That calibration exists for **landscape** only, so v2 is landscape: `target_a4_v2_landscape.pdf`.
 - Board: 10x8 squares, 200.0 x 160.0 mm, at (12, 20) mm. 9 rows put ink into the unprintable margin in tpdprint's dry run, because the driver shifts the page by about 2.3 mm; every feature now keeps at least 12 mm from the top and bottom.
 - Print: `tpdprint print tools/calib/target_a4_v2_landscape.pdf`. The dry run reports `calibrated: true`, no ink in the unprintable margin, and 360 dpi.
-- Checker on v2: 63 of 63 corners, max error 0.067 mm, all probes pass.
+- Checker on v2: 63 of 63 corners, all probes pass. The corner error is 0.013 mm at 300 dpi and 0.007 mm at 600 dpi once corners are re-refined (see the correction below).
+- **Correction (2026-11-14, found by the calibration unit's synthetic renderer):** OpenCV 4.13's `CharucoDetector` returns every corner +0.5 px off in x and y; one `cornerSubPix` pass removes it (`calib_core.detect_corners`, used by the checker now). The earlier 0.068 / 0.034 mm (300 / 600 dpi) residual was that offset, not render resolution as first stated: a constant half pixel also halves in mm when the pixels do.
 - Paper scale is still unverified until measured: board 200.0 and 160.0 mm, square 20.0 mm, ruler 150.0 mm. Whatever the measurement, calibration uses the measured sizes as truth: the camera model needs the printed size known, not equal to the drawing.
 
 The v1 section below describes the portrait layout (`--layout portrait-v1`).

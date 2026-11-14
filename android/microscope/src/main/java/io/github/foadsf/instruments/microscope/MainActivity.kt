@@ -107,15 +107,28 @@ class MainActivity : Activity() {
             val (listed, rear) = station.cameras()
             val ids = intent.getStringExtra(EXTRA_CAMERAS)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
                 ?: listOfNotNull(CameraChoice.pickCamera(listed, rear, intent.getStringExtra(EXTRA_CAMERA)))
-            val plan = RunMode.Plan(runId, ids, intent.getLongExtra(EXTRA_STREAM_MS, 10_000L),
-                intent.getIntExtra(EXTRA_BURST, 16), intent.getStringExtra(EXTRA_TORCH) ?: "off",
-                intent.getStringExtra(EXTRA_OIS) == "off")
-            val result = runCatching { RunMode(station, outDir()).execute(plan) }
+            val series = intent.getIntExtra(EXTRA_SERIES, 0)
+            val result = if (series > 0) runCatching { runSeries(runId, ids, series) } else {
+                val plan = RunMode.Plan(runId, ids, intent.getLongExtra(EXTRA_STREAM_MS, 10_000L),
+                    intent.getIntExtra(EXTRA_BURST, 16), intent.getStringExtra(EXTRA_TORCH) ?: "off",
+                    intent.getStringExtra(EXTRA_OIS) == "off")
+                runCatching { RunMode(station, outDir()).execute(plan) }
+            }
             ui.post {
                 message = result.fold({ "Done: ${it.name}" }, { "Run failed: $it" })
                 finish()
             }
         }
+    }
+
+    /** The calibration series (camera-calibration.md); OIS off unless `ois=default`. */
+    private fun runSeries(runId: String, ids: List<String>, poses: Int): File {
+        val focus = intent.getFloatExtra(EXTRA_FOCUS, -1f).takeIf { it >= 0f }
+        val plan = SeriesMode.Plan(runId, ids, poses, intent.getLongExtra(EXTRA_STILL_MS, 1000L),
+            burst = intent.getIntExtra(EXTRA_BURST, 4), focusDiopters = focus,
+            oisOff = intent.getStringExtra(EXTRA_OIS) != "default")
+        message = "Calibration series: hold each pose still; a beep means move on"
+        return SeriesMode(station, SensorRecorder(applicationContext), outDir()).execute(plan)
     }
 
     /** On the worker thread. */
@@ -182,6 +195,9 @@ class MainActivity : Activity() {
         const val EXTRA_BURST = "burst"
         const val EXTRA_TORCH = "torch"
         const val EXTRA_OIS = "ois"
+        const val EXTRA_SERIES = "series"
+        const val EXTRA_STILL_MS = "still_ms"
+        const val EXTRA_FOCUS = "focus_diopters"
         const val REQUEST_CAMERA = 1
         const val TICK_MS = 500L
         const val WARM_MS = 2000L
