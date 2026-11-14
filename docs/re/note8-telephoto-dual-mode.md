@@ -43,6 +43,15 @@ Every wrong guess can panic the kernel, as both device attempts on 2026-11-14 di
 
 32-bit patch sites (file offset = vaddr - 0x4000): `0x8e192` `movs r0,#7` in `m_setConfigInform` (stores to the config field read back at `+0x388`) and `0x9e52c` `movs r1,#7` before `setContigBufCount` in `m_setBuffers`, both set to 5. Result on the phone: both cameras' buffers allocated (memory problem solved), then `SetMasterInformation wrong camera type(0)` from the ISP firmware wrapper and a kernel panic from `fimc_is_gw0`.
 
-## Next wall: master/follower setup for the ISP firmware
+## Next wall: master/follower setup for the ISP firmware (studied 2026-11-14)
 
-The firmware wants to be told which camera is the master and which the follower. Samsung's code path that does this is not reached by two independent HAL3 sessions. Static next step (no device risk): find where `libexynoscamera3.so` and the vendor module set the dual master/slave information (search for the camera-type field passed to the firmware, the `dual` V4L2 controls, and what `setDualMode(true)` changes beyond the flag), and whether camera 0 must also be switched into dual mode as master.
+1. **The firmware's field.** Per-frame control metadata carries `camera2_uctl.masterCam`, of type `enum aa_cameratype { AA_CAMERATYPE_SINGLE = 1, AA_CAMERATYPE_WIDE, AA_CAMERATYPE_TELE }` (GPL kernel header `fimc-is-metadata.h`, read from LineageOS `android_kernel_samsung_universal9810`, the same `fimc-is2` driver family; the Note8's own kernel source was not read). There is no value 0, so `SetMasterInformation wrong camera type(0)` means the field was never set.
+2. **The HAL3 library never sets it.** `setMetaCtlMasterCam(camera2_shot_ext*, aa_cameratype)` (0x5f878) stores at `shot_ext + 0x4e6c`; it has no caller in `libexynoscamera3.so`, the vendor module, or the HAL1 library, and nothing else writes that offset.
+3. **Samsung's dual camera lives in the HAL1 library.** `/system/lib64/libexynoscamera.so` contains `ExynosCamera1DualParameters` (master fallback by lux and distance), `ExynosCamera1Parameters::setZoomLevel` ("wake up masterCamera/slaveCamera"), the `PIPE_SYNC_SWITCHING` and `PIPE_SYNC_REPROCESSING` frame-sync pipes, `ExynosCameraDualFrameSelector` and `ExynosCameraFusionWrapper`. The HAL3 library has only the `setDualMode` flag: no sync pipes, no master selection.
+4. **Android 13 does not use HAL1 here.** During the first installed run the camera service logged `Camera provider legacy/0 says an unknown camera device@1.0/legacy/2 now has torch status 0`: the provider offers the HAL1 (`device@1.0`) interface, the camera service registered only the HAL3 one. (Observed message; the camera service source was not read.)
+
+## Conclusion
+
+Streaming the Note8 telephoto on this ROM is not a matter of a patch or a setting. Samsung implemented wide + tele only in the HAL1 path, which this camera service does not use, and the HAL3 path lacks the frame-sync pipes and master selection the firmware requires once both sensors run. What would work is a HAL1-to-HAL3 adapter inside the camera shim: open the vendor HAL1 dual device (`open_legacy`, `dual_camera_mode` parameters, preview callbacks) and present its frames as a HAL3 camera. That is a camera-HAL implementation project, weeks rather than days, with every bring-up step able to panic the phone.
+
+The earlier chats (`chats/`) do not cover the HAL1 dual path or `masterCam`; their `libexynoscamera3.so` analysis was of a different, S6-era library.
