@@ -1,0 +1,119 @@
+{
+  "unit": "burst_merge",
+  "run_id": "201418-4b6f",
+  "model": "SM-N950F",
+  "burst_dir": "201418-4b6f_cam2",
+  "camera_id": "2",
+  "width": 1440,
+  "height": 1080,
+  "frames_a": [
+    0,
+    15
+  ],
+  "frames_b": [
+    16,
+    31
+  ],
+  "torch": {
+    "requested": "on",
+    "method": "request",
+    "flash_ids": [
+      "0",
+      "2"
+    ]
+  },
+  "n": 16,
+  "gain": 2.429737329132321,
+  "predicted_gain": 2.4257809392394187,
+  "lag_correlation": [
+    0.4795,
+    0.2663,
+    0.1484,
+    0.0825,
+    0.0459,
+    0.026,
+    0.0146,
+    0.0085,
+    0.0043,
+    0.002,
+    0.0009,
+    0.0003,
+    -0.0003,
+    -0.0005,
+    -0.0
+  ],
+  "motion": {
+    "integer": {
+      "shift": [
+        0,
+        0
+      ],
+      "peak": 0.3069,
+      "moved": false,
+      "threshold": {
+        "shift": [
+          0,
+          0
+        ],
+        "min_peak": 0.1
+      }
+    },
+    "subpixel": {
+      "shift_ptp_px": [
+        0.121,
+        0.135
+      ],
+      "half_shift_px": [
+        0.0567,
+        0.0134
+      ],
+      "motion_share": 0.0017,
+      "moved": false,
+      "threshold": 0.05
+    },
+    "moved": false
+  },
+  "exactness": {
+    "ok": true,
+    "max_abs_error": 0.0,
+    "threshold": 0.001953125
+  },
+  "luma_mean": 183.2867695473251,
+  "camera": "2",
+  "lighting": {
+    "luma_on": 183.287,
+    "luma_off": 184.185,
+    "luma_ratio": 0.995,
+    "exposure_ratio_off_over_on": null,
+    "status": "not shown",
+    "threshold": 1.5
+  },
+  "verdict": "pass",
+  "checks": [
+    {
+      "check": "Y16 equals the rounded double mean",
+      "ok": true,
+      "value": 0.0,
+      "threshold": 0.001953125
+    },
+    {
+      "check": "gain within 10 % of the autocorrelation prediction",
+      "ok": true,
+      "value": {
+        "gain": 2.43,
+        "predicted": 2.426,
+        "rel": 0.002
+      },
+      "threshold": 0.1
+    },
+    {
+      "check": "gain vs sqrt(N) (recorded, no threshold)",
+      "ok": true,
+      "value": {
+        "gain": 2.43,
+        "sqrt_n": 4.0
+      },
+      "threshold": null
+    }
+  ]
+}

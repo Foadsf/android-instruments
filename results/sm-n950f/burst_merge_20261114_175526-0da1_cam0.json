@@ -1,0 +1,93 @@
+{
+  "unit": "burst_merge",
+  "run_id": "175526-0da1",
+  "model": "SM-N950F",
+  "burst_dir": "175526-0da1_cam0",
+  "camera_id": "0",
+  "width": 1440,
+  "height": 1080,
+  "frames_a": [
+    0,
+    7
+  ],
+  "frames_b": [
+    8,
+    15
+  ],
+  "torch": null,
+  "n": 8,
+  "gain": 2.831403084300977,
+  "predicted_gain": 2.8226454786888633,
+  "lag_correlation": [
+    -0.001,
+    -0.0007,
+    0.0005,
+    -0.0012,
+    -0.0015,
+    -0.0008,
+    -0.0006
+  ],
+  "motion": {
+    "integer": {
+      "shift": [
+        0,
+        0
+      ],
+      "peak": 0.2222,
+      "moved": false,
+      "threshold": {
+        "shift": [
+          0,
+          0
+        ],
+        "min_peak": 0.1
+      }
+    },
+    "subpixel": {
+      "shift_ptp_px": [
+        0.026,
+        0.053
+      ],
+      "half_shift_px": [
+        -0.0023,
+        -0.003
+      ],
+      "motion_share": 0.0,
+      "moved": false,
+      "threshold": 0.05
+    },
+    "moved": false
+  },
+  "exactness": {
+    "ok": true,
+    "max_abs_error": 0.0,
+    "threshold": 0.001953125
+  },
+  "luma_mean": 37.040010288065844,
+  "camera": "0",
+  "verdict": "pass",
+  "checks": [
+    {
+      "check": "Y16 equals the rounded double mean",
+      "ok": true,
+      "value": 0.0,
+      "threshold": 0.001953125
+    },
+    {
+      "check": "gain within 10 % of the autocorrelation prediction",
+      "ok": true,
+      "value": {
+        "gain": 2.831,
+        "predicted": 2.823,
+        "rel": 0.003
+      },
+      "threshold": 0.1
+    },
+    {
+      "check": "gain >= 0.9 sqrt(N)",
+      "ok": true,
+      "value": 2.831,
+      "threshold": 2.546
+    }
+  ]
+}

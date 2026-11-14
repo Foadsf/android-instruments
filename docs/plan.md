@@ -136,7 +136,7 @@ Amended 2026-11-14 (Foad): fusing frames and camera sensors to raise SNR and res
 
 | Unit | Input to output | Oracle (independent of the code under test) |
 |---|---|---|
-| `burst_merge` | N aligned YUV frames to a denoised frame | SNR gain close to √N on a static scene; truth is the mean of a much longer burst; measured on the flat patch of a test chart |
+| `burst_merge` | N aligned YUV frames to a denoised frame | SNR gain from two disjoint halves of one burst (no reference image needed), judged against √N and against the gain the frames' own noise correlation predicts; contract `docs/units/burst-merge.md` |
 | `burst_sr` (3.7) | N frames with sub-pixel shifts to an image at 2x | wide-camera burst at 2x scored against the **telephoto** frame of the same scene, a true optical reference about 1.9x finer |
 | `cross_camera_register` | wide and telephoto frames to a warp (homography, then a parallax-aware flow at close range) | synthetic pair with known warp; on device, residual after warping |
 | `multicam_fusion` | registered wide + telephoto bursts to one image: telephoto detail in its field, wide SNR and field around it | PSNR/SSIM against a reference captured with more frames; no gain may be claimed against the fused image's own inputs |

@@ -11,10 +11,14 @@ import java.io.File
  * go to `captures/<runId>_cam<id>/`. Errors are recorded per camera, never swallowed.
  */
 class RunMode(private val station: Station, private val outDir: File) {
-    data class Plan(val runId: String, val cameraIds: List<String>, val streamMs: Long, val burst: Int)
+    /** [torch]: off, on, request or mode (see [Station.setTorch]); set after each open.
+     *  [oisOff]: request optical stabilisation off on every camera. */
+    data class Plan(val runId: String, val cameraIds: List<String>, val streamMs: Long, val burst: Int,
+                    val torch: String = "off", val oisOff: Boolean = false)
 
     fun execute(plan: Plan): File {
         val (listed, rear) = station.cameras()
+        station.oisOff = plan.oisOff
         val cameras = JSONArray()
         for (id in plan.cameraIds) cameras.put(runOne(plan, id))
         val report = JSONObject().apply {
@@ -26,6 +30,8 @@ class RunMode(private val station: Station, private val outDir: File) {
             put("rear_ids", JSONArray(rear.sorted()))
             put("stream_ms", plan.streamMs)
             put("burst_frames", plan.burst)
+            put("torch", plan.torch)
+            put("ois", if (plan.oisOff) "off" else "camera default")
             put("cameras", cameras)
         }
         val file = File(outDir, "microscope_live_${plan.runId}.json")
@@ -40,6 +46,7 @@ class RunMode(private val station: Station, private val outDir: File) {
         try {
             val size = station.open(id)
             out.put("width", size.w).put("height", size.h).put("open_attempts", station.openAttempts)
+            out.put("torch", station.setTorch(plan.torch))  // before streaming: AE settles meanwhile
             val s = station.stream(plan.streamMs)
             out.put("stream", JSONObject().apply {
                 put("frames", s.frames)

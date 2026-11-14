@@ -1,0 +1,14 @@
+add_library(instruments_burst_merge STATIC burst_merge.c)
+target_include_directories(instruments_burst_merge PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_executable(burst_merge_cli cli/burst_merge_cli.cpp)
+target_link_libraries(burst_merge_cli PRIVATE instruments_burst_merge)
+
+instruments_add_test(test_burst_merge tests/test_burst_merge.cpp)
+target_link_libraries(test_burst_merge PRIVATE instruments_burst_merge)
+
+instruments_add_negative_control(negative_control_burst_merge_copies tests/negative_control_copies.cpp)
+target_link_libraries(negative_control_burst_merge_copies PRIVATE instruments_burst_merge)
+
+instruments_add_negative_control(negative_control_burst_merge_blur tests/negative_control_blur.cpp)
+target_link_libraries(negative_control_burst_merge_blur PRIVATE instruments_burst_merge)

@@ -1,0 +1,50 @@
+{
+  "verdict": "pass",
+  "cameras": {
+    "0": [
+      {
+        "check": "stream fps (recorded, no threshold)",
+        "ok": true,
+        "value": 13.64,
+        "threshold": null
+      },
+      {
+        "check": "capture failures",
+        "ok": true,
+        "value": 0,
+        "threshold": 0
+      },
+      {
+        "check": "burst frames saved",
+        "ok": true,
+        "value": 32,
+        "threshold": 32
+      },
+      {
+        "check": "timestamps strictly increasing",
+        "ok": true,
+        "value": true,
+        "threshold": true
+      },
+      {
+        "check": "largest gap in frame periods",
+        "ok": true,
+        "value": 1.09,
+        "threshold": 2.0
+      }
+    ]
+  },
+  "sharpness": [
+    {
+      "camera_id": "0",
+      "check": "sharpness app vs NumPy (relative)",
+      "ok": true,
+      "value": {
+        "app": 1522.5329653829824,
+        "numpy": 1522.533,
+        "rel": 0.0
+      },
+      "threshold": 0.01
+    }
+  ]
+}

@@ -20,6 +20,7 @@ jobs:
           python3 -m unittest discover -s tools/probe -p "test_*.py"
           python3 -m unittest discover -s tools/camshim -p "test_*.py"
           python3 -m unittest discover -s tools/microscope -p "test_*.py"
+          python3 -m unittest discover -s tools/fusion -p "test_*.py"
 
   core:
     runs-on: ubuntu-24.04

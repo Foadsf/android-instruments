@@ -38,8 +38,9 @@ class BurstRecorder(private val dir: File, private val count: Int, private val w
         return true
     }
 
-    /** Waits for the burst, writes the files and returns the summary (also in burst.json). */
-    fun finish(timeoutMs: Long, meta: (Long) -> FrameMeta?): JSONObject {
+    /** Waits for the burst, writes the files and returns the summary (also in burst.json). [torch]:
+     *  how the flash LED was set during the burst, or null when it was off. */
+    fun finish(timeoutMs: Long, torch: JSONObject?, meta: (Long) -> FrameMeta?): JSONObject {
         val complete = full.await(timeoutMs, TimeUnit.MILLISECONDS)
         val n = synchronized(this) { closed = true; taken }
         val ts = stamps.copyOf(n)
@@ -65,6 +66,8 @@ class BurstRecorder(private val dir: File, private val count: Int, private val w
             put("af_state", JSONArray(ts.map { meta(it)?.afState ?: JSONObject.NULL }))
             put("exposure_ns", JSONArray(ts.map { meta(it)?.exposureNs ?: JSONObject.NULL }))
             put("frame_duration_ns", JSONArray(ts.map { meta(it)?.frameDurationNs ?: JSONObject.NULL }))
+            put("ois_mode", JSONArray(ts.map { meta(it)?.oisMode ?: JSONObject.NULL }))
+            put("torch", torch ?: JSONObject.NULL)
             writeError?.let { put("write_error", it) }
         }
         if (n > 0) writeLumaPng(frames[0])

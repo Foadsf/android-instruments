@@ -36,6 +36,7 @@ class MainActivity : Activity() {
     private var bitmap: Bitmap? = null
     private var cameraId: String? = null
     private var message = ""
+    @Volatile private var torchOn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,7 @@ class MainActivity : Activity() {
             addView(button("Zoom") { station.zoom = if (station.zoom >= 4) 1 else station.zoom * 2 })
             addView(button("Save") { saveBurst(listOfNotNull(cameraId)) })
             addView(button("Pair") { saveBurst(PAIR) })
+            addView(button("Torch") { toggleTorch() })
         }
         setContentView(FrameLayout(this).apply {
             addView(view)
@@ -106,7 +108,8 @@ class MainActivity : Activity() {
             val ids = intent.getStringExtra(EXTRA_CAMERAS)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
                 ?: listOfNotNull(CameraChoice.pickCamera(listed, rear, intent.getStringExtra(EXTRA_CAMERA)))
             val plan = RunMode.Plan(runId, ids, intent.getLongExtra(EXTRA_STREAM_MS, 10_000L),
-                intent.getIntExtra(EXTRA_BURST, 16))
+                intent.getIntExtra(EXTRA_BURST, 16), intent.getStringExtra(EXTRA_TORCH) ?: "off",
+                intent.getStringExtra(EXTRA_OIS) == "off")
             val result = runCatching { RunMode(station, outDir()).execute(plan) }
             ui.post {
                 message = result.fold({ "Done: ${it.name}" }, { "Run failed: $it" })
@@ -119,6 +122,7 @@ class MainActivity : Activity() {
     private fun openCamera(id: String?) {
         if (id == null) { message = "No rear camera"; return }
         cameraId = id
+        torchOn = false
         message = runCatching { station.open(id) }.fold({ "" }, { "Camera $id: ${it.message}" })
     }
 
@@ -126,6 +130,14 @@ class MainActivity : Activity() {
         val (listed, rear) = station.cameras()
         val order = listed.filter { it in rear }
         if (order.isNotEmpty()) openCamera(order[(order.indexOf(cameraId) + 1) % order.size])
+    }
+
+    // Opening another camera turns the LED off (Station.open), so the label follows the state.
+    private fun toggleTorch() = worker.execute {
+        val on = !torchOn
+        message = runCatching { station.setTorch(if (on) "on" else "off") }.fold(
+            { if (it.has("error")) "Torch: ${it.getString("error")}" else { torchOn = on; if (on) "Torch on (${it.getString("method")})" else "" } },
+            { "Torch: ${it.message}" })
     }
 
     private fun saveBurst(ids: List<String>) = worker.execute {
@@ -168,6 +180,8 @@ class MainActivity : Activity() {
         const val EXTRA_RUN_ID = "run_id"
         const val EXTRA_STREAM_MS = "stream_ms"
         const val EXTRA_BURST = "burst"
+        const val EXTRA_TORCH = "torch"
+        const val EXTRA_OIS = "ois"
         const val REQUEST_CAMERA = 1
         const val TICK_MS = 500L
         const val WARM_MS = 2000L

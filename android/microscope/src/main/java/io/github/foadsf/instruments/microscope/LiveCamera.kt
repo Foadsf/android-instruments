@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /** What the capture result reported for one frame, matched to the image by sensor timestamp. */
 data class FrameMeta(val focusDiopters: Float?, val afMode: Int?, val afState: Int?, val exposureNs: Long?,
-                     val frameDurationNs: Long?)
+                     val frameDurationNs: Long?, val oisMode: Int? = null)
 
 /**
  * One camera, one YUV_420_888 stream (the camera 2 bridge accepts exactly one). Every frame is
@@ -66,6 +66,29 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
             ?.getOutputSizes(ImageFormat.YUV_420_888)?.map { Size2(it.width, it.height) }.orEmpty()
 
     fun meta(tsNs: Long): FrameMeta? = meta[tsNs]
+
+    /** Cameras whose characteristics say they own a flash unit. */
+    fun flashIds(): List<String> = listed().filter {
+        runCatching { manager.getCameraCharacteristics(it).get(CameraCharacteristics.FLASH_INFO_AVAILABLE) }.getOrNull() == true
+    }
+
+    /** Optical stabilisation off in every request (set before [open]): on a stand, OIS can only
+     *  move the image between burst frames. The result's mode is recorded per frame. */
+    @Volatile var oisOff = false
+
+    /** FLASH_MODE_TORCH in the repeating request of the open camera (re-issued at once). */
+    @Volatile var flashTorch = false
+        private set
+
+    fun setFlashTorch(on: Boolean) {
+        flashTorch = on
+        val dev = device ?: return
+        val ir = reader ?: return
+        session?.setRepeatingRequest(request(dev, ir), resultCallback, camHandler)
+    }
+
+    /** The LED through the torch API, independent of any open camera's requests. Throws if refused. */
+    fun setTorchMode(id: String, on: Boolean) = manager.setTorchMode(id, on)
 
     @Volatile private var workNs = 0L
     @Volatile private var workMaxNs = 0L
@@ -122,6 +145,7 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
         reader = null
         openId = null
         size = null
+        flashTorch = false
         meta.clear()
         failures.set(0)
     }
@@ -154,14 +178,21 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
     }
 
     private fun request(dev: CameraDevice, ir: ImageReader): CaptureRequest =
-        dev.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply { addTarget(ir.surface) }.build()
+        dev.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
+            addTarget(ir.surface)
+            if (oisOff) set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+            if (flashTorch) {
+                set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
+                set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH)
+            }
+        }.build()
 
     private val resultCallback = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(s: CameraCaptureSession, req: CaptureRequest, r: TotalCaptureResult) {
             val ts = r.get(CaptureResult.SENSOR_TIMESTAMP) ?: return
             meta[ts] = FrameMeta(r.get(CaptureResult.LENS_FOCUS_DISTANCE), r.get(CaptureResult.CONTROL_AF_MODE),
                 r.get(CaptureResult.CONTROL_AF_STATE), r.get(CaptureResult.SENSOR_EXPOSURE_TIME),
-                r.get(CaptureResult.SENSOR_FRAME_DURATION))
+                r.get(CaptureResult.SENSOR_FRAME_DURATION), r.get(CaptureResult.LENS_OPTICAL_STABILIZATION_MODE))
             if (meta.size > META_KEEP) meta.keys.sorted().take(meta.size - META_KEEP).forEach(meta::remove)
         }
 

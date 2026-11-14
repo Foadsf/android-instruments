@@ -8,6 +8,7 @@ import io.github.foadsf.instruments.microscope.core.Roi
 import io.github.foadsf.instruments.microscope.core.Sharpness
 import io.github.foadsf.instruments.microscope.core.Size2
 import io.github.foadsf.instruments.microscope.core.YuvFrames
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
@@ -30,6 +31,8 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
     private val previewThread = HandlerThread("mic-preview").apply { start() }
     private val previewHandler = Handler(previewThread.looper)
     @Volatile private var recorder: BurstRecorder? = null
+    private var torchModeId: String? = null
+    private var torchState: JSONObject? = null
     @Volatile private var frames = 0
     @Volatile private var firstTs = 0L
     @Volatile private var lastTs = 0L
@@ -42,10 +45,12 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
     val openId get() = camera.openId
     val size get() = camera.size
     val openAttempts get() = camera.openAttempts
+    var oisOff by camera::oisOff
 
     fun cameras(): Pair<List<String>, Set<String>> = camera.listed() to camera.rear()
 
     fun open(id: String): Size2 {
+        torchOff()
         frames = 0
         firstTs = 0L
         return camera.open(id)
@@ -53,7 +58,44 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
 
     fun close() {
         recorder = null
+        torchOff()
         camera.close()
+    }
+
+    /**
+     * The flash LED as the light for the open camera. [mode]: off; request (FLASH_MODE_TORCH in the
+     * camera's own request); mode (CameraManager.setTorchMode on a camera that owns the flash, for a
+     * camera like the bridged telephoto that ignores request controls); on (request if the open
+     * camera owns a flash, else mode). Returns what was tried and any refusal, for the report; it
+     * does not prove the LED lit: the host compares the luma with a torch-off burst.
+     */
+    fun setTorch(mode: String): JSONObject {
+        val id = camera.openId ?: error("no camera open")
+        torchOff()
+        val flash = camera.flashIds()
+        val how = if (mode == "on") (if (id in flash) "request" else "mode") else mode
+        val out = JSONObject().put("requested", mode).put("method", how).put("flash_ids", JSONArray(flash))
+        when (how) {
+            "off" -> Unit
+            "request" -> camera.setFlashTorch(true)
+            "mode" -> {
+                val target = flash.firstOrNull { it != id } ?: flash.firstOrNull()
+                if (target == null) out.put("error", "no camera reports a flash unit")
+                else runCatching { camera.setTorchMode(target, true) }
+                    .onSuccess { torchModeId = target; out.put("target", target) }
+                    .onFailure { out.put("target", target).put("error", it.toString()) }
+            }
+            else -> error("torch must be off, on, request or mode, not $mode")
+        }
+        torchState = out
+        return out
+    }
+
+    private fun torchOff() {
+        if (camera.flashTorch) runCatching { camera.setFlashTorch(false) }
+        torchModeId?.let { id -> runCatching { camera.setTorchMode(id, false) } }
+        torchModeId = null
+        torchState = null
     }
 
     fun release() {
@@ -82,7 +124,7 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
         val s = camera.size ?: error("no camera open")
         val r = BurstRecorder(dir, count, s.w, s.h)
         recorder = r
-        val summary = r.finish(count * FRAME_BUDGET_MS + 2000) { camera.meta(it) }
+        val summary = r.finish(count * FRAME_BUDGET_MS + 2000, torchState) { camera.meta(it) }
         recorder = null
         return summary.put("camera_id", camera.openId)
     }

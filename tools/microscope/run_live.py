@@ -34,10 +34,17 @@ REMOTE_DIR = f"/sdcard/Android/data/{PACKAGE}/files"
 DEFAULT_BURSTS = REPO.parent / "note8_camera_stack" / "bursts"
 
 
-def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int) -> list[str]:
-    """`am start` arguments. Pure: unit-testable."""
+TORCH_MODES = ("off", "on", "request", "mode")
+
+
+def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
+               ois: str = "default") -> list[str]:
+    """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
+    request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
+    ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested)."""
     args = ["shell", "am", "start", "-W", "-n", ACTIVITY, "--es", "run_id", run_id,
-            "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst)]
+            "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst), "--es", "torch", torch,
+            "--es", "ois", ois]
     return args + (["--es", "cameras", cameras] if cameras else [])
 
 
@@ -77,7 +84,7 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
         adb.run("install", "-r", "-g", str(args.apk), timeout=300)
     adb.run("shell", "pm", "grant", PACKAGE, "android.permission.CAMERA", check=False)
     adb.run("shell", "am", "force-stop", PACKAGE)
-    adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst))
+    adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, args.ois))
     name = f"microscope_live_{run_id}.json"
     if not wait_for(adb, name, args.timeout):
         print(f"could not tell: no report {name} after {args.timeout} s", file=sys.stderr)
@@ -107,6 +114,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cameras", help="comma-separated camera ids, in order (default: the app's choice, camera 2)")
     ap.add_argument("--stream-ms", type=int, default=10_000)
     ap.add_argument("--burst", type=int, default=16)
+    ap.add_argument("--torch", choices=TORCH_MODES, default="off", help="flash LED during the run")
+    ap.add_argument("--ois", choices=("default", "off"), default="default", help="optical stabilisation")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")

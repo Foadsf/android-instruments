@@ -103,5 +103,18 @@ class NccScale(unittest.TestCase):
         self.assertLess(ncc, 0.5)
 
 
+class StartArgs(unittest.TestCase):
+    def test_torch_is_passed_and_defaults_to_off(self):
+        import run_live
+        a = run_live.start_args("r1", "0,2", 4000, 32, "mode")
+        self.assertEqual(a[a.index("torch") - 1: a.index("torch") + 2], ["--es", "torch", "mode"])
+        b = run_live.start_args("r1", None, 4000, 16)
+        self.assertEqual(b[b.index("torch") + 1], "off")
+        self.assertEqual(b[b.index("ois") + 1], "default")
+        self.assertNotIn("cameras", b)
+        c = run_live.start_args("r1", "0", 4000, 16, ois="off")
+        self.assertEqual(c[c.index("ois") + 1], "off")
+
+
 if __name__ == "__main__":
     unittest.main()
