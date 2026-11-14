@@ -1,0 +1,5 @@
+add_library(instruments_camera_params STATIC camera_params.c)
+target_include_directories(instruments_camera_params PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+instruments_add_test(test_camera_params tests/test_camera_params.cpp)
+target_link_libraries(test_camera_params PRIVATE instruments_camera_params)

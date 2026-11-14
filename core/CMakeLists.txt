@@ -18,3 +18,4 @@ enable_testing()
 
 add_subdirectory(testing)
 add_subdirectory(camera_idmap)
+add_subdirectory(camera_params)
