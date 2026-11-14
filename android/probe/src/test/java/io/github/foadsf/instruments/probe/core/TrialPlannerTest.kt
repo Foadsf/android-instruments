@@ -63,6 +63,17 @@ class TrialPlannerTest {
     }
 
     @Test
+    fun selectKeepsOnlyNamedTrialsAndBlankKeepsAll() {
+        val cams = (0 until 3).map { CameraInfo("$it", false, emptyList(), note10Sizes) }
+        val plans = TrialPlanner.plan(cams)
+        assertEquals(listOf("0+2"), TrialPlanner.select(plans, " 0+2 ").map { it.key })
+        assertEquals(listOf("0", "1", "2"), TrialPlanner.select(plans, "CONTROL").map { it.key })
+        assertEquals(plans, TrialPlanner.select(plans, ""))
+        assertEquals(plans, TrialPlanner.select(plans, null))
+        assertEquals(emptyList<TrialPlan>(), TrialPlanner.select(plans, "9+9"))
+    }
+
+    @Test
     fun planIsCapped() {
         val many = (0 until 60).map { CameraInfo("$it", false, emptyList(), note10Sizes) }
         assertEquals(TrialPlanner.MAX_TRIALS, TrialPlanner.plan(many).size)

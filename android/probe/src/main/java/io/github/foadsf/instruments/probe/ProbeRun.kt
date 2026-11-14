@@ -18,7 +18,13 @@ import java.time.Instant
  *   probe_<run_id>.json   the report, written to a temporary name and renamed when complete;
  *   events_<run_id>.jsonl the structured event log.
  */
-class ProbeRun(private val ctx: Context, private val runId: String, verbose: Boolean) {
+class ProbeRun(
+    private val ctx: Context,
+    private val runId: String,
+    verbose: Boolean,
+    /** Comma-separated trial keys or kinds to run (TrialPlanner.select); null runs all. */
+    private val trialFilter: String? = null,
+) {
     private val dir: File = ctx.getExternalFilesDir(null) ?: ctx.filesDir
     private val eventsFile = File(dir, "events_$runId.jsonl")
     val log = EventLog(runId, if (verbose) Level.DEBUG else Level.INFO, ::sink, { Instant.now().toString() })
@@ -48,7 +54,9 @@ class ProbeRun(private val ctx: Context, private val runId: String, verbose: Boo
             "entries" to section("camera_json") { scan.toJson(entries) },
         )
         val infos = scan.cameraInfo(entries)
-        val results = section("stream_trials") { StreamTrials(manager, log).runAll(TrialPlanner.plan(infos)) } ?: emptyList()
+        val plans = TrialPlanner.select(TrialPlanner.plan(infos), trialFilter)
+        report["trial_filter"] = trialFilter
+        val results = section("stream_trials") { StreamTrials(manager, log).runAll(plans) } ?: emptyList()
         report["stream_trials"] = results.map(Verdicts::toJson)
         report["dual_physical_streams"] = Verdicts.dualStreamAnswer(results, infos.count { it.isLogicalMulti })
         report["compute"] = section("compute") { ComputeFacts.collect(ctx) }

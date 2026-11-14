@@ -43,6 +43,14 @@ data class TrialPlan(
     /** Second camera ID for [TrialKind.CONCURRENT_PAIR]; streams[1] belongs to it. */
     val secondOpenId: String? = null,
 ) {
+    /** Short selector for [TrialPlanner.select]: "2" (control), "0+2" (concurrent), else the label. */
+    val key: String
+        get() = when {
+            secondOpenId != null -> "$openId+$secondOpenId"
+            kind == TrialKind.CONTROL -> openId
+            else -> label
+        }
+
     val label: String
         get() = if (secondOpenId != null) {
             "$openId@${streams[0].size.w}x${streams[0].size.h}+$secondOpenId@${streams[1].size.w}x${streams[1].size.h}"
@@ -76,6 +84,17 @@ object TrialPlanner {
             chooseSizes(cam.yuvSizes).firstOrNull()?.let { TrialPlan(cam.id, TrialKind.CONTROL, listOf(StreamSpec(null, it))) }
         }
         return (controls + logical.flatMap { planLogical(it, byId) } + planConcurrent(standalone)).take(MAX_TRIALS)
+    }
+
+    /**
+     * Keeps only the plans named in [filter], a comma-separated list of keys ("0+2") or kind
+     * names ("CONTROL"). Blank or null keeps everything. Used to skip trials known to crash a
+     * phone (a solo telephoto stream panicked the Note8's ISP driver).
+     */
+    fun select(plans: List<TrialPlan>, filter: String?): List<TrialPlan> {
+        val tokens = filter?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
+        if (tokens.isEmpty()) return plans
+        return plans.filter { p -> tokens.any { it == p.key || it == p.kind.name } }
     }
 
     /** Every pair of standalone cameras, each at its own first chosen size. */

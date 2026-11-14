@@ -53,7 +53,8 @@ class MainActivity : Activity() {
         button.isEnabled = false
         text.text = "Running probe $runId ..."
         Thread {
-            val message = runCatching { ProbeRun(applicationContext, runId, verbose).execute() }
+            val trials = intent.getStringExtra(EXTRA_TRIALS)
+            val message = runCatching { ProbeRun(applicationContext, runId, verbose, trials).execute() }
                 .fold({ f -> "Done.\n${f.path}\n\n${summary(f.readText())}" }, { e -> "Probe failed: $e" })
             runOnUiThread { text.text = message; button.isEnabled = true }
         }.start()
@@ -72,6 +73,7 @@ class MainActivity : Activity() {
         const val EXTRA_AUTORUN = "autorun"
         const val EXTRA_RUN_ID = "run_id"
         const val EXTRA_VERBOSE = "verbose"
+        const val EXTRA_TRIALS = "trials"
         private const val REQUEST_CAMERA = 1
         private val SUMMARY_KEYS = listOf("model", "android_release", "listed_ids", "dual_physical_streams", "verdict")
     }

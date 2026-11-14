@@ -36,6 +36,12 @@ python tools/camshim/note8_telephoto.py revert
 - Exposure works: the camera service and an ordinary app see camera 2 = telephoto. LineageOS's aux-camera filter did not hide it.
 - Streaming does not: opened alone, the telephoto delivers no frames, and a second solo attempt panicked the kernel in the ISP driver. See `results/README.md`.
 
-## Next experiment (needs Foad's go-ahead: it can panic the phone again)
+## Concurrent experiment (2026-11-14, run 082507-895d)
 
-Open camera 0 and camera 2 at the same time (`CONCURRENT_PAIR` trial, already in the probe app). If the telephoto streams only while the wide camera runs, the HAL treats it as the dual-mode follower, and the shim must keep the wide pipeline running underneath it. If that also fails or panics, telephoto streaming on this ROM needs Samsung's dual-mode entry points (`HAL_camera_device_dual_*`), which means reverse engineering, not configuration.
+Opened camera 0, then camera 2 (`--trials 0+2`). The HAL entered dual mode for the telephoto, then failed to allocate its raw buffers because the wide camera's full-resolution buffers had filled the camera ION heap, and the kernel panicked (same `CoreReset() failed` signature). So the telephoto is a dual-mode follower, and the dual mode as driven by two independent Camera2 sessions does not fit in memory.
+
+## Open questions, in order of cost
+
+1. Does a smaller wide-camera stream make the HAL pick a binned sensor mode with smaller raw buffers, so both fit? (One more device trial; can panic.)
+2. Which parameters does Samsung's stock camera pass to enter dual mode (`HAL_camera_device_dual_*`, `dual_camera_mode`, `getTeleCameraId`)? Static reverse engineering of this exact `libexynoscamera3.so`, no device risk.
+3. Only then: a shim that opens both vendor cameras itself in the configuration found in step 2 and presents the telephoto stream as camera 2.
