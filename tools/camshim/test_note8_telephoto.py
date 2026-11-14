@@ -24,6 +24,14 @@ class Plans(unittest.TestCase):
 
     def test_revert_unmounts_the_same_target(self):
         self.assertEqual(t.revert_plan()[0], ["shell", f"umount {t.TARGET}"])
+        self.assertEqual(t.revert_plan()[1], ["shell", f"umount {t.LIB_TARGET}"])
+
+    def test_patched_lib_is_mounted_only_when_asked_and_before_the_restart(self):
+        plain = [s[1] for s in t.install_plan()]
+        with_lib = [s[1] for s in t.install_plan(with_lib=True)]
+        mount_lib = f"mount -o bind {t.REMOTE_LIB} {t.LIB_TARGET}"
+        self.assertNotIn(mount_lib, plain)
+        self.assertLess(with_lib.index(mount_lib), with_lib.index("setprop ctl.restart vendor.camera-provider-2-5"))
 
 
 class Parsers(unittest.TestCase):

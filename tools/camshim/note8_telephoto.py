@@ -28,19 +28,29 @@ REMOTE_SHIM = f"{REMOTE_DIR}/camera.universal8895.so"
 TARGET = "/system/lib/hw/camera.universal8895.so"
 LABEL = "u:object_r:system_lib_file:s0"
 SERVICES = ["vendor.camera-provider-2-5", "cameraserver"]
+# Optional: the patched libexynoscamera3.so (tools/camshim/patch_exynoscamera3.py).
+REMOTE_LIB = f"{REMOTE_DIR}/libexynoscamera3.so"
+LIB_TARGET = "/system/lib/libexynoscamera3.so"
 
 
-def install_plan() -> list[list[str]]:
-    """adb argument lists for install, after the shim has been pushed. Pure: unit-tested."""
+def _mount_steps(src: str, dst: str) -> list[list[str]]:
     return [
-        ["shell", f"chmod 644 {REMOTE_SHIM}"],
-        ["shell", f"chcon {LABEL} {REMOTE_SHIM}"],
-        ["shell", f"mount -o bind {REMOTE_SHIM} {TARGET}"],
-    ] + restart_plan()
+        ["shell", f"chmod 644 {src}"],
+        ["shell", f"chcon {LABEL} {src}"],
+        ["shell", f"mount -o bind {src} {dst}"],
+    ]
+
+
+def install_plan(with_lib: bool = False) -> list[list[str]]:
+    """adb argument lists for install, after the files have been pushed. Pure: unit-tested."""
+    steps = _mount_steps(REMOTE_SHIM, TARGET)
+    if with_lib:
+        steps += _mount_steps(REMOTE_LIB, LIB_TARGET)
+    return steps + restart_plan()
 
 
 def revert_plan() -> list[list[str]]:
-    return [["shell", f"umount {TARGET}"]] + restart_plan()
+    return [["shell", f"umount {TARGET}"], ["shell", f"umount {LIB_TARGET}"]] + restart_plan()
 
 
 def restart_plan() -> list[list[str]]:
@@ -52,8 +62,8 @@ def camera_count(dumpsys: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def shim_mounted(mounts: str) -> bool:
-    return any(line.split()[1:2] == [TARGET] for line in mounts.splitlines() if line.strip())
+def shim_mounted(mounts: str, target: str = TARGET) -> bool:
+    return any(line.split()[1:2] == [target] for line in mounts.splitlines() if line.strip())
 
 
 class Adb:
@@ -74,9 +84,11 @@ class Adb:
 
 
 def status(adb: Adb) -> int:
-    mounted = shim_mounted(adb.run(["shell", "cat /proc/mounts"]))
+    mounts = adb.run(["shell", "cat /proc/mounts"])
+    mounted = shim_mounted(mounts)
+    lib = shim_mounted(mounts, LIB_TARGET)
     count = camera_count(adb.run(["shell", "dumpsys media.camera"]))
-    print(f"shim mounted: {mounted}; camera service devices: {count}")
+    print(f"shim mounted: {mounted}; patched libexynoscamera3 mounted: {lib}; camera service devices: {count}")
     return 0 if mounted and (count or 0) >= 3 else 1
 
 
@@ -91,16 +103,19 @@ def require_root(adb: Adb) -> bool:
     return "uid=0" in adb.run(["shell", "id"], check=False)
 
 
-def install(adb: Adb, shim: Path) -> int:
-    if not adb.dry_run and not shim.is_file():
-        print(f"shim not built: {shim} (pwsh android/camshim/build.ps1)", file=sys.stderr)
-        return 2
+def install(adb: Adb, shim: Path, lib: Path | None) -> int:
+    for f in [shim] + ([lib] if lib else []):
+        if not adb.dry_run and not f.is_file():
+            print(f"missing: {f}", file=sys.stderr)
+            return 2
     if not adb.dry_run and shim_mounted(adb.run(["shell", "cat /proc/mounts"])):
         print("already mounted; run revert first", file=sys.stderr)
         return 1
     adb.run(["shell", f"mkdir -p {REMOTE_DIR}"])
     adb.run(["push", str(shim), REMOTE_SHIM])
-    for step in install_plan():
+    if lib:
+        adb.run(["push", str(lib), REMOTE_LIB])
+    for step in install_plan(with_lib=lib is not None):
         adb.run(step)
     if adb.dry_run:
         return 0
@@ -110,7 +125,7 @@ def install(adb: Adb, shim: Path) -> int:
 
 def revert(adb: Adb) -> int:
     for step in revert_plan():
-        adb.run(step, check=step[1].startswith("setprop"))
+        adb.run(step, check=step[1].startswith("setprop"))  # an unmount of a path not mounted is fine
     if adb.dry_run:
         return 0
     time.sleep(4)
@@ -122,6 +137,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("action", choices=["status", "install", "revert"])
     ap.add_argument("--serial")
     ap.add_argument("--shim", type=Path, default=SHIM_BUILD)
+    ap.add_argument("--patched-lib", type=Path,
+                    help="also bind-mount this patched libexynoscamera3.so over /system/lib (install only)")
     ap.add_argument("-v", "--verbose", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="print the adb commands without running them")
     args = ap.parse_args(argv)
@@ -133,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
             print("could not tell: adb is not root. Enable Developer options -> Rooted debugging, then retry.",
                   file=sys.stderr)
             return 3
-        return install(adb, args.shim) if args.action == "install" else revert(adb)
+        return install(adb, args.shim, args.patched_lib) if args.action == "install" else revert(adb)
     except (RuntimeError, subprocess.TimeoutExpired) as e:
         print(f"could not tell: {e}", file=sys.stderr)
         return 3
