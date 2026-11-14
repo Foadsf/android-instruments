@@ -25,6 +25,8 @@ A unit is done when its test passes in CI. A unit "works on the phone" only when
 | 0 | `core/testing` harness with negative controls | green | n/a |
 | 0 | `tools/lint` size and purity gate | green | n/a |
 | 1 | `android/probe` device probe + `tools/probe` cross-check | green | [results/](results/README.md) |
+| 1 | `android/halprobe` direct camera-HAL probe | n/a | Note8: telephoto found at HAL ID 3 |
+| 1 | `core/camera_idmap` + `android/camshim` (expose uncounted vendor cameras) | green | shim verified unprivileged; install needs root |
 
 ## Build and test
 

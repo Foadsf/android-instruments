@@ -1,0 +1,8 @@
+add_library(instruments_camera_idmap STATIC camera_idmap.c)
+target_include_directories(instruments_camera_idmap PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+instruments_add_test(test_camera_idmap tests/test_camera_idmap.cpp)
+target_link_libraries(test_camera_idmap PRIVATE instruments_camera_idmap)
+
+instruments_add_negative_control(negative_control_idmap tests/negative_control_idmap.cpp)
+target_link_libraries(negative_control_idmap PRIVATE instruments_camera_idmap)

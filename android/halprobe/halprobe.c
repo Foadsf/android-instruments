@@ -5,7 +5,7 @@
  *   halprobe <module.so> [id ...]      (default ids: 0-7 20-23 50-53, the Samsung candidates)
  *
  * Prints one JSON object. Exit 0 when the module loaded, 3 when it could not be loaded.
- * Struct layouts follow AOSP hardware/libhardware include/hardware/{hardware,camera_common}.h.
+ * Struct layouts: android/hal_common/legacy_camera_hal.h.
  */
 #include <dlfcn.h>
 #include <stdint.h>
@@ -13,50 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct hw_module_t {
-    uint32_t tag;
-    uint16_t module_api_version;
-    uint16_t hal_api_version;
-    const char *id;
-    const char *name;
-    const char *author;
-    void *methods;
-    void *dso;
-#ifdef __LP64__
-    uint64_t reserved[32 - 7];
-#else
-    uint32_t reserved[32 - 7];
-#endif
-} hw_module_t;
+#include "legacy_camera_hal.h"
 
-typedef struct camera_info {
-    int facing;
-    int orientation;
-    uint32_t device_version;
-    const void *static_camera_characteristics;
-    int resource_cost;
-    char **conflicting_devices;
-    size_t conflicting_devices_length;
-} camera_info_t;
-
-typedef struct camera_module {
-    hw_module_t common;
-    int (*get_number_of_cameras)(void);
-    int (*get_camera_info)(int camera_id, struct camera_info *info);
-    int (*set_callbacks)(const void *callbacks);
-    void (*get_vendor_tag_ops)(void *ops);
-    int (*open_legacy)(const hw_module_t *module, const char *id, uint32_t hal_version, void **device);
-    int (*set_torch_mode)(const char *camera_id, int enabled);
-    int (*init)(void);
-    void *reserved[5];
-} camera_module_t;
-
-typedef struct {
-    uint32_t tag;
-    uint8_t type;
-    size_t count;
-    union { const uint8_t *u8; const int32_t *i32; const float *f; const int64_t *i64; const double *d; const void *r; } data;
-} metadata_entry_t;
+typedef camera_metadata_ro_entry_t metadata_entry_t;
 
 typedef int (*find_entry_fn)(const void *meta, uint32_t tag, metadata_entry_t *entry);
 typedef size_t (*count_fn)(const void *meta);

@@ -1,0 +1,6 @@
+{"module": "/data/local/tmp/instruments/camera.instruments_shim.so", "name": "Instruments Camera Shim (exposes uncounted vendor cameras)", "module_api_version": "0x204", "get_number_of_cameras": 3, "cameras": [
+    {"id": 0, "rc": 0, "facing": 0, "orientation": 90, "device_version": "0x304", "metadata_entries": 87, "focal_lengths_mm": [4.3], "min_focus_diopters": [10], "physical_size_mm": [5.645, 4.234], "pixel_array": [4032, 3024]},
+    {"id": 1, "rc": 0, "facing": 1, "orientation": 270, "device_version": "0x304", "metadata_entries": 85, "focal_lengths_mm": [2.95], "min_focus_diopters": [10], "physical_size_mm": [4.002, 3.006], "pixel_array": [3264, 2448]},
+    {"id": 2, "rc": 0, "facing": 0, "orientation": 90, "device_version": "0x304", "metadata_entries": 87, "focal_lengths_mm": [4.2], "min_focus_diopters": [10], "physical_size_mm": [3.2, 2.4], "pixel_array": [4032, 3024]},
+    {"id": 3, "rc": -22}
+]}

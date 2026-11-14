@@ -1,0 +1,19 @@
+# Builds halprobe (arm64 and armv7) and the camera shim (armv7 and arm64) with the NDK.
+# Output: build/android-native/<abi>/. Usage: pwsh android/camshim/build.ps1
+$ErrorActionPreference = 'Stop'
+$repo = Resolve-Path "$PSScriptRoot/../.."
+$ndk = Get-ChildItem "$env:ANDROID_HOME/ndk" -Directory | Sort-Object Name | Select-Object -Last 1
+$bin = "$($ndk.FullName)/toolchains/llvm/prebuilt/windows-x86_64/bin"
+$flags = @('-O2', '-Wall', '-Wextra', '-Werror', '-std=c11', "-I$repo/android/hal_common", "-I$repo/core/camera_idmap/include")
+$targets = @{ 'arm64-v8a' = 'aarch64-linux-android29-clang.cmd'; 'armeabi-v7a' = 'armv7a-linux-androideabi29-clang.cmd' }
+foreach ($abi in $targets.Keys) {
+    $out = "$repo/build/android-native/$abi"
+    New-Item -ItemType Directory -Force $out | Out-Null
+    $cc = "$bin/$($targets[$abi])"
+    & $cc @flags -o "$out/halprobe" "$repo/android/halprobe/halprobe.c" -ldl
+    if ($LASTEXITCODE) { throw "halprobe ($abi) failed" }
+    & $cc @flags -shared -fPIC -fvisibility=hidden -o "$out/camera.instruments_shim.so" `
+        "$repo/android/camshim/camera_tele_shim.c" "$repo/core/camera_idmap/camera_idmap.c" -llog -ldl
+    if ($LASTEXITCODE) { throw "camera shim ($abi) failed" }
+    Write-Output "built $abi"
+}

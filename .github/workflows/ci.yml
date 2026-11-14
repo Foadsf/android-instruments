@@ -18,6 +18,7 @@ jobs:
         run: |
           python3 -m unittest discover -s tools/lint -p "test_*.py"
           python3 -m unittest discover -s tools/probe -p "test_*.py"
+          python3 -m unittest discover -s tools/camshim -p "test_*.py"
 
   core:
     runs-on: ubuntu-24.04
@@ -33,7 +34,7 @@ jobs:
         run: |
           n=$(ctest --test-dir build/core -N -L negative_control | sed -n 's/^Total Tests: //p')
           echo "negative controls: $n"
-          test "$n" -ge 3
+          test "$n" -ge 4
 
   android:
     runs-on: ubuntu-24.04
