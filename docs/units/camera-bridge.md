@@ -94,7 +94,7 @@ HAL1 now fills a private pool (`bridge_pool.c`: 9 `AHardwareBuffer` `0x23`, usag
 - `AHardwareBuffer_createFromHandle` (clone) refused every framework buffer with -22, for any stride or usage tried. The provider has already imported these buffers, so the bridge locks them as they are through the device's gralloc1 module (`bridge_gralloc1.c`; Mali `gralloc.exynos5.so`, module API 1.0, `lock_flex`/`unlock`). The function numbers were taken from AOSP `gralloc1.h` and cross-checked on the phone: `GET_DIMENSIONS` returns 1440x1080 and `GET_FORMAT` `0x11` (NV21) with 3 flex planes for the framework buffer.
 - Probe CONTROL trial on camera 2, 1440x1080 YUV: **verdict WORKS, 49 and 46 frames in 2 s** (two runs; `results/sm-n950f/probe_20261114_104558-5518.json`, `probe_20261114_104741-6931.json`), 0 capture failures; the bridge logged copied 49/46, dropped 0, copy failed 0.
 - Content: with `persist.instruments.camera.bridge_dump` set, frame 31 was read back from the framework buffer after the copy (NV21 SHA-256 `3AB67D21...B36434B8`, kept outside the repo because it shows the room): a real image of the close indoor wall, mean luma 168.4.
-- Not determined for this run: which sensor the fusion stage chose. The scene was close and indoor, where the earlier test saw Samsung fall back to a wide-camera crop; a daylight, distant run through the bridge is still to do.
+- Not determined for this run: which sensor the fusion stage chose. The scene was close and indoor, where the earlier test saw Samsung fall back to a wide-camera crop; the later daylight run is under "Which sensor at 2x" below.
 
 Cost: one CPU copy per frame, about 2.3 MB at 1440x1080.
 
@@ -104,9 +104,19 @@ Longer trials (new `stream_ms` probe extra, `run_probe.py --stream-ms`) showed t
 
 Gap in the oracle: the trial verdict is WORKS at >= 10 frames regardless of length, so the stalled runs (52 and 75 frames in 8 s) also read WORKS. A rate-based threshold would catch a stall; not changed here.
 
-### Which sensor at 2x: still open
+### Which sensor at 2x: the telephoto, when the scene allows it (2026-11-14)
 
-The second "daylight" attempt (2026-11-14 11:2x) had the phone facing the same close indoor wall: the telephoto-only frame was the blurred wall, and ORB found too few features to measure scale between any pair. The telephoto question needs the phone facing a bright, distant, textured scene.
+The second "daylight" attempt (11:2x) had the phone facing the same close indoor wall: the telephoto-only frame was the blurred wall, and ORB found too few features to measure scale between any pair.
+
+Third attempt (14:18-14:19), phone pointed up at the ceiling and a daylit skylight (a few metres away): an 8 s camera 2 trial through the bridge (238 frames copied, 0 dropped, 0 failed; `results/sm-n950f/probe_20261114_141832-4435.json`), copied frame 150 read back from the framework buffer, then hal1probe frames of the telephoto alone (`"3"`) and the wide camera alone (`"0"`) at 1440x1080. Images kept outside the repo (`note8_camera_stack/bridge/day3_*`).
+
+| Pair | Scale | Telephoto hypothesis | Wide 2x crop hypothesis |
+|---|---|---|---|
+| telephoto vs wide | 1.867 (136/406 inliers) | (lens ratio on these streams) | |
+| bridge frame 150 vs telephoto | **1.000** (280/451 inliers) | 1.000 | about 1.07 |
+| bridge frame 150 vs wide | **1.885** (68/168 inliers) | 1.867 | about 2.0 |
+
+**Camera 2 through the bridge delivered the telephoto image to an app at 2x.** The phone moved between captures (shift about 470 px), which changes position but not scale. Limits: one frame of one run was checked, so a switch to the wide crop mid-stream (Samsung's lux and distance fallback, as seen in the dim close scene) is still possible and is not flagged by the bridge. For close-range work the fallback is expected to pick the wide crop.
 
 ## Thresholds
 
