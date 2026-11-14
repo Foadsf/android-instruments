@@ -52,6 +52,7 @@ object Verdicts {
     fun toJson(r: TrialResult): Map<String, Any?> = linkedMapOf(
         "label" to r.plan.label,
         "open_id" to r.plan.openId,
+        "second_open_id" to r.plan.secondOpenId,
         "kind" to r.plan.kind.name,
         "streams" to r.plan.streams.map { mapOf("physical_id" to it.physicalId, "size" to listOf(it.size.w, it.size.h)) },
         "supported_query" to r.supportedQuery,

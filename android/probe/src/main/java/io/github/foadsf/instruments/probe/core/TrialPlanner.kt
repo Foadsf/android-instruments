@@ -25,13 +25,30 @@ enum class TrialKind {
 
     /** Two streams routed to two physical cameras in one session: the Gate 1 question. */
     PHYSICAL_PAIR,
+
+    /**
+     * Two standalone camera IDs opened at the same time, one session and one stream each
+     * ([TrialPlan.openId] and [TrialPlan.secondOpenId]). Answers whether independent cameras
+     * stream concurrently, and whether a camera only streams while another one runs.
+     */
+    CONCURRENT_PAIR,
 }
 
 data class StreamSpec(val physicalId: String?, val size: Size2)
 
-data class TrialPlan(val openId: String, val kind: TrialKind, val streams: List<StreamSpec>) {
+data class TrialPlan(
+    val openId: String,
+    val kind: TrialKind,
+    val streams: List<StreamSpec>,
+    /** Second camera ID for [TrialKind.CONCURRENT_PAIR]; streams[1] belongs to it. */
+    val secondOpenId: String? = null,
+) {
     val label: String
-        get() = "$openId:" + streams.joinToString("+") { "${it.physicalId ?: "logical"}@${it.size.w}x${it.size.h}" }
+        get() = if (secondOpenId != null) {
+            "$openId@${streams[0].size.w}x${streams[0].size.h}+$secondOpenId@${streams[1].size.w}x${streams[1].size.h}"
+        } else {
+            "$openId:" + streams.joinToString("+") { "${it.physicalId ?: "logical"}@${it.size.w}x${it.size.h}" }
+        }
 }
 
 /** Decides which stream combinations the probe tries. Pure: tested on the JVM. */
@@ -58,7 +75,19 @@ object TrialPlanner {
         val controls = standalone.mapNotNull { cam ->
             chooseSizes(cam.yuvSizes).firstOrNull()?.let { TrialPlan(cam.id, TrialKind.CONTROL, listOf(StreamSpec(null, it))) }
         }
-        return (controls + logical.flatMap { planLogical(it, byId) }).take(MAX_TRIALS)
+        return (controls + logical.flatMap { planLogical(it, byId) } + planConcurrent(standalone)).take(MAX_TRIALS)
+    }
+
+    /** Every pair of standalone cameras, each at its own first chosen size. */
+    fun planConcurrent(standalone: List<CameraInfo>): List<TrialPlan> {
+        val sized = standalone.mapNotNull { cam -> chooseSizes(cam.yuvSizes).firstOrNull()?.let { cam.id to it } }
+        val out = mutableListOf<TrialPlan>()
+        for (i in sized.indices) for (j in i + 1 until sized.size) {
+            val (a, sa) = sized[i]
+            val (b, sb) = sized[j]
+            out += TrialPlan(a, TrialKind.CONCURRENT_PAIR, listOf(StreamSpec(null, sa), StreamSpec(null, sb)), b)
+        }
+        return out
     }
 
     private fun planLogical(logical: CameraInfo, byId: Map<String, CameraInfo>): List<TrialPlan> {

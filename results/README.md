@@ -27,6 +27,12 @@ One folder per phone model. Every file here is written by a tool (`tools/probe/r
 
 All other probed IDs (4-7, 21-23, 51-53) return -19. The camera shim ([docs/units/camera-shim.md](../docs/units/camera-shim.md)) loaded by the 32-bit probe reports 3 cameras with camera 2 = the telephoto ([halprobe32_shim_20261114.json](sm-n950f/halprobe32_shim_20261114.json)). Installing it into the camera provider needs root and has not been done yet.
 
+### Installed (2026-11-14, adb root, bind mount)
+
+- **Apps see the telephoto.** With the shim mounted, `dumpsys media.camera` lists 3 devices and the probe app lists cameras 0, 1, 2; camera 2 is back-facing, 4.2 mm, 3.2 x 2.4 mm, FULL, RAW-capable, YUV up to 2560x1440 ([probe run 075924-24c5](sm-n950f/probe_20261114_075924-24c5.json); the cross-check against dumpsys passes, 24 fields agree, 0 disagree).
+- **It does not stream on its own.** The session configures, no frame arrives in 2 s (cameras 0 and 1: 53 frames each). Kernel log: the telephoto sensor (sensor 33, "REAR_2ND(Tele)", S5K3M3 tuning file) is powered and streams over CSI at 30 fps, but the ISP group receives no shots (`rcnt 0`) and the HAL logs `inputFrameQ wait timeout`; at open the Samsung HAL logs `dual cam_state[0](3)`. Hypothesis (not proven): the HAL drives the telephoto only as the follower of the wide camera in its dual mode.
+- **A second solo attempt crashed the phone.** Kernel panic in the camera ISP driver after `SIspObjectBase::CoreReset() failed` (pstore `dmesg-ramoops-0`, kept locally, not committed). The phone rebooted, which also removed the shim, as designed. Device experiments on the telephoto are paused until the risk is accepted.
+
 ## Superseded runs
 
 The first Note8 run (222822-685e) produced invalid JSON: `android.util.Rational` extends `Number` and was written raw as `1/2`. Fixed in `CharacteristicsDump.convert` and guarded in `Json` (non-JSON number text is quoted), with a regression test. That run's files were not committed.

@@ -31,7 +31,11 @@ python tools/camshim/note8_telephoto.py install
 python tools/camshim/note8_telephoto.py revert
 ```
 
-## Known unknowns
+## Results of the installed run (2026-11-14)
 
-- Whether the Samsung HAL streams ID 3 when opened on its own (it may expect its dual-camera mode). Only the installed run can tell.
-- Whether LineageOS's camera service filters IDs >= 2 for third-party apps (`vendor.camera.aux.packagelist`). If the probe app sees 2 cameras while dumpsys lists 3, that filter is the cause.
+- Exposure works: the camera service and an ordinary app see camera 2 = telephoto. LineageOS's aux-camera filter did not hide it.
+- Streaming does not: opened alone, the telephoto delivers no frames, and a second solo attempt panicked the kernel in the ISP driver. See `results/README.md`.
+
+## Next experiment (needs Foad's go-ahead: it can panic the phone again)
+
+Open camera 0 and camera 2 at the same time (`CONCURRENT_PAIR` trial, already in the probe app). If the telephoto streams only while the wide camera runs, the HAL treats it as the dual-mode follower, and the shim must keep the wide pipeline running underneath it. If that also fails or panics, telephoto streaming on this ROM needs Samsung's dual-mode entry points (`HAL_camera_device_dual_*`), which means reverse engineering, not configuration.

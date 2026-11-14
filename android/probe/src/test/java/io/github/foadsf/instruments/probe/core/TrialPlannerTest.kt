@@ -26,8 +26,19 @@ class TrialPlannerTest {
             CameraInfo("1", false, emptyList(), setOf(Size2(1280, 960))),
         )
         val plans = TrialPlanner.plan(cams)
-        assertEquals(listOf("0", "1"), plans.map { it.openId })
-        assertTrue(plans.all { it.kind == TrialKind.CONTROL && it.streams.single().physicalId == null })
+        val controls = plans.filter { it.kind == TrialKind.CONTROL }
+        assertEquals(listOf("0", "1"), controls.map { it.openId })
+        assertTrue(controls.all { it.streams.single().physicalId == null })
+        val concurrent = plans.single { it.kind == TrialKind.CONCURRENT_PAIR }
+        assertEquals("0@1440x1080+1@1280x960", concurrent.label)
+        assertEquals("1", concurrent.secondOpenId)
+    }
+
+    @Test
+    fun concurrentPairsCoverEveryStandalonePairOnce() {
+        val cams = (0 until 3).map { CameraInfo("$it", false, emptyList(), note10Sizes) }
+        val pairs = TrialPlanner.planConcurrent(cams).map { it.openId to it.secondOpenId }
+        assertEquals(listOf("0" to "1", "0" to "2", "1" to "2"), pairs)
     }
 
     @Test
@@ -39,7 +50,7 @@ class TrialPlannerTest {
             CameraInfo("2", false, emptyList(), setOf(Size2(1440, 1080), Size2(4608, 3456))),
             CameraInfo("52", false, emptyList(), emptySet()),
         )
-        val plans = TrialPlanner.plan(cams)
+        val plans = TrialPlanner.plan(cams).filter { it.kind != TrialKind.CONCURRENT_PAIR }
         assertTrue(plans.all { it.openId == "20" })
         assertEquals(1, plans.count { it.kind == TrialKind.CONTROL })
         assertEquals(listOf("0", "2", "52"), plans.filter { it.kind == TrialKind.PHYSICAL_SINGLE }.map { it.streams[0].physicalId })

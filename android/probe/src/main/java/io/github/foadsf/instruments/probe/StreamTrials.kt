@@ -14,6 +14,8 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import io.github.foadsf.instruments.probe.core.EventLog
+import io.github.foadsf.instruments.probe.core.StreamSpec
+import io.github.foadsf.instruments.probe.core.TrialKind
 import io.github.foadsf.instruments.probe.core.TrialPlan
 import io.github.foadsf.instruments.probe.core.TrialResult
 import io.github.foadsf.instruments.probe.core.Verdicts
@@ -24,18 +26,25 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicIntegerArray
 
 /**
- * Runs each [TrialPlan] for real: opens the camera, asks isSessionConfigurationSupported, then
+ * Runs each [TrialPlan] for real: opens the camera(s), asks isSessionConfigurationSupported, then
  * configures the session anyway and counts the frames that arrive on every stream in
  * [STREAM_MS]. The query and the real attempt are recorded separately because a HAL can answer
- * one and do the other.
+ * one and do the other. CONCURRENT_PAIR plans open two camera devices at the same time.
  */
 class StreamTrials(private val manager: CameraManager, private val log: EventLog) {
     private val thread = HandlerThread("probe-camera").apply { start() }
     private val handler = Handler(thread.looper)
     private val executor = Executor { handler.post(it) }
 
+    /** A configured, repeating session (or the reason it did not configure). */
+    private class Started(val session: CameraCaptureSession?, val waiter: SessionWaiter, val query: String) {
+        val failures = AtomicInteger()
+    }
+
     fun runAll(plans: List<TrialPlan>): List<TrialResult> = try {
-        plans.groupBy { it.openId }.flatMap { (id, group) -> runOnDevice(id, group) }
+        val (concurrent, single) = plans.partition { it.kind == TrialKind.CONCURRENT_PAIR }
+        single.groupBy { it.openId }.flatMap { (id, group) -> runOnDevice(id, group) } +
+            concurrent.map { plan -> runConcurrent(plan).also { r -> log.info("trial.done") { Verdicts.toJson(r) } } }
     } finally {
         thread.quitSafely()
     }
@@ -74,17 +83,24 @@ class StreamTrials(private val manager: CameraManager, private val log: EventLog
         return device to error
     }
 
-    private fun runOne(device: CameraDevice, plan: TrialPlan): TrialResult {
-        val readers = plan.streams.map { ImageReader.newInstance(it.size.w, it.size.h, ImageFormat.YUV_420_888, 4) }
-        val counts = AtomicIntegerArray(readers.size)
-        readers.forEachIndexed { i, r ->
-            r.setOnImageAvailableListener({ rr -> rr.acquireNextImage()?.close(); counts.incrementAndGet(i) }, handler)
-        }
-        return try {
-            val outputs = plan.streams.mapIndexed { i, s ->
-                OutputConfiguration(readers[i].surface).apply { s.physicalId?.let(::setPhysicalCameraId) }
+    private fun readers(streams: List<StreamSpec>, counts: AtomicIntegerArray): List<ImageReader> =
+        streams.mapIndexed { i, s ->
+            ImageReader.newInstance(s.size.w, s.size.h, ImageFormat.YUV_420_888, 4).apply {
+                setOnImageAvailableListener({ r -> r.acquireNextImage()?.close(); counts.incrementAndGet(i) }, handler)
             }
-            stream(device, plan, readers, outputs, counts)
+        }
+
+    private fun runOne(device: CameraDevice, plan: TrialPlan): TrialResult {
+        val counts = AtomicIntegerArray(plan.streams.size)
+        val readers = readers(plan.streams, counts)
+        return try {
+            val s = start(device, plan.label, readers, plan.streams.map { it.physicalId })
+            if (s.session == null) return TrialResult.failed(plan, s.waiter.failure ?: "configure timeout", s.query)
+            val t0 = SystemClock.elapsedRealtime()
+            Thread.sleep(STREAM_MS)
+            val elapsed = SystemClock.elapsedRealtime() - t0
+            stop(s)
+            TrialResult(plan, s.query, true, (0 until counts.length()).map(counts::get), elapsed, s.failures.get(), null)
         } catch (e: Exception) {
             log.error("trial.exception") { mapOf("label" to plan.label, "error" to e.toString()) }
             TrialResult.failed(plan, e.toString())
@@ -93,33 +109,63 @@ class StreamTrials(private val manager: CameraManager, private val log: EventLog
         }
     }
 
-    private fun stream(
-        device: CameraDevice, plan: TrialPlan, readers: List<ImageReader>,
-        outputs: List<OutputConfiguration>, counts: AtomicIntegerArray,
-    ): TrialResult {
+    private fun runConcurrent(plan: TrialPlan): TrialResult {
+        val second = plan.secondOpenId ?: return TrialResult.failed(plan, "no second camera id")
+        val (a, errA) = open(plan.openId)
+        val (b, errB) = if (a != null) open(second) else null to "not tried"
+        val counts = AtomicIntegerArray(2)
+        val readers = readers(plan.streams, counts)
+        try {
+            if (a == null || b == null) return TrialResult.failed(plan, "open: ${plan.openId}=$errA, $second=$errB")
+            val sa = start(a, plan.label, readers.subList(0, 1), listOf(null))
+            val sb = start(b, plan.label, readers.subList(1, 2), listOf(null))
+            val query = "${plan.openId}:${sa.query}; $second:${sb.query}"
+            if (sa.session == null || sb.session == null) {
+                stop(sa); stop(sb)
+                return TrialResult.failed(plan, "configure: ${plan.openId}=${sa.waiter.failure}, $second=${sb.waiter.failure}", query)
+            }
+            val t0 = SystemClock.elapsedRealtime()
+            Thread.sleep(STREAM_MS)
+            val elapsed = SystemClock.elapsedRealtime() - t0
+            stop(sa); stop(sb)
+            return TrialResult(plan, query, true, listOf(counts.get(0), counts.get(1)), elapsed, sa.failures.get() + sb.failures.get(), null)
+        } catch (e: Exception) {
+            log.error("trial.exception") { mapOf("label" to plan.label, "error" to e.toString()) }
+            return TrialResult.failed(plan, e.toString())
+        } finally {
+            readers.forEach { it.close() }
+            a?.close()
+            b?.close()
+        }
+    }
+
+    /** Configures one session over [readers] and starts a repeating preview request. */
+    private fun start(device: CameraDevice, label: String, readers: List<ImageReader>, physicalIds: List<String?>): Started {
+        val outputs = readers.mapIndexed { i, r ->
+            OutputConfiguration(r.surface).apply { physicalIds[i]?.let(::setPhysicalCameraId) }
+        }
         val waiter = SessionWaiter()
         val config = SessionConfiguration(SessionConfiguration.SESSION_REGULAR, outputs, executor, waiter)
         val query = supportQuery(device, config)
-        log.debug("trial.query") { mapOf("label" to plan.label, "supported" to query) }
+        log.debug("trial.query") { mapOf("label" to label, "camera" to device.id, "supported" to query) }
         device.createCaptureSession(config)
-        val session = waiter.awaitConfigured()
-            ?: return TrialResult.failed(plan, waiter.failure ?: "configure timeout", query)
-        val failures = AtomicInteger()
+        val started = Started(waiter.awaitConfigured(), waiter, query)
+        val session = started.session ?: return started
         val request = device.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
             .apply { readers.forEach { addTarget(it.surface) } }.build()
-        val start = SystemClock.elapsedRealtime()
         session.setRepeatingRequest(request, object : CameraCaptureSession.CaptureCallback() {
             override fun onCaptureFailed(s: CameraCaptureSession, r: CaptureRequest, f: CaptureFailure) {
-                failures.incrementAndGet()
+                started.failures.incrementAndGet()
             }
         }, handler)
-        Thread.sleep(STREAM_MS)
-        session.stopRepeating()
-        val elapsed = SystemClock.elapsedRealtime() - start
+        return started
+    }
+
+    private fun stop(s: Started) {
+        val session = s.session ?: return
+        runCatching { session.stopRepeating() }
         session.close()
-        waiter.awaitClosed()
-        val frames = (0 until counts.length()).map { counts.get(it) }
-        return TrialResult(plan, query, true, frames, elapsed, failures.get(), null)
+        s.waiter.awaitClosed()
     }
 
     private fun supportQuery(device: CameraDevice, config: SessionConfiguration): String = try {
