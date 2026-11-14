@@ -69,6 +69,9 @@ static void on_notify(int32_t msg, int32_t ext1, int32_t ext2, void *user) {
 }
 
 static void save_once(const camera_memory_t *data, unsigned int index) {
+    static int seen;
+    const char *at = getenv("PROBE_SAVE_AT");
+    if (++seen < (at && atoi(at) > 0 ? atoi(at) : 1)) return; /* callback mode: frame PROBE_SAVE_AT */
     if (g_saved || !data || !data->data || !data->size) return;
     g_saved = 1;
     FILE *f = fopen(g_save_path, "wb");

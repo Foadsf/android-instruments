@@ -65,6 +65,18 @@ Results:
 - **With the window, dual mode runs: `start_preview` 0, 81 frames in 3 s, 24 fps by the HAL's own timestamps, and the frames hold a real image in the standard `0x23` buffers** (the fusion stage writes them, unlike the single-camera ISP path). Both cameras run: `CAM_ID(3)` starts, sensor 33 / `REAR_2ND(Tele)`, `DualPreviewSelector` pairs frames.
 - **At `zoom=30` (2.0x) the output is still the wide camera, digitally cropped.** Log: wide `cropRect(1014, 570, 2006, 1128)`, tele zoom 1.0, sync type stays 1. Geometry agrees: the wall mark lands where a 2x crop of the wide frame predicts (about 1094, 468 vs observed 1060, 470) and not where the telephoto frame has it (1150, 710). Inference: Samsung's fallback (`setMasterLuxFBCond`, `setMasterDistanceFBCond`) kept the wide camera as master because the scene was dim and close; not yet tested in daylight at a distance.
 
+### Daylight at a distance (2026-11-14, same session)
+
+Same scene, phone held still, three back-to-back runs: dual `zoom=30 --window` for 8 s (241 frames, 29 fps by HAL timestamps, frame 150 saved), then the telephoto alone (`"3"`) and the wide camera alone (`"0"`). Similarity transforms by ORB + RANSAC (`scale_match.py`, scratch tool):
+
+| Pair | Scale | Telephoto hypothesis | Wide 2.009x crop hypothesis |
+|---|---|---|---|
+| telephoto vs wide | 1.902 | (measured lens ratio on these streams) | |
+| dual 2x vs telephoto | **1.008** (601/805 inliers, 0.2 deg) | 1.000 | 1.056 |
+| dual 2x vs wide | **1.909** | 1.902 | 2.009 |
+
+**In daylight at a distance, Samsung's dual mode at 2x outputs the telephoto, at 29 fps, into standard YUV buffers.** Indoors (dim, close) the same mode kept the wide camera, cropped, which matches Samsung's lux and distance fallback. Consequence for the bridge: dual mode gives zero-copy telephoto frames only when Samsung's fallback allows (bright, distant scenes); the single-camera HAL1 telephoto (`"3"`, data callbacks) is unconditional but needs the copy path. For microscope work (close range) the copy path is the one that matters.
+
 ## Thresholds
 
 As in `device-probe.md`: a trial WORKS at >= 10 frames per stream in 2 s.

@@ -29,7 +29,7 @@ struct probe_window {
     AHardwareBuffer *ahb[MAX_BUFS];
     buffer_handle_t handle[MAX_BUFS];
     int dequeued[MAX_BUFS];
-    int enqueues, dequeues, cancels, timestamps, saved;
+    int enqueues, dequeues, cancels, timestamps, saved, save_at;
     int64_t first_ns, last_ns;
     char save_path[160];
     const gralloc_module_t *gr; /* legacy gralloc, when it loads: buffers in the HAL's own format */
@@ -206,9 +206,9 @@ static int enqueue(preview_stream_ops_t *o, buffer_handle_t *b) {
     int i = index_of(w, b);
     if (i >= 0) {
         w->enqueues++;
-        /* Save frame 30, not the first: start-up frames can be blank, which would hide whether
-         * the CPU can read what the camera wrote. */
-        if (!w->saved && w->enqueues == 30) {
+        /* Save frame save_at (default 30, env PROBE_SAVE_AT), not the first: start-up frames can be
+         * blank, and dual mode may switch cameras only after it has settled. */
+        if (!w->saved && w->enqueues == w->save_at) {
             w->saved = 1;
             if (w->gr_alloc && w->allocated && w->backend[0] == 'g') gralloc_save(w, i);
             else save_nv21(w, i);
@@ -264,6 +264,8 @@ probe_window_t *probe_window_create(const char *save_path) {
     pthread_mutex_init(&w->lock, NULL);
     pthread_cond_init(&w->freed, NULL);
     snprintf(w->save_path, sizeof w->save_path, "%s", save_path);
+    const char *at = getenv("PROBE_SAVE_AT");
+    w->save_at = at && atoi(at) > 0 ? atoi(at) : 30;
     return w;
 }
 
