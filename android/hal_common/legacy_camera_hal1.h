@@ -52,7 +52,23 @@ typedef void (*camera_data_timestamp_callback)(int64_t timestamp, int32_t msg_ty
 typedef camera_memory_t *(*camera_request_memory)(int fd, size_t buf_size, unsigned int num_bufs, void *user);
 
 struct camera_device;
-struct preview_stream_ops; /* opaque: hal1probe passes NULL or does not call set_preview_window */
+
+typedef const void *buffer_handle_t; /* const native_handle_t* */
+
+/* hardware/libhardware/include/hardware/camera.h */
+typedef struct preview_stream_ops {
+    int (*dequeue_buffer)(struct preview_stream_ops *w, buffer_handle_t **buffer, int *stride);
+    int (*enqueue_buffer)(struct preview_stream_ops *w, buffer_handle_t *buffer);
+    int (*cancel_buffer)(struct preview_stream_ops *w, buffer_handle_t *buffer);
+    int (*set_buffer_count)(struct preview_stream_ops *w, int count);
+    int (*set_buffers_geometry)(struct preview_stream_ops *pw, int w, int h, int format);
+    int (*set_crop)(struct preview_stream_ops *w, int left, int top, int right, int bottom);
+    int (*set_usage)(struct preview_stream_ops *w, int usage);
+    int (*set_swap_interval)(struct preview_stream_ops *w, int interval);
+    int (*get_min_undequeued_buffer_count)(const struct preview_stream_ops *w, int *count);
+    int (*lock_buffer)(struct preview_stream_ops *w, buffer_handle_t *buffer);
+    int (*set_timestamp)(struct preview_stream_ops *w, int64_t timestamp);
+} preview_stream_ops_t;
 
 typedef struct camera_device_ops {
     int (*set_preview_window)(struct camera_device *, struct preview_stream_ops *window);

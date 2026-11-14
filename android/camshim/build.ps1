@@ -13,7 +13,7 @@ foreach ($abi in $targets.Keys) {
     & $cc @flags -o "$out/halprobe" "$repo/android/halprobe/halprobe.c" -ldl
     if ($LASTEXITCODE) { throw "halprobe ($abi) failed" }
     & $cc @flags "-I$repo/core/camera_params/include" -o "$out/hal1probe" "$repo/android/hal1probe/hal1probe.c" `
-        "$repo/core/camera_params/camera_params.c" -ldl
+        "$repo/android/hal1probe/probe_window.c" "$repo/core/camera_params/camera_params.c" -ldl -lnativewindow
     if ($LASTEXITCODE) { throw "hal1probe ($abi) failed" }
     & $cc @flags -shared -fPIC -fvisibility=hidden -o "$out/camera.instruments_shim.so" `
         "$repo/android/camshim/camera_tele_shim.c" "$repo/core/camera_idmap/camera_idmap.c" -llog -ldl

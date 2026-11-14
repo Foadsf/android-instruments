@@ -39,6 +39,15 @@ Fallback if the `preview_stream_ops` path misbehaves: copy from the data callbac
 4. Focus control mapped; verified by the reported lens position.
 5. Dual (wide + tele): needs Samsung's fusion plugin or a stub that satisfies `m_initDualSolution`; separate decision.
 
+## Milestone 1 result (2026-11-14): window path runs, buffers stay empty
+
+`hal1probe ... 3 3 --window` with AHardwareBuffer-backed buffers: the HAL asked for format `0x11e` (Samsung private, two-plane NV21), usage `0x20933`, 9 buffers. `0x11e` cannot be allocated through the NDK, so the window fell back to `0x23` (YCbCr_420_888). The HAL dequeued and enqueued 85 buffers in 3 s, but every saved frame was all zeros (frames 1 and 30; also with the stride set to 1920). Log: `MCSC_PREVIEW ... exynos_v4l2_qbuf(...) fail (-1)`, `putBuffer() fail ... ret(-22)`. The ISP's preview output node rejects buffers that are not in its configured format, and the HAL hands them back unfilled. **Zero copy with framework-allocated standard YUV buffers does not work on this ROM.**
+
+Way forward, found on the phone: the ROM ships the legacy gralloc module `gralloc.exynos5.so` behind `android.hardware.graphics.allocator@2.0-impl` / `mapper@2.0-impl` (passthrough). Through the gralloc0 interface (`hw_get_module("gralloc")`, alloc device `"gpu0"`, `lock`/`lock_ycbcr`):
+
+- **1b.** Allocate the window buffers in the HAL's own format `0x11e` and verify the saved frame holds an image (zero copy inside the bridge's private buffers).
+- **Copy path for the bridge.** Lock the framework's output buffer with the gralloc0 module inside the camera provider and copy each HAL1 frame into it (NV21 to the buffer's real plane layout).
+
 ## Thresholds
 
 As in `device-probe.md`: a trial WORKS at >= 10 frames per stream in 2 s.

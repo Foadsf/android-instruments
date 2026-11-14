@@ -19,6 +19,7 @@
 
 #include "instruments/camera_params.h"
 #include "legacy_camera_hal1.h"
+#include "probe_window.h"
 
 #define PARAMS_MAX 16384
 
@@ -141,28 +142,37 @@ static int apply_params(camera_device_t *d, int argc, char **argv) {
     return rc;
 }
 
+static probe_window_t *g_window; /* set by --window: frames go to a preview window, not callbacks */
+
 static int run(camera_device_t *d, const char *id, int seconds, int argc, char **argv) {
     snprintf(g_save_path, sizeof g_save_path, "/data/local/tmp/instruments/hal1_%s.yuv", id);
     d->ops->set_callbacks(d, on_notify, on_data, on_data_ts, request_memory, NULL);
     apply_params(d, argc, argv);
-    d->ops->enable_msg_type(d, CAMERA_MSG_PREVIEW_FRAME | CAMERA_MSG_ERROR);
+    if (g_window) {
+        int wrc = d->ops->set_preview_window(d, probe_window_ops(g_window));
+        printf("{\"event\":\"set_preview_window\",\"rc\":%d}\n", wrc);
+        d->ops->enable_msg_type(d, CAMERA_MSG_ERROR);
+    } else {
+        d->ops->enable_msg_type(d, CAMERA_MSG_PREVIEW_FRAME | CAMERA_MSG_ERROR);
+    }
     int rc = d->ops->start_preview(d);
     printf("{\"event\":\"start_preview\",\"rc\":%d}\n", rc);
     fflush(stdout);
     if (rc == 0) {
         for (int s = 1; s <= seconds; ++s) {
             sleep(1);
-            printf("{\"event\":\"tick\",\"s\":%d,\"frames\":%d,\"last_size\":%zu}\n", s, atomic_load(&g_frames),
-                   atomic_load(&g_last_size));
-            fflush(stdout);
+            printf("{\"event\":\"tick\",\"s\":%d,\"frames\":%d,\"window_frames\":%d,\"last_size\":%zu}\n", s,
+                   atomic_load(&g_frames), g_window ? probe_window_frames(g_window) : 0, atomic_load(&g_last_size));
         }
         d->ops->stop_preview(d);
     }
     d->ops->release(d);
     d->common.close(&d->common);
-    printf("{\"event\":\"done\",\"frames\":%d,\"notifies\":%d,\"errors\":%d}\n", atomic_load(&g_frames),
-           atomic_load(&g_notify), atomic_load(&g_errors));
-    return atomic_load(&g_frames) > 0 ? 0 : 1;
+    if (g_window) probe_window_report(g_window);
+    int frames = g_window ? probe_window_frames(g_window) : atomic_load(&g_frames);
+    printf("{\"event\":\"done\",\"frames\":%d,\"notifies\":%d,\"errors\":%d}\n", frames, atomic_load(&g_notify),
+           atomic_load(&g_errors));
+    return frames > 0 ? 0 : 1;
 }
 
 int main(int argc, char **argv) {
@@ -171,6 +181,12 @@ int main(int argc, char **argv) {
         return 2;
     }
     setvbuf(stdout, NULL, _IONBF, 0); /* a HAL crash must not swallow buffered output */
+    if (argc > 3 && strcmp(argv[argc - 1], "--window") == 0) {
+        char path[128];
+        snprintf(path, sizeof path, "/data/local/tmp/instruments/hal1win_%s.yuv", argv[2]);
+        g_window = probe_window_create(path);
+        --argc;
+    }
     int seconds = argc > 3 && !strchr(argv[3], '=') ? atoi(argv[3]) : 3;
     int first_kv = argc > 3 && !strchr(argv[3], '=') ? 4 : 3;
     void *lib = dlopen(argv[1], RTLD_NOW);
