@@ -1,5 +1,7 @@
 #include "probe_window.h"
 
+#include "legacy_gralloc.h"
+
 #include <android/hardware_buffer.h>
 #include <dlfcn.h>
 #include <errno.h>
@@ -30,7 +32,71 @@ struct probe_window {
     int enqueues, dequeues, cancels, timestamps, saved;
     int64_t first_ns, last_ns;
     char save_path[160];
+    const gralloc_module_t *gr; /* legacy gralloc, when it loads: buffers in the HAL's own format */
+    alloc_device_t *gr_alloc;
+    const char *backend;
 };
+
+#ifdef __LP64__
+static const char *const GRALLOC_PATHS[] = {"/system/lib64/hw/gralloc.exynos5.so", "/vendor/lib64/hw/gralloc.exynos5.so"};
+#else
+static const char *const GRALLOC_PATHS[] = {"/system/lib/hw/gralloc.exynos5.so", "/vendor/lib/hw/gralloc.exynos5.so"};
+#endif
+
+/* Allocates every buffer through gralloc0 in exactly the HAL's format and usage. */
+static int gralloc_allocate(probe_window_t *w, int n) {
+    if (!w->gr) {
+        void *lib = NULL;
+        for (size_t k = 0; !lib && k < sizeof GRALLOC_PATHS / sizeof GRALLOC_PATHS[0]; ++k) lib = dlopen(GRALLOC_PATHS[k], RTLD_NOW);
+        w->gr = lib ? (const gralloc_module_t *)dlsym(lib, "HMI") : NULL;
+        hw_device_t *dev = NULL;
+        int rc = w->gr ? w->gr->common.methods->open(&w->gr->common, "gpu0", &dev) : -1;
+        printf("{\"event\":\"gralloc0\",\"loaded\":%d,\"open_gpu0\":%d,\"error\":\"%s\"}\n", w->gr != NULL, rc,
+               lib ? "" : dlerror());
+        if (rc != 0) return -ENODEV;
+        w->gr_alloc = (alloc_device_t *)dev;
+    }
+    int usage = w->hal_usage | GRALLOC_USAGE_SW_READ_OFTEN;
+    for (int i = 0; i < n; ++i) {
+        int stride = 0;
+        if (w->gr_alloc->alloc(w->gr_alloc, w->w, w->h, w->hal_format, usage, &w->handle[i], &stride) != 0) {
+            for (int j = 0; j < i; ++j) w->gr_alloc->free(w->gr_alloc, w->handle[j]);
+            return -ENOMEM;
+        }
+        w->stride = stride;
+    }
+    w->allocated = n;
+    w->alloc_format = w->hal_format;
+    w->backend = "gralloc0";
+    return 0;
+}
+
+/* Saves buffer i as NV21 through gralloc0 lock_ycbcr. */
+static void gralloc_save(probe_window_t *w, int i) {
+    struct android_ycbcr y;
+    memset(&y, 0, sizeof y);
+    if (!w->gr->lock_ycbcr ||
+        w->gr->lock_ycbcr(w->gr, w->handle[i], GRALLOC_USAGE_SW_READ_OFTEN, 0, 0, w->w, w->h, &y) != 0) {
+        printf("{\"event\":\"window_save_failed\",\"backend\":\"gralloc0\"}\n");
+        return;
+    }
+    FILE *f = fopen(w->save_path, "wb");
+    if (f) {
+        for (int r = 0; r < w->h; ++r) fwrite((uint8_t *)y.y + r * y.ystride, 1, (size_t)w->w, f);
+        for (int r = 0; r < w->h / 2; ++r) {
+            const uint8_t *cb = (uint8_t *)y.cb + r * y.cstride, *cr = (uint8_t *)y.cr + r * y.cstride;
+            for (int x = 0; x < w->w / 2; ++x) {
+                fputc(cr[x * y.chroma_step], f);
+                fputc(cb[x * y.chroma_step], f);
+            }
+        }
+        fclose(f);
+        printf("{\"event\":\"window_saved\",\"backend\":\"gralloc0\",\"path\":\"%s\",\"ystride\":%zu,\"cstride\":%zu,"
+               "\"chroma_step\":%zu,\"cr_minus_cb\":%ld}\n", w->save_path, y.ystride, y.cstride, y.chroma_step,
+               (long)((uint8_t *)y.cr - (uint8_t *)y.cb));
+    }
+    w->gr->unlock(w->gr, w->handle[i]);
+}
 
 static probe_window_t *self(const preview_stream_ops_t *o) { return (probe_window_t *)o; }
 
@@ -46,9 +112,12 @@ static int ensure_allocated(probe_window_t *w) {
     static get_native_handle_fn get_handle;
     if (!get_handle) get_handle = (get_native_handle_fn)dlsym(dlopen("libnativewindow.so", RTLD_NOW),
                                                                "AHardwareBuffer_getNativeHandle");
-    if (!get_handle || w->w <= 0 || w->h <= 0) return w->alloc_error = -ENOSYS;
-    uint64_t base = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN | USAGE_CAMERA_WRITE;
+    if (w->w <= 0 || w->h <= 0) return w->alloc_error = -EINVAL;
     int n = w->count > 0 && w->count <= MAX_BUFS ? w->count : DEFAULT_COUNT;
+    if (gralloc_allocate(w, n) == 0) return 0;
+    if (!get_handle) return w->alloc_error = -ENOSYS;
+    w->backend = "ahardwarebuffer";
+    uint64_t base = AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN | USAGE_CAMERA_WRITE;
     int formats[2] = {w->hal_format, FALLBACK_FORMAT};
     for (int f = 0; f < 2 && !w->allocated; ++f) {
         int i = 0;
@@ -141,7 +210,8 @@ static int enqueue(preview_stream_ops_t *o, buffer_handle_t *b) {
          * the CPU can read what the camera wrote. */
         if (!w->saved && w->enqueues == 30) {
             w->saved = 1;
-            save_nv21(w, i);
+            if (w->gr_alloc && w->allocated && w->backend[0] == 'g') gralloc_save(w, i);
+            else save_nv21(w, i);
         }
         w->dequeued[i] = 0;
         pthread_cond_signal(&w->freed);
@@ -209,10 +279,10 @@ int probe_window_frames(probe_window_t *w) {
 void probe_window_report(probe_window_t *w) {
     pthread_mutex_lock(&w->lock);
     double secs = w->timestamps > 1 ? (double)(w->last_ns - w->first_ns) / 1e9 : 0.0;
-    printf("{\"event\":\"window\",\"size\":[%d,%d],\"hal_format\":\"0x%x\",\"alloc_format\":\"0x%x\",\"hal_usage\":\"0x%x\","
+    printf("{\"event\":\"window\",\"backend\":\"%s\",\"size\":[%d,%d],\"hal_format\":\"0x%x\",\"alloc_format\":\"0x%x\",\"hal_usage\":\"0x%x\","
            "\"buffers\":%d,\"stride\":%d,\"alloc_error\":%d,\"dequeues\":%d,\"enqueues\":%d,\"cancels\":%d,"
            "\"timestamps\":%d,\"fps_by_timestamp\":%.1f}\n",
-           w->w, w->h, w->hal_format, w->alloc_format, w->hal_usage, w->allocated, w->stride, w->alloc_error,
+           w->backend ? w->backend : "none", w->w, w->h, w->hal_format, w->alloc_format, w->hal_usage, w->allocated, w->stride, w->alloc_error,
            w->dequeues, w->enqueues, w->cancels, w->timestamps, secs > 0 ? (w->timestamps - 1) / secs : 0.0);
     pthread_mutex_unlock(&w->lock);
 }
