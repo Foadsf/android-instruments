@@ -17,6 +17,7 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "InstrumentsCameraBridge", __VA_ARGS__)
 #define MAX_POOL 16
 #define DUMP_PROP "persist.instruments.camera.bridge_dump"
+#define DUMP_AT_PROP "persist.instruments.camera.bridge_dump_at"
 #define USAGE_CAMERA_WRITE 0x20000ULL /* GRALLOC_USAGE_HW_CAMERA_WRITE; not in the NDK header */
 
 /* Exported by libnativewindow, declared only in the VNDK headers. */
@@ -129,6 +130,7 @@ int pool_dequeue(bridge_pool_t *p, buffer_handle_t **buffer, int *stride) {
         }
         if (pthread_cond_timedwait(&p->freed, &p->lock, &until) == ETIMEDOUT) rc = -EBUSY;
     }
+    if (rc != 0) LOGI("pool dequeue failed: %d", rc);
     pthread_mutex_unlock(&p->lock);
     return rc;
 }
@@ -145,8 +147,14 @@ void pool_release(bridge_pool_t *p, int index) {
     pthread_mutex_unlock(&p->lock);
 }
 
-/* Debug evidence: with persist.instruments.camera.bridge_dump set to a path, the 31st copied
- * framework buffer is written there as NV21 (read back from the destination, after the copy). */
+/* Copied frame to dump: persist.instruments.camera.bridge_dump_at, default 30 (0-based). */
+static int dump_at(void) {
+    char v[PROP_VALUE_MAX] = {0};
+    return __system_property_get(DUMP_AT_PROP, v) > 0 && atoi(v) >= 0 ? atoi(v) : 30;
+}
+
+/* Debug evidence: with persist.instruments.camera.bridge_dump set to a path, copied frame
+ * dump_at() is written there as NV21 (read back from the destination, after the copy). */
 static void dump_nv21(const yuv_image_t *im, uint32_t w, uint32_t h) {
     char path[PROP_VALUE_MAX] = {0};
     if (__system_property_get(DUMP_PROP, path) <= 0) return;
@@ -179,7 +187,7 @@ int pool_copy_to(bridge_pool_t *p, int index, buffer_handle_t *fw, const camera3
         for (int i = 0; i < 3; ++i)
             si.plane[i] = (yuv_plane_t){sp.planes[i].data, sp.planes[i].rowStride, sp.planes[i].pixelStride};
         rc = yuv420_copy(&si, &di, w & ~1u, h & ~1u) == 0 ? 0 : -EINVAL;
-        if (rc == 0 && frame == 30) dump_nv21(&di, w, h);
+        if (rc == 0 && frame == dump_at()) dump_nv21(&di, w, h);
         gr1_unlock(*fw);
     }
     AHardwareBuffer_unlock(src, NULL);

@@ -51,12 +51,15 @@ def device_slug(adb: Adb) -> str:
     return model.lower().replace(" ", "-").replace("_", "-")
 
 
-def start_probe(adb: Adb, apk: Path, run_id: str, verbose: bool, install: bool, trials: str | None) -> None:
+def start_probe(adb: Adb, apk: Path, run_id: str, verbose: bool, install: bool, trials: str | None,
+                stream_ms: int | None = None) -> None:
     if install:
         adb.run("install", "-r", "-g", str(apk), timeout=300)
     adb.run("shell", "pm", "grant", PACKAGE, "android.permission.CAMERA", check=False)
     adb.run("shell", "am", "force-stop", PACKAGE)
     extra = ["--es", "trials", trials] if trials else []
+    if stream_ms:
+        extra += ["--el", "stream_ms", str(stream_ms)]
     adb.run("shell", "am", "start", "-W", "-n", ACTIVITY, "--ez", "autorun", "true",
             "--es", "run_id", run_id, "--ez", "verbose", "true" if verbose else "false", *extra)
 
@@ -94,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--timeout", type=int, default=300, help="seconds to wait for the report")
     ap.add_argument("--trials", help="only these trials: keys like 0+2 or kinds like CONTROL, comma-separated")
+    ap.add_argument("--stream-ms", type=int, help="how long each trial streams (app default 2000; 500..60000)")
     ap.add_argument("-v", "--verbose", action="store_true", help="echo adb commands; DEBUG events on the phone")
     ap.add_argument("--dry-run", action="store_true", help="print the adb commands without running them")
     args = ap.parse_args(argv)
@@ -115,7 +119,7 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
     run_id = dt.datetime.now().strftime("%H%M%S") + "-" + secrets.token_hex(2)
     stamp = dt.date.today().strftime("%Y%m%d")
     slug = "dry-run" if args.dry_run else device_slug(adb)
-    start_probe(adb, args.apk, run_id, args.verbose, not args.no_install, args.trials)
+    start_probe(adb, args.apk, run_id, args.verbose, not args.no_install, args.trials, args.stream_ms)
     if args.dry_run:
         return 0
     if not wait_for_report(adb, run_id, args.timeout):

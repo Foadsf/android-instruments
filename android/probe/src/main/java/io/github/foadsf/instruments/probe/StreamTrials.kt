@@ -31,7 +31,11 @@ import java.util.concurrent.atomic.AtomicIntegerArray
  * [STREAM_MS]. The query and the real attempt are recorded separately because a HAL can answer
  * one and do the other. CONCURRENT_PAIR plans open two camera devices at the same time.
  */
-class StreamTrials(private val manager: CameraManager, private val log: EventLog) {
+class StreamTrials(
+    private val manager: CameraManager,
+    private val log: EventLog,
+    private val streamMs: Long = STREAM_MS,
+) {
     private val thread = HandlerThread("probe-camera").apply { start() }
     private val handler = Handler(thread.looper)
     private val executor = Executor { handler.post(it) }
@@ -97,7 +101,7 @@ class StreamTrials(private val manager: CameraManager, private val log: EventLog
             val s = start(device, plan.label, readers, plan.streams.map { it.physicalId })
             if (s.session == null) return TrialResult.failed(plan, s.waiter.failure ?: "configure timeout", s.query)
             val t0 = SystemClock.elapsedRealtime()
-            Thread.sleep(STREAM_MS)
+            Thread.sleep(streamMs)
             val elapsed = SystemClock.elapsedRealtime() - t0
             stop(s)
             TrialResult(plan, s.query, true, (0 until counts.length()).map(counts::get), elapsed, s.failures.get(), null)
@@ -125,7 +129,7 @@ class StreamTrials(private val manager: CameraManager, private val log: EventLog
                 return TrialResult.failed(plan, "configure: ${plan.openId}=${sa.waiter.failure}, $second=${sb.waiter.failure}", query)
             }
             val t0 = SystemClock.elapsedRealtime()
-            Thread.sleep(STREAM_MS)
+            Thread.sleep(streamMs)
             val elapsed = SystemClock.elapsedRealtime() - t0
             stop(sa); stop(sb)
             return TrialResult(plan, query, true, listOf(counts.get(0), counts.get(1)), elapsed, sa.failures.get() + sb.failures.get(), null)
@@ -197,5 +201,7 @@ class StreamTrials(private val manager: CameraManager, private val log: EventLog
         const val CONFIGURE_TIMEOUT_S = 5L
         const val CLOSE_TIMEOUT_S = 3L
         const val STREAM_MS = 2000L
+        /** Accepted range for a requested stream length (the `stream_ms` extra). */
+        val STREAM_MS_RANGE = 500L..60_000L
     }
 }

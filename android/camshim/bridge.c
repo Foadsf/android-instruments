@@ -2,7 +2,6 @@
 
 #include <android/log.h>
 #include <errno.h>
-#include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +10,7 @@
 #include <unistd.h>
 
 #include "bridge_hal1.h"
-#include "bridge_meta.h"
-#include "bridge_pool.h"
-#include "instruments/bridge_queue.h"
+#include "bridge_internal.h"
 #include "instruments/camera_params.h"
 
 #define TAG "InstrumentsCameraBridge"
@@ -21,38 +18,8 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 #define ZOOM_PROP "persist.instruments.camera.bridge_zoom"
 #define FRAMEWORK_USAGE 0x33u /* CPU read and write often: the bridge copies into these buffers */
-#define MAX_TEMPLATES 8
-
-typedef struct bridge bridge_t;
-typedef struct {
-    preview_stream_ops_t ops; /* first: the HAL1 window pointer is cast back to this */
-    bridge_t *b;
-} bridge_window_t;
-
-struct bridge {
-    camera3_device_t dev; /* first: the framework's device pointer is cast back to this */
-    camera3_device_ops_t ops;
-    bridge_window_t window;
-    const camera3_callback_ops_t *cb;
-    camera_device_t *hal1;
-    pthread_mutex_t lock;   /* queue, last_settings, last_ts */
-    pthread_mutex_t ctl;    /* HAL1 preview start/stop and configuration */
-    pthread_cond_t pending;
-    bridge_queue_t q;
-    bridge_pool_t *pool;
-    int stats[3]; /* frames copied, dropped for lack of a request, copy failed */
-    camera3_stream_t *stream;
-    camera_metadata_t *last_settings;
-    camera_metadata_t *defaults[MAX_TEMPLATES];
-    meta_api_t meta;
-    pthread_t starter; /* runs start_preview: HAL1 dequeues all its buffers before returning */
-    int starter_valid, starting, previewing, partial_count;
-    int64_t last_ts;
-};
 
 static bridge_t *of(const camera3_device_t *d) { return (bridge_t *)d; }
-static bridge_t *of_window(const preview_stream_ops_t *w) { return ((const bridge_window_t *)w)->b; }
-static void wait_fence(int fence);
 
 /* ---- delivering results in frame order ---------------------------------------------------- */
 
@@ -89,7 +56,7 @@ static void deliver_one(bridge_t *b, const bq_slot_t *s) {
 }
 
 /* Pops everything ready (under the lock), then calls the framework without the lock held. */
-static void deliver_ready(bridge_t *b) {
+void bridge_deliver_ready(bridge_t *b) {
     bq_slot_t ready[BQ_CAPACITY];
     int n = 0;
     pthread_mutex_lock(&b->lock);
@@ -97,88 +64,6 @@ static void deliver_ready(bridge_t *b) {
     pthread_mutex_unlock(&b->lock);
     for (int i = 0; i < n; ++i) deliver_one(b, &ready[i]);
 }
-
-/* ---- HAL1 preview window over the framework's buffers ------------------------------------- */
-
-static void wait_fence(int fence) {
-    if (fence < 0) return;
-    struct pollfd p = {fence, POLLIN, 0};
-    poll(&p, 1, 1000);
-    close(fence);
-}
-
-/* HAL1 fills the bridge's own pool (it only fills buffers it registered at start_preview). */
-static int win_dequeue(preview_stream_ops_t *w, buffer_handle_t **buffer, int *stride) {
-    return pool_dequeue(of_window(w)->pool, buffer, stride);
-}
-
-static void count_frame(bridge_t *b, int outcome) {
-    pthread_mutex_lock(&b->lock);
-    b->stats[outcome]++;
-    int total = b->stats[0] + b->stats[1] + b->stats[2];
-    if (total % 100 == 1)
-        LOGI("frames: copied %d, dropped (no request) %d, copy failed %d", b->stats[0], b->stats[1], b->stats[2]);
-    pthread_mutex_unlock(&b->lock);
-}
-
-/* A filled pool buffer: copy it into the oldest pending request's buffer, or drop it. */
-static int win_enqueue(preview_stream_ops_t *w, buffer_handle_t *buffer) {
-    bridge_t *b = of_window(w);
-    int index = pool_index(b->pool, buffer);
-    if (index < 0) return -EINVAL;
-    pthread_mutex_lock(&b->lock);
-    bq_slot_t *s = bq_dequeue(&b->q);
-    void *target = s ? s->buffer : NULL;
-    int fence = s ? s->fence : -1;
-    if (s) s->fence = -1;
-    int64_t ts = b->last_ts;
-    camera3_stream_t *stream = b->stream;
-    pthread_mutex_unlock(&b->lock);
-    if (!target) {
-        pool_release(b->pool, index);
-        count_frame(b, 1);
-        return 0;
-    }
-    wait_fence(fence);
-    int rc = pool_copy_to(b->pool, index, (buffer_handle_t *)target, stream);
-    pool_release(b->pool, index);
-    pthread_mutex_lock(&b->lock);
-    if (rc == 0) bq_enqueue(&b->q, target, ts);
-    else bq_fail(&b->q, target);
-    pthread_mutex_unlock(&b->lock);
-    count_frame(b, rc == 0 ? 0 : 2);
-    deliver_ready(b);
-    return 0;
-}
-
-static int win_cancel(preview_stream_ops_t *w, buffer_handle_t *buffer) {
-    bridge_t *b = of_window(w);
-    int index = pool_index(b->pool, buffer);
-    pool_release(b->pool, index);
-    return index >= 0 ? 0 : -EINVAL;
-}
-
-static int win_count(preview_stream_ops_t *w, int n) { pool_set_count(of_window(w)->pool, n); return 0; }
-static int win_usage(preview_stream_ops_t *w, int u) { pool_set_usage(of_window(w)->pool, u); return 0; }
-
-static int win_geometry(preview_stream_ops_t *w, int x, int y, int f) {
-    LOGI("window geometry %dx%d format 0x%x", x, y, f);
-    pool_set_geometry(of_window(w)->pool, x, y);
-    return 0;
-}
-
-static int win_set_timestamp(preview_stream_ops_t *w, int64_t ts) {
-    bridge_t *b = of_window(w);
-    pthread_mutex_lock(&b->lock);
-    b->last_ts = ts;
-    pthread_mutex_unlock(&b->lock);
-    return 0;
-}
-
-static int win_ok(preview_stream_ops_t *w, int v) { (void)w; (void)v; return 0; }
-static int win_crop(preview_stream_ops_t *w, int l, int t, int r, int bt) { (void)w; (void)l; (void)t; (void)r; (void)bt; return 0; }
-static int win_min_undequeued(const preview_stream_ops_t *w, int *count) { (void)w; *count = 2; return 0; }
-static int win_lock(preview_stream_ops_t *w, buffer_handle_t *h) { (void)w; (void)h; return 0; }
 
 /* ---- HAL1 parameters and preview control --------------------------------------------------- */
 
@@ -200,9 +85,8 @@ static void stop_preview(bridge_t *b) {
     if (was) b->hal1->ops->stop_preview(b->hal1);
     pthread_mutex_lock(&b->lock);
     bq_fail_all(&b->q);
-    pthread_cond_broadcast(&b->pending);
     pthread_mutex_unlock(&b->lock);
-    deliver_ready(b);
+    bridge_deliver_ready(b);
 }
 
 /* 1 if "WxH" is one of the comma-separated preview-size-values. */
@@ -291,7 +175,6 @@ static int b_request(const camera3_device_t *d, camera3_capture_request_t *r) {
     int rc = bq_push(&b->q, r->frame_number, (void *)o->buffer, o->acquire_fence);
     int kick = rc == 0 && !b->previewing && !b->starting;
     if (kick) b->starting = 1;
-    pthread_cond_signal(&b->pending);
     pthread_mutex_unlock(&b->lock);
     if (old) b->meta.release(old);
     if (rc != 0) return -EBUSY;
@@ -325,6 +208,7 @@ static int b_close(hw_device_t *dev) {
     b_flush(&b->dev);
     b->hal1->ops->release(b->hal1);
     b->hal1->common.close(&b->hal1->common);
+    bridge_window_stop(b);
     pool_destroy(b->pool);
     LOGI("closing: copied %d, dropped %d, copy failed %d", b->stats[0], b->stats[1], b->stats[2]);
     for (int i = 0; i < MAX_TEMPLATES; ++i)
@@ -332,7 +216,6 @@ static int b_close(hw_device_t *dev) {
     if (b->last_settings) b->meta.release(b->last_settings);
     pthread_mutex_destroy(&b->lock);
     pthread_mutex_destroy(&b->ctl);
-    pthread_cond_destroy(&b->pending);
     free(b);
     LOGI("closed");
     return 0;
@@ -344,20 +227,15 @@ static void init_tables(bridge_t *b) {
     static camera3_device_ops_t ops = {.initialize = b_initialize, .configure_streams = b_configure,
                                        .construct_default_request_settings = b_defaults,
                                        .process_capture_request = b_request, .dump = b_dump, .flush = b_flush};
-    static const preview_stream_ops_t win = {win_dequeue,  win_enqueue, win_cancel, win_count,
-                                             win_geometry, win_crop,    win_usage,  win_ok,
-                                             win_min_undequeued, win_lock, win_set_timestamp};
     b->dev.common.tag = HAL_HARDWARE_DEVICE_TAG;
     b->dev.common.version = HAL_CAMERA_DEVICE_API_VERSION_3_4;
     b->dev.common.close = b_close;
     b->ops = ops;
     b->dev.ops = &b->ops;
-    b->window.ops = win;
-    b->window.b = b;
     pthread_mutex_init(&b->lock, NULL);
     pthread_mutex_init(&b->ctl, NULL);
-    pthread_cond_init(&b->pending, NULL);
     bq_init(&b->q);
+    bridge_window_init(b);
     b->partial_count = 1;
 }
 

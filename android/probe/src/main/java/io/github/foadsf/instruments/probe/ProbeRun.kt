@@ -24,6 +24,8 @@ class ProbeRun(
     verbose: Boolean,
     /** Comma-separated trial keys or kinds to run (TrialPlanner.select); null runs all. */
     private val trialFilter: String? = null,
+    /** How long each trial streams; clamped to StreamTrials.STREAM_MS_RANGE. */
+    private val streamMs: Long = StreamTrials.STREAM_MS,
 ) {
     private val dir: File = ctx.getExternalFilesDir(null) ?: ctx.filesDir
     private val eventsFile = File(dir, "events_$runId.jsonl")
@@ -56,7 +58,9 @@ class ProbeRun(
         val infos = scan.cameraInfo(entries)
         val plans = TrialPlanner.select(TrialPlanner.plan(infos), trialFilter)
         report["trial_filter"] = trialFilter
-        val results = section("stream_trials") { StreamTrials(manager, log).runAll(plans) } ?: emptyList()
+        val ms = streamMs.coerceIn(StreamTrials.STREAM_MS_RANGE)
+        report["stream_ms"] = ms
+        val results = section("stream_trials") { StreamTrials(manager, log, ms).runAll(plans) } ?: emptyList()
         report["stream_trials"] = results.map(Verdicts::toJson)
         report["dual_physical_streams"] = Verdicts.dualStreamAnswer(results, infos.count { it.isLogicalMulti })
         report["compute"] = section("compute") { ComputeFacts.collect(ctx) }

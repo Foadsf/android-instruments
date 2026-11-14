@@ -96,7 +96,17 @@ HAL1 now fills a private pool (`bridge_pool.c`: 9 `AHardwareBuffer` `0x23`, usag
 - Content: with `persist.instruments.camera.bridge_dump` set, frame 31 was read back from the framework buffer after the copy (NV21 SHA-256 `3AB67D21...B36434B8`, kept outside the repo because it shows the room): a real image of the close indoor wall, mean luma 168.4.
 - Not determined for this run: which sensor the fusion stage chose. The scene was close and indoor, where the earlier test saw Samsung fall back to a wide-camera crop; a daylight, distant run through the bridge is still to do.
 
-Cost: one CPU copy per frame, about 2.3 MB at 1440x1080, on HAL1's enqueue thread.
+Cost: one CPU copy per frame, about 2.3 MB at 1440x1080.
+
+### Stall after ~50 frames, fixed by a copier thread (2026-11-14)
+
+Longer trials (new `stream_ms` probe extra, `run_probe.py --stream-ms`) showed the stream stopping after 52 and 75 frames in two 8 s runs: HAL1's buffer manager reported `Failed to get available gralloc buffer from buffer collector` every frame, while the pool trace showed the last dequeue had succeeded and HAL1 simply stopped calling the window. The 2 s runs above ended before this showed. Separating check at the same scene: Samsung's dual mode through hal1probe's window (no copy, no framework calls) ran 8 s at 24.6 fps with no stall. The difference was the bridge doing the copy and the framework result callback on HAL1's enqueue thread. `bridge_window.c` now queues the filled buffer and returns at once; a copier thread copies and delivers. After the change: four 8 s runs, 201/202/201/201 frames (25 fps), no collector errors, 0 failed copies (`results/sm-n950f/probe_20261114_1130*`, `_113220-8d04`).
+
+Gap in the oracle: the trial verdict is WORKS at >= 10 frames regardless of length, so the stalled runs (52 and 75 frames in 8 s) also read WORKS. A rate-based threshold would catch a stall; not changed here.
+
+### Which sensor at 2x: still open
+
+The second "daylight" attempt (2026-11-14 11:2x) had the phone facing the same close indoor wall: the telephoto-only frame was the blurred wall, and ORB found too few features to measure scale between any pair. The telephoto question needs the phone facing a bright, distant, textured scene.
 
 ## Thresholds
 
