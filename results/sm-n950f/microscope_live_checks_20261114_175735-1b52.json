@@ -1,0 +1,14 @@
+{
+  "verdict": "fail",
+  "cameras": {
+    "9": [
+      {
+        "check": "camera opened and streamed",
+        "ok": false,
+        "value": "java.lang.IllegalArgumentException: getCameraCharacteristics:784: Unable to retrieve camera characteristics for unknown device 9: No such file or directory (-2)",
+        "threshold": "no error"
+      }
+    ]
+  },
+  "sharpness": []
+}

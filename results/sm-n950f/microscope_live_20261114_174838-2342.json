@@ -1,0 +1,117 @@
+{
+  "unit": "microscope-live",
+  "run_id": "174838-2342",
+  "model": "SM-N950F",
+  "android_release": "13",
+  "listed_ids": [
+    "0",
+    "1",
+    "2"
+  ],
+  "rear_ids": [
+    "0",
+    "2"
+  ],
+  "stream_ms": 10000,
+  "burst_frames": 16,
+  "cameras": [
+    {
+      "camera_id": "2",
+      "width": 1440,
+      "height": 1080,
+      "stream": {
+        "frames": 49,
+        "elapsed_s": 10,
+        "fps": 5.089284174464852,
+        "capture_failures": 0,
+        "work_ms_mean": 195.3689901875,
+        "work_ms_max": 438.513807
+      },
+      "burst": {
+        "dir": "174838-2342_cam2",
+        "format": "I420",
+        "width": 1440,
+        "height": 1080,
+        "frames_requested": 16,
+        "frames": 16,
+        "complete": true,
+        "timestamps_ns": [
+          11446691032120,
+          11446723637274,
+          11446789552582,
+          11446822753966,
+          11446856275620,
+          11446889452543,
+          11446922721889,
+          11446956096620,
+          11446989563005,
+          11447022946851,
+          11447056245504,
+          11447089594543,
+          11447122877504,
+          11447156368620,
+          11447189676774,
+          11447222942966
+        ],
+        "fps": 28.200214590096927,
+        "sharpness_frame0": 46.97803947354796,
+        "sharpness_roi": "centre half",
+        "focus_distance_diopters": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "af_mode": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "af_state": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "camera_id": "2"
+      }
+    }
+  ]
+}

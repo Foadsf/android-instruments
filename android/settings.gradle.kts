@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "android-instruments"
 include(":probe")
+include(":microscope")

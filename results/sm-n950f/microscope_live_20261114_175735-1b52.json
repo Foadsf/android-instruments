@@ -1,0 +1,23 @@
+{
+  "unit": "microscope-live",
+  "run_id": "175735-1b52",
+  "model": "SM-N950F",
+  "android_release": "13",
+  "listed_ids": [
+    "0",
+    "1",
+    "2"
+  ],
+  "rear_ids": [
+    "0",
+    "2"
+  ],
+  "stream_ms": 1000,
+  "burst_frames": 16,
+  "cameras": [
+    {
+      "camera_id": "9",
+      "error": "java.lang.IllegalArgumentException: getCameraCharacteristics:784: Unable to retrieve camera characteristics for unknown device 9: No such file or directory (-2)"
+    }
+  ]
+}

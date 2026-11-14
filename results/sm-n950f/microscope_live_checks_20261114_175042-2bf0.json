@@ -1,0 +1,58 @@
+{
+  "verdict": "fail",
+  "cameras": {
+    "0": [
+      {
+        "check": "stream fps",
+        "ok": false,
+        "value": 11.79,
+        "threshold": ">= 20.0"
+      },
+      {
+        "check": "capture failures",
+        "ok": true,
+        "value": 0,
+        "threshold": 0
+      },
+      {
+        "check": "burst frames saved",
+        "ok": true,
+        "value": 16,
+        "threshold": 16
+      },
+      {
+        "check": "timestamps strictly increasing",
+        "ok": true,
+        "value": true,
+        "threshold": true
+      },
+      {
+        "check": "largest gap in frame periods",
+        "ok": true,
+        "value": 1.42,
+        "threshold": 2.0
+      }
+    ],
+    "2": [
+      {
+        "check": "camera opened and streamed",
+        "ok": false,
+        "value": "android.hardware.camera2.CameraAccessException: CAMERA_DISABLED (1): connectHelper:1958: Camera \"2\" disabled by policy",
+        "threshold": "no error"
+      }
+    ]
+  },
+  "sharpness": [
+    {
+      "camera_id": "0",
+      "check": "sharpness app vs NumPy (relative)",
+      "ok": true,
+      "value": {
+        "app": 140.5033964647772,
+        "numpy": 140.503,
+        "rel": 0.0
+      },
+      "threshold": 0.01
+    }
+  ]
+}

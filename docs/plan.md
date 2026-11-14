@@ -130,7 +130,19 @@ Units, each with its own synthetic test (splitting parallax's single end-to-end 
 
 **Gate 7 (device):** scan of an object of known size; dimension error stated against a caliper.
 
-### Stage 8: enhancement and multi-frame super-resolution (later, optional)
+### Stage 8: multi-frame and multi-camera fusion for image quality (core goal)
+
+Amended 2026-11-14 (Foad): fusing frames and camera sensors to raise SNR and resolution is a major goal of the project, not an optional extra. It can start as soon as `align` (3.4), `metrics` and a frame source that saves raw bursts exist (`docs/units/microscope-live.md`); it does not wait for the scanner line. The Note8 now exposes the wide (camera 0) and the telephoto (camera 2) as separate cameras, so both can be captured from one scene. They cannot stream at the same time through the bridge: capture is sequential, which suits a static specimen.
+
+| Unit | Input to output | Oracle (independent of the code under test) |
+|---|---|---|
+| `burst_merge` | N aligned YUV frames to a denoised frame | SNR gain close to √N on a static scene; truth is the mean of a much longer burst; measured on the flat patch of a test chart |
+| `burst_sr` (3.7) | N frames with sub-pixel shifts to an image at 2x | wide-camera burst at 2x scored against the **telephoto** frame of the same scene, a true optical reference about 1.9x finer |
+| `cross_camera_register` | wide and telephoto frames to a warp (homography, then a parallax-aware flow at close range) | synthetic pair with known warp; on device, residual after warping |
+| `multicam_fusion` | registered wide + telephoto bursts to one image: telephoto detail in its field, wide SNR and field around it | PSNR/SSIM against a reference captured with more frames; no gain may be claimed against the fused image's own inputs |
+| `motion_prior` | gyro samples on the camera clock to a rotation between frames | gyro integration test from android-multicam; used only as the alignment's starting guess and to drop frames taken while the phone moves, never as the measurement |
+
+Limits stated up front: at microscope distances with a clip-on lens only one camera looks through the lens, so there the gain comes from multi-frame fusion on that camera; cross-camera fusion pays at macro and normal distances, and for the scanner.
 
 - `tiler`: tile, overlap, Hann blend; identity tile function must reproduce the input exactly.
 - Real models only through LiteRT (not NNAPI), with fidelity-trained (L1) networks, judged on the Stage 6 captured stacks against a true reference, never against their own input.

@@ -19,6 +19,7 @@ jobs:
           python3 -m unittest discover -s tools/lint -p "test_*.py"
           python3 -m unittest discover -s tools/probe -p "test_*.py"
           python3 -m unittest discover -s tools/camshim -p "test_*.py"
+          python3 -m unittest discover -s tools/microscope -p "test_*.py"
 
   core:
     runs-on: ubuntu-24.04
@@ -55,10 +56,16 @@ jobs:
         run: ./gradlew assembleDebug testDebugUnitTest lintDebug --console=plain
       - name: No network permission
         run: |
-          perms=$("$ANDROID_HOME/build-tools/37.0.0/aapt2" dump permissions probe/build/outputs/apk/debug/probe-debug.apk)
-          echo "$perms"
-          ! echo "$perms" | grep -q 'android.permission.INTERNET'
+          for apk in probe/build/outputs/apk/debug/probe-debug.apk microscope/build/outputs/apk/debug/microscope-debug.apk; do
+            perms=$("$ANDROID_HOME/build-tools/37.0.0/aapt2" dump permissions "$apk")
+            echo "$perms"
+            ! echo "$perms" | grep -q 'android.permission.INTERNET'
+          done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: probe-debug
           path: android/probe/build/outputs/apk/debug/probe-debug.apk
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: microscope-debug
+          path: android/microscope/build/outputs/apk/debug/microscope-debug.apk
