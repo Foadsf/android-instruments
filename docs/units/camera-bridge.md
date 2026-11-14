@@ -87,7 +87,16 @@ Probe CONTROL trial on camera 2 (1440x1080 YUV), in order of fixes:
 2. `start_preview` blocked 5 s and failed: HAL1 dequeues its whole set (9 buffers) inside `start_preview`, and the request thread was the one waiting. Now a starter thread runs it.
 3. Configured, `start_preview` 0, **9 frames delivered, then nothing** (`results/sm-n950f/probe_20261114_*`, verdict PARTIAL_FRAMES). Window trace: the first 9 framework buffers are dequeued and filled; the 10th (a handle HAL1 never registered) is cancelled immediately, again and again (`Gralloc buffer collector has no Buffer`). **Samsung's HAL1 only fills the 9 buffers it registered at start; the framework circulates more than 9 (HAL max_buffers + the consumer's).** Zero copy into framework buffers therefore does not work for a general consumer.
 
-Way forward (not built): a private 9-buffer pool for HAL1 (`AHardwareBuffer` `0x23` + camera write, already proven in hal1probe dual mode) and a CPU copy into each framework buffer, imported with `AHardwareBuffer_createFromHandle` (exported by the provider's 32-bit `libnativewindow.so`) and `lockPlanes`. About 2.3 MB per 1440x1080 frame.
+### Copy path (2026-11-14): camera 2 WORKS
+
+HAL1 now fills a private pool (`bridge_pool.c`: 9 `AHardwareBuffer` `0x23`, usage camera write + CPU read + the HAL's `0x20933`). On each filled frame the bridge takes the oldest pending request, waits its acquire fence, and copies the frame into the framework buffer with `core/yuv_copy` (host-tested: NV12, NV21, I420, padded rows; negative control). A frame with no pending request is dropped and the pool buffer goes straight back to HAL1. A failed copy fails that one request (`bq_fail`).
+
+- `AHardwareBuffer_createFromHandle` (clone) refused every framework buffer with -22, for any stride or usage tried. The provider has already imported these buffers, so the bridge locks them as they are through the device's gralloc1 module (`bridge_gralloc1.c`; Mali `gralloc.exynos5.so`, module API 1.0, `lock_flex`/`unlock`). The function numbers were taken from AOSP `gralloc1.h` and cross-checked on the phone: `GET_DIMENSIONS` returns 1440x1080 and `GET_FORMAT` `0x11` (NV21) with 3 flex planes for the framework buffer.
+- Probe CONTROL trial on camera 2, 1440x1080 YUV: **verdict WORKS, 49 and 46 frames in 2 s** (two runs; `results/sm-n950f/probe_20261114_104558-5518.json`, `probe_20261114_104741-6931.json`), 0 capture failures; the bridge logged copied 49/46, dropped 0, copy failed 0.
+- Content: with `persist.instruments.camera.bridge_dump` set, frame 31 was read back from the framework buffer after the copy (NV21 SHA-256 `3AB67D21...B36434B8`, kept outside the repo because it shows the room): a real image of the close indoor wall, mean luma 168.4.
+- Not determined for this run: which sensor the fusion stage chose. The scene was close and indoor, where the earlier test saw Samsung fall back to a wide-camera crop; a daylight, distant run through the bridge is still to do.
+
+Cost: one CPU copy per frame, about 2.3 MB at 1440x1080, on HAL1's enqueue thread.
 
 ## Thresholds
 

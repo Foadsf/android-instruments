@@ -1,32 +1,27 @@
 #include "bridge.h"
 
 #include <android/log.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <sys/system_properties.h>
-#include <time.h>
 #include <unistd.h>
 
 #include "bridge_hal1.h"
 #include "bridge_meta.h"
+#include "bridge_pool.h"
 #include "instruments/bridge_queue.h"
 #include "instruments/camera_params.h"
 
 #define TAG "InstrumentsCameraBridge"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-#define PLUGIN_DIR_PROP "persist.instruments.camera.plugin_dir"
 #define ZOOM_PROP "persist.instruments.camera.bridge_zoom"
-#define HAL1_USAGE 0x20933u /* what the HAL1 window asked for on the Note8 */
+#define FRAMEWORK_USAGE 0x33u /* CPU read and write often: the bridge copies into these buffers */
 #define MAX_TEMPLATES 8
-static int g_trace = 60; /* window calls logged at start-up */
-#define TRACE(...) do { if (g_trace > 0) { --g_trace; LOGI(__VA_ARGS__); } } while (0)
 
 typedef struct bridge bridge_t;
 typedef struct {
@@ -44,6 +39,8 @@ struct bridge {
     pthread_mutex_t ctl;    /* HAL1 preview start/stop and configuration */
     pthread_cond_t pending;
     bridge_queue_t q;
+    bridge_pool_t *pool;
+    int stats[3]; /* frames copied, dropped for lack of a request, copy failed */
     camera3_stream_t *stream;
     camera_metadata_t *last_settings;
     camera_metadata_t *defaults[MAX_TEMPLATES];
@@ -55,6 +52,7 @@ struct bridge {
 
 static bridge_t *of(const camera3_device_t *d) { return (bridge_t *)d; }
 static bridge_t *of_window(const preview_stream_ops_t *w) { return ((const bridge_window_t *)w)->b; }
+static void wait_fence(int fence);
 
 /* ---- delivering results in frame order ---------------------------------------------------- */
 
@@ -109,47 +107,64 @@ static void wait_fence(int fence) {
     close(fence);
 }
 
+/* HAL1 fills the bridge's own pool (it only fills buffers it registered at start_preview). */
 static int win_dequeue(preview_stream_ops_t *w, buffer_handle_t **buffer, int *stride) {
-    bridge_t *b = of_window(w);
-    struct timespec until;
-    clock_gettime(CLOCK_REALTIME, &until);
-    until.tv_sec += 1;
-    pthread_mutex_lock(&b->lock);
-    bq_slot_t *s;
-    while (!(s = bq_dequeue(&b->q))) {
-        if (pthread_cond_timedwait(&b->pending, &b->lock, &until) == ETIMEDOUT) {
-            pthread_mutex_unlock(&b->lock);
-            return -EBUSY;
-        }
-    }
-    int fence = s->fence;
-    s->fence = -1;
-    *buffer = (buffer_handle_t *)s->buffer;
-    *stride = b->stream ? (int)b->stream->width : 0;
-    pthread_mutex_unlock(&b->lock);
-    wait_fence(fence);
-    TRACE("dequeue %p handle %p", (void *)*buffer, (const void *)**buffer);
-    return 0;
+    return pool_dequeue(of_window(w)->pool, buffer, stride);
 }
 
+static void count_frame(bridge_t *b, int outcome) {
+    pthread_mutex_lock(&b->lock);
+    b->stats[outcome]++;
+    int total = b->stats[0] + b->stats[1] + b->stats[2];
+    if (total % 100 == 1)
+        LOGI("frames: copied %d, dropped (no request) %d, copy failed %d", b->stats[0], b->stats[1], b->stats[2]);
+    pthread_mutex_unlock(&b->lock);
+}
+
+/* A filled pool buffer: copy it into the oldest pending request's buffer, or drop it. */
 static int win_enqueue(preview_stream_ops_t *w, buffer_handle_t *buffer) {
     bridge_t *b = of_window(w);
+    int index = pool_index(b->pool, buffer);
+    if (index < 0) return -EINVAL;
     pthread_mutex_lock(&b->lock);
-    int rc = bq_enqueue(&b->q, buffer, b->last_ts);
+    bq_slot_t *s = bq_dequeue(&b->q);
+    void *target = s ? s->buffer : NULL;
+    int fence = s ? s->fence : -1;
+    if (s) s->fence = -1;
+    int64_t ts = b->last_ts;
+    camera3_stream_t *stream = b->stream;
     pthread_mutex_unlock(&b->lock);
-    TRACE("enqueue %p: %d", (void *)buffer, rc);
+    if (!target) {
+        pool_release(b->pool, index);
+        count_frame(b, 1);
+        return 0;
+    }
+    wait_fence(fence);
+    int rc = pool_copy_to(b->pool, index, (buffer_handle_t *)target, stream);
+    pool_release(b->pool, index);
+    pthread_mutex_lock(&b->lock);
+    if (rc == 0) bq_enqueue(&b->q, target, ts);
+    else bq_fail(&b->q, target);
+    pthread_mutex_unlock(&b->lock);
+    count_frame(b, rc == 0 ? 0 : 2);
     deliver_ready(b);
-    return rc == 0 ? 0 : -EINVAL;
+    return 0;
 }
 
 static int win_cancel(preview_stream_ops_t *w, buffer_handle_t *buffer) {
     bridge_t *b = of_window(w);
-    pthread_mutex_lock(&b->lock);
-    int rc = bq_cancel(&b->q, buffer);
-    pthread_cond_signal(&b->pending);
-    pthread_mutex_unlock(&b->lock);
-    TRACE("cancel %p: %d", (void *)buffer, rc);
-    return rc == 0 ? 0 : -EINVAL;
+    int index = pool_index(b->pool, buffer);
+    pool_release(b->pool, index);
+    return index >= 0 ? 0 : -EINVAL;
+}
+
+static int win_count(preview_stream_ops_t *w, int n) { pool_set_count(of_window(w)->pool, n); return 0; }
+static int win_usage(preview_stream_ops_t *w, int u) { pool_set_usage(of_window(w)->pool, u); return 0; }
+
+static int win_geometry(preview_stream_ops_t *w, int x, int y, int f) {
+    LOGI("window geometry %dx%d format 0x%x", x, y, f);
+    pool_set_geometry(of_window(w)->pool, x, y);
+    return 0;
 }
 
 static int win_set_timestamp(preview_stream_ops_t *w, int64_t ts) {
@@ -161,7 +176,6 @@ static int win_set_timestamp(preview_stream_ops_t *w, int64_t ts) {
 }
 
 static int win_ok(preview_stream_ops_t *w, int v) { (void)w; (void)v; return 0; }
-static int win_geometry(preview_stream_ops_t *w, int x, int y, int f) { (void)w; LOGI("window geometry %dx%d format 0x%x", x, y, f); return 0; }
 static int win_crop(preview_stream_ops_t *w, int l, int t, int r, int bt) { (void)w; (void)l; (void)t; (void)r; (void)bt; return 0; }
 static int win_min_undequeued(const preview_stream_ops_t *w, int *count) { (void)w; *count = 2; return 0; }
 static int win_lock(preview_stream_ops_t *w, buffer_handle_t *h) { (void)w; (void)h; return 0; }
@@ -227,8 +241,8 @@ static int b_configure(const camera3_device_t *d, camera3_stream_configuration_t
     int rc = size_supported(b, s->width, s->height) ? hal1_set(b, "preview-size", size) : -EINVAL;
     if (rc == 0) rc = b->hal1->ops->set_preview_window(b->hal1, &b->window.ops);
     if (rc == 0) {
-        s->usage |= HAL1_USAGE;
-        s->max_buffers = 12;
+        s->usage |= FRAMEWORK_USAGE;
+        s->max_buffers = 6;
         b->stream = s;
     }
     pthread_mutex_unlock(&b->ctl);
@@ -248,8 +262,7 @@ static const camera_metadata_t *b_defaults(const camera3_device_t *d, int type) 
     return m;
 }
 
-/* start_preview returns only after HAL1 has dequeued its whole buffer set, which needs the
- * framework to keep sending requests, so it cannot run on the request thread. */
+/* start_preview takes a few hundred ms (both sensors, buffer set-up): keep it off the request thread. */
 static void *starter_main(void *arg) {
     bridge_t *b = arg;
     pthread_mutex_lock(&b->ctl);
@@ -293,8 +306,8 @@ static int b_request(const camera3_device_t *d, camera3_capture_request_t *r) {
 static void b_dump(const camera3_device_t *d, int fd) {
     bridge_t *b = of(d);
     pthread_mutex_lock(&b->lock);
-    dprintf(fd, "instruments bridge: previewing=%d pending=%d dequeued=%d\n", b->previewing,
-            bq_count_state(&b->q, BQ_PENDING), bq_count_state(&b->q, BQ_DEQUEUED));
+    dprintf(fd, "instruments bridge: previewing=%d pending=%d copied=%d dropped=%d failed=%d\n", b->previewing,
+            bq_count_state(&b->q, BQ_PENDING), b->stats[0], b->stats[1], b->stats[2]);
     pthread_mutex_unlock(&b->lock);
 }
 
@@ -312,6 +325,8 @@ static int b_close(hw_device_t *dev) {
     b_flush(&b->dev);
     b->hal1->ops->release(b->hal1);
     b->hal1->common.close(&b->hal1->common);
+    pool_destroy(b->pool);
+    LOGI("closing: copied %d, dropped %d, copy failed %d", b->stats[0], b->stats[1], b->stats[2]);
     for (int i = 0; i < MAX_TEMPLATES; ++i)
         if (b->defaults[i]) b->meta.release(b->defaults[i]);
     if (b->last_settings) b->meta.release(b->last_settings);
@@ -325,26 +340,12 @@ static int b_close(hw_device_t *dev) {
 
 /* ---- opening ------------------------------------------------------------------------------- */
 
-/* Samsung's fusion plugins are not on LineageOS; preloading them by absolute path satisfies the
- * HAL's later dlopen by name (their SONAMEs match the file names). */
-void bridge_preload_plugins(void) {
-    static const char *names[] = {"libdualcam_optical_zoom.so", "libdualpreview_interface.so",
-                                  "libdualcapture_interface.so"};
-    char dir[PROP_VALUE_MAX] = {0}, path[PROP_VALUE_MAX + 64];
-    if (__system_property_get(PLUGIN_DIR_PROP, dir) <= 0) strcpy(dir, "/data/local/tmp/instruments/stocklib");
-    for (size_t i = 0; i < sizeof names / sizeof names[0]; ++i) {
-        snprintf(path, sizeof path, "%s/%s", dir, names[i]);
-        void *h = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
-        LOGI("preload %s: %s", path, h ? "ok" : dlerror());
-    }
-}
-
 static void init_tables(bridge_t *b) {
     static camera3_device_ops_t ops = {.initialize = b_initialize, .configure_streams = b_configure,
                                        .construct_default_request_settings = b_defaults,
                                        .process_capture_request = b_request, .dump = b_dump, .flush = b_flush};
-    static const preview_stream_ops_t win = {win_dequeue, win_enqueue,  win_cancel,         win_ok,
-                                             win_geometry, win_crop,    win_ok,             win_ok,
+    static const preview_stream_ops_t win = {win_dequeue,  win_enqueue, win_cancel, win_count,
+                                             win_geometry, win_crop,    win_usage,  win_ok,
                                              win_min_undequeued, win_lock, win_set_timestamp};
     b->dev.common.tag = HAL_HARDWARE_DEVICE_TAG;
     b->dev.common.version = HAL_CAMERA_DEVICE_API_VERSION_3_4;
@@ -363,7 +364,9 @@ static void init_tables(bridge_t *b) {
 int bridge_open(camera_module_t *vendor, const hw_module_t *module, const camera_metadata_t *static_info,
                 hw_device_t **device) {
     bridge_t *b = calloc(1, sizeof *b);
-    if (!b || meta_load(&b->meta) != 0 || !vendor->open_legacy) {
+    if (b) b->pool = pool_create();
+    if (!b || !b->pool || meta_load(&b->meta) != 0 || !vendor->open_legacy) {
+        if (b) pool_destroy(b->pool);
         free(b);
         return -ENODEV;
     }
@@ -371,6 +374,7 @@ int bridge_open(camera_module_t *vendor, const hw_module_t *module, const camera
     int rc = vendor->open_legacy(&vendor->common, "20", HAL_CAMERA_DEVICE_API_VERSION_1_0, &dev);
     LOGI("open_legacy(\"20\"): %d", rc);
     if (rc != 0 || !dev) {
+        pool_destroy(b->pool);
         free(b);
         return rc ? rc : -ENODEV;
     }

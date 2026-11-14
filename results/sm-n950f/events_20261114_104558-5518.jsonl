@@ -1,0 +1,5 @@
+{"ts":"2026-11-14T09:46:00.048204Z","level":"INFO","run_id":"104558-5518","event":"probe.start","app_version":"0.1.0","dir":"/storage/emulated/0/Android/data/io.github.foadsf.instruments.probe/files"}
+{"ts":"2026-11-14T09:46:00.494697Z","level":"INFO","run_id":"104558-5518","event":"camera.listed","ids":["0","1","2"]}
+{"ts":"2026-11-14T09:46:00.612523Z","level":"INFO","run_id":"104558-5518","event":"camera.scanned","found":["0","1","2"],"hidden":[]}
+{"ts":"2026-11-14T09:46:03.195807Z","level":"INFO","run_id":"104558-5518","event":"trial.done","label":"2:logical@1440x1080","open_id":"2","second_open_id":null,"kind":"CONTROL","streams":[{"physical_id":null,"size":[1440,1080]}],"supported_query":"unknown (query not supported by this HAL)","configured":true,"frames":[49],"duration_ms":2000,"capture_failures":0,"verdict":"WORKS","error":null}
+{"ts":"2026-11-14T09:46:03.646732Z","level":"INFO","run_id":"104558-5518","event":"probe.done","report":"/storage/emulated/0/Android/data/io.github.foadsf.instruments.probe/files/probe_104558-5518.json","errors":0}

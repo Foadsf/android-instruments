@@ -1,0 +1,8 @@
+add_library(instruments_yuv_copy STATIC yuv_copy.c)
+target_include_directories(instruments_yuv_copy PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+instruments_add_test(test_yuv_copy tests/test_yuv_copy.cpp)
+target_link_libraries(test_yuv_copy PRIVATE instruments_yuv_copy)
+
+instruments_add_negative_control(negative_control_yuv_copy tests/negative_control_yuv_copy.cpp)
+target_link_libraries(negative_control_yuv_copy PRIVATE instruments_yuv_copy)

@@ -40,6 +40,8 @@ bq_slot_t *bq_dequeue(bridge_queue_t *q);
 int bq_enqueue(bridge_queue_t *q, const void *buffer, int64_t timestamp);
 /* The DEQUEUED entry holding buffer goes back to PENDING (the HAL returned it unused). */
 int bq_cancel(bridge_queue_t *q, const void *buffer);
+/* The DEQUEUED entry holding buffer becomes ERROR (it could not be filled); 0, or -1 if unknown. */
+int bq_fail(bridge_queue_t *q, const void *buffer);
 /* If the head entry is DONE or ERROR, copies it to *out, frees it and returns 1; else 0. */
 int bq_pop(bridge_queue_t *q, bq_slot_t *out);
 /* Every PENDING or DEQUEUED entry becomes ERROR (flush, stop). */

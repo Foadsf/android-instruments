@@ -1,10 +1,32 @@
 #include "bridge_hal1.h"
 
 #include <android/log.h>
+#include <dlfcn.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
+#include <sys/system_properties.h>
 
+#include "bridge.h"
+
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "InstrumentsCameraBridge", __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "InstrumentsCameraBridge", __VA_ARGS__)
+#define PLUGIN_DIR_PROP "persist.instruments.camera.plugin_dir"
+
+/* Samsung's fusion plugins are not on LineageOS; preloading them by absolute path satisfies the
+ * HAL's later dlopen by name (their SONAMEs match the file names). */
+void bridge_preload_plugins(void) {
+    static const char *names[] = {"libdualcam_optical_zoom.so", "libdualpreview_interface.so",
+                                  "libdualcapture_interface.so"};
+    char dir[PROP_VALUE_MAX] = {0}, path[PROP_VALUE_MAX + 64];
+    if (__system_property_get(PLUGIN_DIR_PROP, dir) <= 0) strcpy(dir, "/data/local/tmp/instruments/stocklib");
+    for (size_t i = 0; i < sizeof names / sizeof names[0]; ++i) {
+        snprintf(path, sizeof path, "%s/%s", dir, names[i]);
+        void *h = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+        LOGI("preload %s: %s", path, h ? "ok" : dlerror());
+    }
+}
 
 static void on_notify(int32_t msg, int32_t e1, int32_t e2, void *u) {
     (void)u;

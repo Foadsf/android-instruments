@@ -33,6 +33,19 @@ INSTRUMENTS_TEST(out_of_order_completion_is_held_until_older_frames_finish) {
     INSTRUMENTS_CHECK(bq_pop(&q, &out) == 1 && out.frame == 2);
 }
 
+INSTRUMENTS_TEST(fail_marks_one_dequeued_entry_as_error) {
+    bridge_queue_t q;
+    bq_init(&q);
+    bq_push(&q, 1, B(1), -1);
+    bq_push(&q, 2, B(2), -1);
+    bq_dequeue(&q);
+    INSTRUMENTS_CHECK(bq_fail(&q, B(2)) == -1);  // still pending, not dequeued
+    INSTRUMENTS_CHECK(bq_fail(&q, B(1)) == 0);
+    bq_slot_t out;
+    INSTRUMENTS_CHECK(bq_pop(&q, &out) == 1 && out.frame == 1 && out.state == BQ_ERROR);
+    INSTRUMENTS_CHECK(bq_pop(&q, &out) == 0);
+}
+
 INSTRUMENTS_TEST(cancel_returns_buffer_to_pending_and_it_is_dequeued_again) {
     bridge_queue_t q;
     bq_init(&q);

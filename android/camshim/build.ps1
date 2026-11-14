@@ -19,7 +19,10 @@ foreach ($abi in $targets.Keys) {
         "-I$repo/core/camera_bridge_queue/include" -o "$out/camera.instruments_shim.so" `
         "$repo/android/camshim/camera_tele_shim.c" "$repo/core/camera_idmap/camera_idmap.c" `
         "$repo/android/camshim/bridge.c" "$repo/android/camshim/bridge_meta.c" "$repo/android/camshim/bridge_hal1.c" `
-        "$repo/core/camera_bridge_queue/bridge_queue.c" "$repo/core/camera_params/camera_params.c" -llog -ldl
+        "$repo/android/camshim/bridge_pool.c" "$repo/android/camshim/bridge_gralloc1.c" `
+        "-I$repo/core/yuv_copy/include" "$repo/core/yuv_copy/yuv_copy.c" `
+        "$repo/core/camera_bridge_queue/bridge_queue.c" "$repo/core/camera_params/camera_params.c" `
+        -llog -ldl -lnativewindow
     if ($LASTEXITCODE) { throw "camera shim ($abi) failed" }
     Write-Output "built $abi"
 }

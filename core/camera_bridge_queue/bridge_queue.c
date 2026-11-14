@@ -51,6 +51,13 @@ int bq_cancel(bridge_queue_t *q, const void *buffer) {
     return 0;
 }
 
+int bq_fail(bridge_queue_t *q, const void *buffer) {
+    bq_slot_t *s = find_dequeued(q, buffer);
+    if (!s) return -1;
+    s->state = BQ_ERROR;
+    return 0;
+}
+
 int bq_pop(bridge_queue_t *q, bq_slot_t *out) {
     if (q->count == 0) return 0;
     bq_slot_t *s = at(q, 0);
