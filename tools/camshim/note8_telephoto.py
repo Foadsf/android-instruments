@@ -50,7 +50,8 @@ def install_plan(with_lib: bool = False) -> list[list[str]]:
 
 
 def revert_plan() -> list[list[str]]:
-    return [["shell", f"umount {TARGET}"], ["shell", f"umount {LIB_TARGET}"]] + restart_plan()
+    # -l: the running provider has the shim mapped, so a plain umount fails with EBUSY
+    return [["shell", f"umount -l {TARGET}"], ["shell", f"umount -l {LIB_TARGET}"]] + restart_plan()
 
 
 def restart_plan() -> list[list[str]]:

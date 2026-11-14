@@ -23,8 +23,8 @@ class Plans(unittest.TestCase):
             self.assertNotIn("disable-verity", cmd)
 
     def test_revert_unmounts_the_same_target(self):
-        self.assertEqual(t.revert_plan()[0], ["shell", f"umount {t.TARGET}"])
-        self.assertEqual(t.revert_plan()[1], ["shell", f"umount {t.LIB_TARGET}"])
+        self.assertEqual(t.revert_plan()[0], ["shell", f"umount -l {t.TARGET}"])
+        self.assertEqual(t.revert_plan()[1], ["shell", f"umount -l {t.LIB_TARGET}"])
 
     def test_patched_lib_is_mounted_only_when_asked_and_before_the_restart(self):
         plain = [s[1] for s in t.install_plan()]

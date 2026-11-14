@@ -21,6 +21,7 @@
 #include <string.h>
 #include <sys/system_properties.h>
 
+#include "bridge.h"
 #include "instruments/camera_idmap.h"
 #include "legacy_camera_hal.h"
 
@@ -29,6 +30,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 #define EXTRA_IDS_PROP "persist.instruments.camera.extra_ids"
 #define DEFAULT_EXTRA_IDS "3"
+#define BRIDGE_PROP "persist.instruments.camera.bridge"
 #ifdef __LP64__
 #define VENDOR_FALLBACK_PATH "/system/lib64/hw/camera.vendor.universal8895.so"
 #else
@@ -44,6 +46,7 @@ static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 static const camera_module_callbacks_t *g_framework_callbacks;
 
 static camera_module_t *load_vendor(void) {
+    bridge_preload_plugins();
     void *libhw = dlopen("libhardware.so", RTLD_NOW);
     hw_get_module_by_class_fn get = libhw ? (hw_get_module_by_class_fn)dlsym(libhw, "hw_get_module_by_class") : NULL;
     const hw_module_t *mod = NULL;
@@ -71,7 +74,8 @@ static int ensure_ready(void) {
             camera_info_t info;
             memset(&info, 0, sizeof info);
             int rc = g_vendor->get_camera_info(g_map.extra_vendor_ids[k], &info);
-            LOGI("extra vendor camera %d: get_camera_info rc=%d facing=%d", g_map.extra_vendor_ids[k], rc, info.facing);
+            LOGI("extra vendor camera %d: get_camera_info rc=%d facing=%d device_version=0x%x", g_map.extra_vendor_ids[k],
+                 rc, info.facing, info.device_version);
             if (rc != 0) camera_idmap_remove_extra(&g_map, k);
         }
         g_map_ready = 1;
@@ -114,11 +118,26 @@ static void on_torch_change(const camera_module_callbacks_t *cb, const char *ven
 
 static const camera_module_callbacks_t g_shim_callbacks = {on_status_change, on_torch_change};
 
+/* Extra cameras open through the HAL1 dual-mode bridge unless persist.instruments.camera.bridge=0
+ * (the vendor's own HAL3 device for the tele panics the ISP; docs/units/camera-bridge.md). */
+static int bridged(int vendor_id) {
+    char v[PROP_VALUE_MAX] = {0};
+    return vendor_id >= g_map.vendor_count && !(__system_property_get(BRIDGE_PROP, v) > 0 && strcmp(v, "0") == 0);
+}
+
 static int shim_open(const hw_module_t *module, const char *name, hw_device_t **device) {
-    (void)module;
     char vendor_name[16];
     if (ensure_ready() != 0 || map_name(name, vendor_name, sizeof vendor_name) != 0) return -EINVAL;
-    int rc = g_vendor->common.methods->open(&g_vendor->common, vendor_name, device);
+    int vendor_id = atoi(vendor_name), rc;
+    if (bridged(vendor_id)) {
+        camera_info_t info;
+        memset(&info, 0, sizeof info);
+        g_vendor->get_camera_info(vendor_id, &info);
+        rc = bridge_open(g_vendor, module, info.static_camera_characteristics, device);
+        LOGI("open framework camera %s -> HAL1 dual bridge: %d", name, rc);
+        return rc;
+    }
+    rc = g_vendor->common.methods->open(&g_vendor->common, vendor_name, device);
     LOGI("open framework camera %s -> vendor camera %s: %d", name, vendor_name, rc);
     return rc;
 }
@@ -128,7 +147,16 @@ static int shim_get_number_of_cameras(void) { return ensure_ready() == 0 ? camer
 static int shim_get_camera_info(int camera_id, camera_info_t *info) {
     if (ensure_ready() != 0) return -ENODEV;
     int vendor_id = camera_idmap_to_vendor(&g_map, camera_id);
-    return vendor_id < 0 ? -EINVAL : g_vendor->get_camera_info(vendor_id, info);
+    if (vendor_id < 0) return -EINVAL;
+    int rc = g_vendor->get_camera_info(vendor_id, info);
+    if (rc == 0 && bridged(vendor_id)) { /* the bridge drives both rear sensors */
+        static char wide[] = "0";
+        static char *conflicts[] = {wide};
+        info->resource_cost = 100;
+        info->conflicting_devices = conflicts;
+        info->conflicting_devices_length = 1;
+    }
+    return rc;
 }
 
 static int shim_set_callbacks(const camera_module_callbacks_t *callbacks) {

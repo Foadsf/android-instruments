@@ -77,6 +77,18 @@ Same scene, phone held still, three back-to-back runs: dual `zoom=30 --window` f
 
 **In daylight at a distance, Samsung's dual mode at 2x outputs the telephoto, at 29 fps, into standard YUV buffers.** Indoors (dim, close) the same mode kept the wide camera, cropped, which matches Samsung's lux and distance fallback. Consequence for the bridge: dual mode gives zero-copy telephoto frames only when Samsung's fallback allows (bright, distant scenes); the single-camera HAL1 telephoto (`"3"`, data callbacks) is unconditional but needs the copy path. For microscope work (close range) the copy path is the one that matters.
 
+## Dual-mode bridge as a HAL3 device (2026-11-14)
+
+`android/camshim/bridge.c` (+ `bridge_meta.c`, `bridge_hal1.c`, `core/camera_bridge_queue`): framework camera 2 opens HAL1 `open_legacy("20")` with `zoom=30`, and the framework's output buffers become the HAL1 preview window. Plugins are preloaded from `persist.instruments.camera.plugin_dir` before the vendor module loads (its plugin thread looks for them at start-up; preloading at open time was too late: `DUAL_PREVIEW plugin load failed`). `persist.instruments.camera.bridge=0` falls back to the vendor's own HAL3 device.
+
+Probe CONTROL trial on camera 2 (1440x1080 YUV), in order of fixes:
+
+1. `configure` failed in the framework: `Camera HAL requested max_buffer count: 0`. A raw dump of `camera3_stream_t` showed **`usage` is 64-bit in this provider** (words 4-5 usage, 6 max_buffers, 8 data_space `0x08C20000` JFIF); `legacy_camera3.h` had `uint32_t` and every later field was shifted.
+2. `start_preview` blocked 5 s and failed: HAL1 dequeues its whole set (9 buffers) inside `start_preview`, and the request thread was the one waiting. Now a starter thread runs it.
+3. Configured, `start_preview` 0, **9 frames delivered, then nothing** (`results/sm-n950f/probe_20261114_*`, verdict PARTIAL_FRAMES). Window trace: the first 9 framework buffers are dequeued and filled; the 10th (a handle HAL1 never registered) is cancelled immediately, again and again (`Gralloc buffer collector has no Buffer`). **Samsung's HAL1 only fills the 9 buffers it registered at start; the framework circulates more than 9 (HAL max_buffers + the consumer's).** Zero copy into framework buffers therefore does not work for a general consumer.
+
+Way forward (not built): a private 9-buffer pool for HAL1 (`AHardwareBuffer` `0x23` + camera write, already proven in hal1probe dual mode) and a CPU copy into each framework buffer, imported with `AHardwareBuffer_createFromHandle` (exported by the provider's 32-bit `libnativewindow.so`) and `lockPlanes`. About 2.3 MB per 1440x1080 frame.
+
 ## Thresholds
 
 As in `device-probe.md`: a trial WORKS at >= 10 frames per stream in 2 s.

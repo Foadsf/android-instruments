@@ -15,8 +15,11 @@ foreach ($abi in $targets.Keys) {
     & $cc @flags "-I$repo/core/camera_params/include" -o "$out/hal1probe" "$repo/android/hal1probe/hal1probe.c" `
         "$repo/android/hal1probe/probe_window.c" "$repo/core/camera_params/camera_params.c" -ldl -lnativewindow
     if ($LASTEXITCODE) { throw "hal1probe ($abi) failed" }
-    & $cc @flags -shared -fPIC -fvisibility=hidden -o "$out/camera.instruments_shim.so" `
-        "$repo/android/camshim/camera_tele_shim.c" "$repo/core/camera_idmap/camera_idmap.c" -llog -ldl
+    & $cc @flags -shared -fPIC -fvisibility=hidden "-I$repo/core/camera_params/include" `
+        "-I$repo/core/camera_bridge_queue/include" -o "$out/camera.instruments_shim.so" `
+        "$repo/android/camshim/camera_tele_shim.c" "$repo/core/camera_idmap/camera_idmap.c" `
+        "$repo/android/camshim/bridge.c" "$repo/android/camshim/bridge_meta.c" "$repo/android/camshim/bridge_hal1.c" `
+        "$repo/core/camera_bridge_queue/bridge_queue.c" "$repo/core/camera_params/camera_params.c" -llog -ldl
     if ($LASTEXITCODE) { throw "camera shim ($abi) failed" }
     Write-Output "built $abi"
 }

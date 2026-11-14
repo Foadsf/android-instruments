@@ -1,0 +1,8 @@
+add_library(instruments_bridge_queue STATIC bridge_queue.c)
+target_include_directories(instruments_bridge_queue PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+instruments_add_test(test_bridge_queue tests/test_bridge_queue.cpp)
+target_link_libraries(test_bridge_queue PRIVATE instruments_bridge_queue)
+
+instruments_add_negative_control(negative_control_bridge_queue tests/negative_control_bridge_queue.cpp)
+target_link_libraries(negative_control_bridge_queue PRIVATE instruments_bridge_queue)
