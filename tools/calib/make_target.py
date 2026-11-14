@@ -1,12 +1,15 @@
 """A4 calibration target for the phone cameras (docs/units/calib-target.md), as a vector PDF.
 
-    python tools/calib/make_target.py [--out tools/calib/target_a4_v1.pdf]
+    python tools/calib/make_target.py [--layout landscape-v2|portrait-v1] [--out FILE.pdf]
+    tpdprint print tools/calib/target_a4_v2_landscape.pdf      # true scale on the calibrated Epson
 
 Writes the PDF and a JSON spec beside it with every feature's position in millimetres on the page,
 so the calibration code reads the geometry from the spec and never from a guess. Contents: a
 ChArUco board (intrinsics, distortion, pose, scale), a slanted-edge square (MTF), a binary random
 texture (alignment, NCC), grey patches (noise vs signal) and a 150 mm ruler (print-scale check).
-Print at 100 % ("actual size"), never "fit to page".
+Print through tpdprint, never from a viewer: on 2026-11-14 the portrait v1, printed from a viewer,
+came out at 0.947 scale (142 mm for the 150 mm ruler), and the Epson's driver shrinks pages after
+any app; tpdprint's per-printer calibration (landscape, measured on paper) undoes that.
 """
 from __future__ import annotations
 
@@ -21,6 +24,27 @@ HERE = Path(__file__).resolve().parent
 
 
 def default_spec() -> dict:
+    """A4 landscape, v2: landscape because the Epson's true-scale calibration (tpdprint, measured
+    on paper 2026-10-07) exists for landscape; the portrait v1 printed at 0.947 scale from a viewer."""
+    return {
+        "name": "android-instruments calibration target",
+        "version": "a4-landscape-v2",
+        "page_mm": [297.0, 210.0],
+        # 10x8 squares: tpdprint's dry run put ink in the unprintable margin with 9 rows (the
+        # driver shifts the page by ~2.3 mm), so every feature keeps >= 12 mm from top and bottom.
+        "board": {"type": "charuco", "dictionary": "DICT_5X5_100", "cols": 10, "rows": 8,
+                  "square_mm": 20.0, "marker_mm": 14.0, "origin_mm": [12.0, 20.0]},
+        "slanted_edge": {"centre_mm": [254.5, 40.0], "side_mm": 30.0, "angle_deg": 5.0},
+        "texture": {"origin_mm": [229.5, 62.0], "side_mm": 50.0, "px_per_mm": 5, "blur_mm": 1.0, "seed": 20261114},
+        "grey": {"origin_mm": [233.0, 118.0], "patch_mm": 20.0, "gap_mm": 3.0, "cols": 2,
+                 "levels_black_fraction": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]},
+        "ruler": {"start_mm": [30.0, 192.0], "length_mm": 150.0},
+        "labels_mm": [[12.0, 12.0], [12.0, 16.0]],
+    }
+
+
+def portrait_v1_spec() -> dict:
+    """The first, portrait layout (kept so target_a4_v1.pdf can be regenerated exactly)."""
     return {
         "name": "android-instruments calibration target",
         "version": "a4-v1",
@@ -31,7 +55,8 @@ def default_spec() -> dict:
         "texture": {"origin_mm": [70.0, 228.0], "side_mm": 50.0, "px_per_mm": 5, "blur_mm": 1.0, "seed": 20261114},
         "grey": {"origin_mm": [128.0, 228.0], "patch_mm": 20.0, "gap_mm": 3.0, "cols": 3,
                  "levels_black_fraction": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]},
-        "ruler": {"start_mm": [30.0, 287.0], "length_mm": 150.0},
+        "ruler": {"start_mm": [30.0, 287.0], "length_mm": 150.0, "label_below": True},
+        "labels_mm": [[15.0, 12.0], [15.0, 17.0]],
     }
 
 
@@ -128,16 +153,20 @@ def draw_ruler(ax, r: dict):
         ax.plot([x0 + mm, x0 + mm], [y0, y0 - tick], color="black", linewidth=lw, solid_capstyle="butt")
         if mm % 10 == 0:
             ax.text(x0 + mm, y0 - 5.2, str(mm), ha="center", va="bottom", fontsize=4.5)
-    ax.text(x0 + r["length_mm"] / 2, y0 + 2.5, f"{r['length_mm']:.1f} mm from 0 to {int(r['length_mm'])}",
-            ha="center", va="top", fontsize=5)
+    label = f"{r['length_mm']:.1f} mm from 0 to {int(r['length_mm'])}"
+    if r.get("label_below"):
+        ax.text(x0 + r["length_mm"] / 2, y0 + 2.5, label, ha="center", va="top", fontsize=5)
+    else:  # beside the end, so nothing is drawn near the bottom edge of the paper
+        ax.text(x0 + r["length_mm"] + 4, y0 - 1.5, label, ha="left", va="center", fontsize=5)
 
 
 def draw_labels(ax, spec: dict):
     b = spec["board"]
     bw, bh = b["cols"] * b["square_mm"], b["rows"] * b["square_mm"]
-    ax.text(15, 12, f"{spec['name']} {spec['version']}: print at 100 % (actual size), never fit to page.",
+    (x1, y1), (x2, y2) = spec["labels_mm"]
+    ax.text(x1, y1, f"{spec['name']} {spec['version']}: print with tpdprint (true scale), never from a viewer.",
             fontsize=6.5, va="center")
-    ax.text(15, 17, f"Check with a ruler: board {bw:.1f} x {bh:.1f} mm (outer edges of the squares), "
+    ax.text(x2, y2, f"Check with a ruler: board {bw:.1f} x {bh:.1f} mm (outer edges of the squares), "
                     f"square {b['square_mm']:.1f} mm, ruler below {spec['ruler']['length_mm']:.1f} mm. "
                     f"ChArUco {b['cols']}x{b['rows']} {b['dictionary']}, marker {b['marker_mm']:.1f} mm.",
             fontsize=5, va="center")
@@ -168,9 +197,11 @@ def build(spec: dict, out_pdf: Path) -> None:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--out", type=Path, default=HERE / "target_a4_v1.pdf")
+    ap.add_argument("--layout", choices=("landscape-v2", "portrait-v1"), default="landscape-v2")
+    ap.add_argument("--out", type=Path)
     args = ap.parse_args(argv)
-    spec = default_spec()
+    spec = default_spec() if args.layout == "landscape-v2" else portrait_v1_spec()
+    args.out = args.out or HERE / ("target_a4_v2_landscape.pdf" if args.layout == "landscape-v2" else "target_a4_v1.pdf")
     build(spec, args.out)
     args.out.with_suffix(".json").write_text(json.dumps(spec, indent=2) + "\n")
     print(json.dumps({"pdf": str(args.out), "spec": str(args.out.with_suffix(".json"))}))

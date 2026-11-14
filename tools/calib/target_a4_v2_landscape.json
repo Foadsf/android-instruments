@@ -1,0 +1,72 @@
+{
+  "name": "android-instruments calibration target",
+  "version": "a4-landscape-v2",
+  "page_mm": [
+    297.0,
+    210.0
+  ],
+  "board": {
+    "type": "charuco",
+    "dictionary": "DICT_5X5_100",
+    "cols": 10,
+    "rows": 8,
+    "square_mm": 20.0,
+    "marker_mm": 14.0,
+    "origin_mm": [
+      12.0,
+      20.0
+    ]
+  },
+  "slanted_edge": {
+    "centre_mm": [
+      254.5,
+      40.0
+    ],
+    "side_mm": 30.0,
+    "angle_deg": 5.0
+  },
+  "texture": {
+    "origin_mm": [
+      229.5,
+      62.0
+    ],
+    "side_mm": 50.0,
+    "px_per_mm": 5,
+    "blur_mm": 1.0,
+    "seed": 20261114
+  },
+  "grey": {
+    "origin_mm": [
+      233.0,
+      118.0
+    ],
+    "patch_mm": 20.0,
+    "gap_mm": 3.0,
+    "cols": 2,
+    "levels_black_fraction": [
+      0.0,
+      0.2,
+      0.4,
+      0.6,
+      0.8,
+      1.0
+    ]
+  },
+  "ruler": {
+    "start_mm": [
+      30.0,
+      192.0
+    ],
+    "length_mm": 150.0
+  },
+  "labels_mm": [
+    [
+      12.0,
+      12.0
+    ],
+    [
+      12.0,
+      16.0
+    ]
+  ]
+}

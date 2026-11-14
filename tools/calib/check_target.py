@@ -18,7 +18,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from make_target import board_object  # noqa: E402  (the board definition, not the drawing)
 
-A4_PT = (595.276, 841.890)
 MAX_CORNER_ERR_MM = 0.1
 PAGE_TOL_PT = 0.5
 
@@ -111,9 +110,10 @@ def edge_angle_check(img, s: dict, dpi: int):
 
 def evaluate(pdf: Path, spec: dict, dpi: int) -> dict:
     (w, h), pages, img = render(pdf, dpi)
+    want = [round(v * 72 / 25.4, 3) for v in spec["page_mm"]]
     checks = [check("one page", pages == 1, pages, 1),
-              check("page is A4 (pt)", abs(w - A4_PT[0]) <= PAGE_TOL_PT and abs(h - A4_PT[1]) <= PAGE_TOL_PT,
-                    [round(w, 3), round(h, 3)], list(A4_PT))]
+              check("page size matches the spec (pt)", abs(w - want[0]) <= PAGE_TOL_PT and abs(h - want[1]) <= PAGE_TOL_PT,
+                    [round(w, 3), round(h, 3)], want)]
     checks += board_checks(img, spec, dpi) + probe_checks(img, spec, dpi)
     return {"verdict": "pass" if all(c["ok"] for c in checks) else "fail", "dpi": dpi, "checks": checks}
 
