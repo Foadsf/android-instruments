@@ -1,0 +1,557 @@
+{
+  "unit": "camera_calibration",
+  "run_id": "155558-d0aa",
+  "series": "155558-d0aa_series",
+  "target": "target_screen_lg_fhd",
+  "board_mm_drawn": [
+    254.625,
+    203.7
+  ],
+  "board_mm_measured": [
+    254.625,
+    203.7
+  ],
+  "focus_diopters": 2.5,
+  "dropped": [
+    {
+      "pose": 2,
+      "camera": "0",
+      "reason": "near-duplicate of pose 1"
+    },
+    {
+      "pose": 4,
+      "camera": "0",
+      "reason": "near-duplicate of pose 3"
+    },
+    {
+      "pose": 5,
+      "camera": "0",
+      "reason": "near-duplicate of pose 3"
+    }
+  ],
+  "cameras": {
+    "0": {
+      "views": 27,
+      "train": [
+        0,
+        1,
+        3,
+        7,
+        8,
+        9,
+        11,
+        12,
+        13,
+        15,
+        16,
+        17,
+        19,
+        20,
+        21,
+        23,
+        24,
+        25,
+        27,
+        28,
+        29
+      ],
+      "eval": [
+        6,
+        10,
+        14,
+        18,
+        22,
+        26
+      ],
+      "fx": 1136.6829749923745,
+      "fy": 1136.939267104718,
+      "cx": 736.5226526806678,
+      "cy": 536.3653331696854,
+      "dist": [
+        0.15109694246662386,
+        -0.39118623879818754,
+        0.0006038443646216785,
+        0.0002644383510533476,
+        0.0
+      ],
+      "std": {
+        "fx": 0.8646686030523747,
+        "fy": 0.8656676007865626,
+        "cx": 0.40095158888207655,
+        "cy": 0.37155226031136096,
+        "k1": 0.0011116546381308553,
+        "k2": 0.004635999050063759,
+        "p1": 0.00013469172031501956,
+        "p2": 0.0001639629486433245,
+        "k3": 0.0
+      },
+      "fit_rms": 0.16177114987384855,
+      "poses": {
+        "0": {
+          "distance_mm": 511.96,
+          "tilt_deg": 10.71,
+          "mm_per_px": 0.4504,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "1": {
+          "distance_mm": 398.44,
+          "tilt_deg": 20.21,
+          "mm_per_px": 0.35053,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "3": {
+          "distance_mm": 417.26,
+          "tilt_deg": 9.83,
+          "mm_per_px": 0.36708,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "6": {
+          "distance_mm": 470.55,
+          "tilt_deg": 6.72,
+          "mm_per_px": 0.41396,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "7": {
+          "distance_mm": 459.01,
+          "tilt_deg": 8.17,
+          "mm_per_px": 0.40381,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "8": {
+          "distance_mm": 278.42,
+          "tilt_deg": 5.26,
+          "mm_per_px": 0.24494,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "9": {
+          "distance_mm": 558.09,
+          "tilt_deg": 10.2,
+          "mm_per_px": 0.49098,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "10": {
+          "distance_mm": 551.62,
+          "tilt_deg": 17.44,
+          "mm_per_px": 0.48529,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "11": {
+          "distance_mm": 508.18,
+          "tilt_deg": 13.77,
+          "mm_per_px": 0.44707,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "12": {
+          "distance_mm": 382.72,
+          "tilt_deg": 24.29,
+          "mm_per_px": 0.3367,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "13": {
+          "distance_mm": 396.84,
+          "tilt_deg": 23.81,
+          "mm_per_px": 0.34912,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "14": {
+          "distance_mm": 479.4,
+          "tilt_deg": 16.44,
+          "mm_per_px": 0.42175,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "15": {
+          "distance_mm": 361.95,
+          "tilt_deg": 17.42,
+          "mm_per_px": 0.31843,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "16": {
+          "distance_mm": 568.6,
+          "tilt_deg": 12.96,
+          "mm_per_px": 0.50022,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "17": {
+          "distance_mm": 456.6,
+          "tilt_deg": 24.63,
+          "mm_per_px": 0.40169,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "18": {
+          "distance_mm": 365.58,
+          "tilt_deg": 27.44,
+          "mm_per_px": 0.32162,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "19": {
+          "distance_mm": 291.74,
+          "tilt_deg": 27.85,
+          "mm_per_px": 0.25666,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "20": {
+          "distance_mm": 288.55,
+          "tilt_deg": 13.96,
+          "mm_per_px": 0.25386,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "21": {
+          "distance_mm": 420.14,
+          "tilt_deg": 3.34,
+          "mm_per_px": 0.36962,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "22": {
+          "distance_mm": 507.99,
+          "tilt_deg": 13.48,
+          "mm_per_px": 0.44691,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "23": {
+          "distance_mm": 519.92,
+          "tilt_deg": 6.55,
+          "mm_per_px": 0.4574,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "24": {
+          "distance_mm": 551.51,
+          "tilt_deg": 4.75,
+          "mm_per_px": 0.4852,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "25": {
+          "distance_mm": 531.77,
+          "tilt_deg": 15.16,
+          "mm_per_px": 0.46783,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "26": {
+          "distance_mm": 470.97,
+          "tilt_deg": 11.5,
+          "mm_per_px": 0.41434,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "27": {
+          "distance_mm": 538.52,
+          "tilt_deg": 20.13,
+          "mm_per_px": 0.47376,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "28": {
+          "distance_mm": 351.82,
+          "tilt_deg": 19.62,
+          "mm_per_px": 0.30951,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "29": {
+          "distance_mm": 542.36,
+          "tilt_deg": 3.61,
+          "mm_per_px": 0.47714,
+          "corners": 63,
+          "corner_fraction": 1.0
+        }
+      },
+      "checks": [
+        {
+          "check": "held-out reprojection RMS (px)",
+          "ok": true,
+          "judged": true,
+          "value": 0.174,
+          "threshold": 0.5
+        },
+        {
+          "check": "halves agree: fx (relative)",
+          "ok": true,
+          "judged": true,
+          "value": 0.00262,
+          "threshold": 0.005
+        },
+        {
+          "check": "halves agree: cx, cy (px)",
+          "ok": false,
+          "judged": true,
+          "value": 4.19,
+          "threshold": 3.0
+        },
+        {
+          "check": "straightness after undistortion, RMS (px)",
+          "ok": true,
+          "judged": true,
+          "value": 0.087,
+          "threshold": 0.15
+        },
+        {
+          "check": "straightness after undistortion, max (px)",
+          "ok": true,
+          "judged": false,
+          "value": 0.36,
+          "threshold": "recorded"
+        },
+        {
+          "check": "median corner fraction per view",
+          "ok": true,
+          "judged": true,
+          "value": 1.0,
+          "threshold": 0.6
+        },
+        {
+          "check": "image coverage by corners (8 x 6 cells)",
+          "ok": true,
+          "judged": false,
+          "value": 0.604,
+          "threshold": "recorded"
+        }
+      ]
+    },
+    "2": {
+      "views": 8,
+      "train": [
+        30,
+        31,
+        32,
+        34,
+        35,
+        36
+      ],
+      "eval": [
+        33,
+        37
+      ],
+      "fx": 2163.249713846268,
+      "fy": 2165.4624094530386,
+      "cx": 755.9404115096245,
+      "cy": 555.3535635544924,
+      "dist": [
+        0.3230273329328091,
+        -1.8842776535703878,
+        0.0007626445407691098,
+        0.0013445118776817051,
+        0.0
+      ],
+      "std": {
+        "fx": 7.698704432246628,
+        "fy": 7.372704698868684,
+        "cx": 3.8562282900659084,
+        "cy": 3.411494901041799,
+        "k1": 0.01296429816148778,
+        "k2": 0.18199481209966184,
+        "p1": 0.0008975543605471364,
+        "p2": 0.001027059415716468,
+        "k3": 0.0
+      },
+      "fit_rms": 0.4155927010637363,
+      "poses": {
+        "30": {
+          "distance_mm": 594.36,
+          "tilt_deg": 14.19,
+          "mm_per_px": 0.27476,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "31": {
+          "distance_mm": 535.95,
+          "tilt_deg": 22.44,
+          "mm_per_px": 0.24775,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "32": {
+          "distance_mm": 608.77,
+          "tilt_deg": 16.92,
+          "mm_per_px": 0.28141,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "33": {
+          "distance_mm": 568.98,
+          "tilt_deg": 26.71,
+          "mm_per_px": 0.26302,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "34": {
+          "distance_mm": 523.18,
+          "tilt_deg": 11.85,
+          "mm_per_px": 0.24185,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "35": {
+          "distance_mm": 577.2,
+          "tilt_deg": 18.86,
+          "mm_per_px": 0.26682,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "36": {
+          "distance_mm": 612.91,
+          "tilt_deg": 12.73,
+          "mm_per_px": 0.28333,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "37": {
+          "distance_mm": 444.6,
+          "tilt_deg": 31.42,
+          "mm_per_px": 0.20552,
+          "corners": 63,
+          "corner_fraction": 1.0
+        }
+      },
+      "checks": [
+        {
+          "check": "held-out reprojection RMS (px)",
+          "ok": true,
+          "judged": true,
+          "value": 0.537,
+          "threshold": 0.8
+        },
+        {
+          "check": "halves agree: fx (relative)",
+          "ok": false,
+          "judged": true,
+          "value": 0.05077,
+          "threshold": 0.005
+        },
+        {
+          "check": "halves agree: cx, cy (px)",
+          "ok": false,
+          "judged": true,
+          "value": 25.6,
+          "threshold": 3.0
+        },
+        {
+          "check": "straightness after undistortion, RMS (px)",
+          "ok": false,
+          "judged": true,
+          "value": 0.254,
+          "threshold": 0.15
+        },
+        {
+          "check": "straightness after undistortion, max (px)",
+          "ok": true,
+          "judged": false,
+          "value": 1.414,
+          "threshold": "recorded"
+        },
+        {
+          "check": "median corner fraction per view",
+          "ok": true,
+          "judged": false,
+          "value": 1.0,
+          "threshold": 0.6
+        },
+        {
+          "check": "image coverage by corners (8 x 6 cells)",
+          "ok": true,
+          "judged": false,
+          "value": 0.604,
+          "threshold": "recorded"
+        }
+      ]
+    }
+  },
+  "pair_checks": [
+    {
+      "check": "known displacement",
+      "ok": true,
+      "judged": false,
+      "value": "not captured",
+      "threshold": "--displacement A,B,MM"
+    },
+    {
+      "check": "fx2/fx0 vs NCC",
+      "ok": true,
+      "judged": false,
+      "value": {
+        "fx_ratio": 1.9031
+      },
+      "threshold": "no common pose"
+    },
+    {
+      "check": "camera 0: frame clock is the gyro clock (median arrival lag, ms)",
+      "ok": true,
+      "judged": true,
+      "value": 152.4,
+      "threshold": "0..1000"
+    },
+    {
+      "check": "camera 2: frame clock is the gyro clock (median arrival lag, ms)",
+      "ok": true,
+      "judged": true,
+      "value": 20.1,
+      "threshold": "0..1000"
+    }
+  ],
+  "hand_held_note": "one camera at a time while moving: no pose is shared by both cameras, so the pair, the known displacement and the NCC ratio are recorded as not captured",
+  "stereo": {
+    "pairs": 0,
+    "checks": [
+      {
+        "check": "stereo pairs",
+        "ok": true,
+        "judged": false,
+        "value": 0,
+        "threshold": ">= 3"
+      }
+    ]
+  },
+  "imu": {
+    "poses": 27,
+    "rotation": [
+      [
+        0.999984877000362,
+        -0.0030116790769552097,
+        -0.004601690961994972
+      ],
+      [
+        0.002932356847219189,
+        0.9998486585583987,
+        -0.017148214551113615
+      ],
+      [
+        0.004652639454421853,
+        0.017134461418669953,
+        0.9998423691652596
+      ]
+    ],
+    "rotation_deg": 1.031,
+    "residual_rms_deg": 0.599,
+    "checks": [
+      {
+        "check": "IMU-to-camera residual after the fitted rotation (deg)",
+        "ok": true,
+        "judged": false,
+        "value": 0.599,
+        "threshold": "recorded"
+      }
+    ]
+  },
+  "verdict": "fail"
+}

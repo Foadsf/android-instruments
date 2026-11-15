@@ -260,4 +260,19 @@ Diagnosis (scratch scripts on the same views; exploratory, not evidence):
   - Its refined board is a smooth warp of up to 1.4 mm out of plane, so the inked sheet is not flat even when taped at four corners. It also moved the in-plane points by 1.1 mm RMS, which the weak pose geometry (next point) makes unreliable.
 - **The poses have little angle diversity.** Every view has a 14.5 to 17° tilt except two (24°, 31°): the phone rested on the table at one attitude, and only the distance changed. That leaves the focal length weakly separated from distance, which matches the halves disagreeing.
 
+**Run 2 (`155558-d0aa`, 2026-11-15, hand-held sweep on the monitor): fail.**
+- **Capture:** camera 0 kept 30 frames, camera 2 only 8 in its 300 s limit at 0.02 rad/s. Settings: focus 2.5 D, camera 0 at 8 ms. Clock check: lag 152 ms and 20 ms (pass). Foad found the run too long and tiring.
+- **Host:** 3 of camera 0's frames were dropped as near-duplicates. Results: `results/sm-n950f/microscope_series_20261115_155558-d0aa.json` and `camera_calibration_20261115_155558-d0aa.json`.
+
+| Check | Camera 0 (27 views) | Camera 2 (8 views) |
+|---|---|---|
+| held-out RMS | 0.17 px (pass; run 1 0.78) | 0.54 px (pass) |
+| halves: fx | 0.26 % (pass; run 1 1.0 %) | 5.1 % (fail) |
+| halves: centre | 4.2 px (fail, limit 3; run 1 13) | 25.6 px (fail) |
+| straightness RMS | 0.087 px (pass; run 1 0.26) | 0.25 px (fail) |
+| image coverage by corners | 0.60 (recorded) | 0.60 |
+
+- **Camera 0:** fx = 1136.7 px, k1 = 0.151, k2 = −0.391. The centre is the only judged check that fails. Coverage of 0.60 means the image corners were seldom reached, which leaves the centre weakly fixed (a reading, not tested).
+- **Camera 2:** 8 views are the minimum, and the halves (4 views each) are not stable. The bottleneck is the strict gate over a 150 ms window. The pair, the displacement and the NCC ratio were recorded as not captured; fx2/fx0 = 1.903.
+
 Not yet captured: the known 100 mm displacement. Exploratory first look (run `222032-95ad`, not evidence): accelerometer tilt 12.9° and roll 1.2°; board tilt about 11° on both cameras; distances 274 mm and 250 mm with nominal focal lengths; sheet level to 0.2°.
