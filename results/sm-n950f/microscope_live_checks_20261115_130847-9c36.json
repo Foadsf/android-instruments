@@ -1,0 +1,93 @@
+{
+  "verdict": "fail",
+  "cameras": {
+    "0": [
+      {
+        "check": "stream fps (recorded, no threshold)",
+        "ok": true,
+        "value": 13.45,
+        "threshold": null
+      },
+      {
+        "check": "capture failures",
+        "ok": true,
+        "value": 0,
+        "threshold": 0
+      },
+      {
+        "check": "burst frames saved",
+        "ok": true,
+        "value": 4,
+        "threshold": 4
+      },
+      {
+        "check": "timestamps strictly increasing",
+        "ok": true,
+        "value": true,
+        "threshold": true
+      },
+      {
+        "check": "largest gap in frame periods",
+        "ok": true,
+        "value": 1.34,
+        "threshold": 2.0
+      }
+    ],
+    "2": [
+      {
+        "check": "stream fps",
+        "ok": false,
+        "value": 9.48,
+        "threshold": ">= 20.0"
+      },
+      {
+        "check": "capture failures",
+        "ok": true,
+        "value": 0,
+        "threshold": 0
+      },
+      {
+        "check": "burst frames saved",
+        "ok": true,
+        "value": 4,
+        "threshold": 4
+      },
+      {
+        "check": "timestamps strictly increasing",
+        "ok": true,
+        "value": true,
+        "threshold": true
+      },
+      {
+        "check": "largest gap in frame periods",
+        "ok": true,
+        "value": 0.33,
+        "threshold": 2.0
+      }
+    ]
+  },
+  "sharpness": [
+    {
+      "camera_id": "0",
+      "check": "sharpness app vs NumPy (relative)",
+      "ok": true,
+      "value": {
+        "app": 692.5066324258836,
+        "numpy": 692.507,
+        "rel": 0.0
+      },
+      "threshold": 0.01
+    },
+    {
+      "camera_id": "2",
+      "check": "sharpness app vs NumPy (relative)",
+      "ok": true,
+      "value": {
+        "app": 11.19857669486699,
+        "numpy": 11.199,
+        "rel": 0.0
+      },
+      "threshold": 0.01
+    }
+  ]
+}

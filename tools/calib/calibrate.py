@@ -204,7 +204,7 @@ def imu_report(series: dict, views0: list, cal0: dict) -> dict:
 
 def evaluate(root: Path, args) -> tuple[dict, int]:
     series = json.loads((root / "series.json").read_text())
-    spec = json.loads(SPEC.read_text())
+    spec = json.loads(Path(args.spec).read_text())
     b = spec["board"]
     drawn = (b["cols"] * b["square_mm"], b["rows"] * b["square_mm"])
     measured = tuple(float(v) for v in args.board_mm.split(",")) if args.board_mm else drawn
@@ -212,6 +212,7 @@ def evaluate(root: Path, args) -> tuple[dict, int]:
     board = board_object(b)
     views, dropped, frames = collect(root, series, board, scale_xy)
     report = {"unit": "camera_calibration", "run_id": series.get("run_id"), "series": root.name,
+              "target": spec.get("name", Path(args.spec).stem),
               "board_mm_drawn": list(drawn), "board_mm_measured": list(measured),
               "focus_diopters": series.get("focus_diopters"), "dropped": dropped, "cameras": {}}
     short = [c for c, v in views.items() if len(v) < cc.MIN_VIEWS]
@@ -237,7 +238,7 @@ def evaluate(root: Path, args) -> tuple[dict, int]:
 
 def device_of(run_id: str) -> str:
     """The results/<device> folder of the run report that produced this series."""
-    for p in sorted((REPO / "results").glob(f"*/microscope_live_*_{run_id}.json")):
+    for p in sorted((REPO / "results").glob(f"*/microscope_*_{run_id}.json")):
         return p.parent.name
     return "unknown"
 
@@ -245,6 +246,7 @@ def device_of(run_id: str) -> str:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("series", type=Path)
+    ap.add_argument("--spec", default=str(SPEC), help="target spec JSON (default: the printed A4 v2 target)")
     ap.add_argument("--board-mm", help="measured board width,height in mm (default: the drawn size)")
     ap.add_argument("--displacement", help="A,B,MM: poses A and B were MM apart along the wall normal")
     ap.add_argument("--ncc-pose", type=int)

@@ -28,20 +28,29 @@ class SeriesMode(private val station: Station, private val sensors: SensorRecord
         val tone = runCatching { ToneGenerator(AudioManager.STREAM_NOTIFICATION, TONE_VOLUME) }.getOrNull()
         sensors.start()
         try {
+            aim(plan)
             for (i in 0 until plan.poses) {
                 if (i > 0 && !sensors.waitMotion(MOVE_RAD_S, MOVE_TIMEOUT_MS)) { end = "no movement after pose ${i - 1}"; break }
                 if (!sensors.waitStill(STILL_RAD_S, plan.stillMs, STILL_TIMEOUT_MS)) { end = "never still before pose $i"; break }
                 poses.put(capturePose(plan, i, root))
                 tone?.startTone(ToneGenerator.TONE_PROP_BEEP2, TONE_MS)
                 writeAtomic(File(root, "series.json"), summary(plan, poses, "in progress"))
+                aim(plan)
             }
         } finally {
+            station.close()
             sensors.stop()
             tone?.release()
         }
         val report = summary(plan, poses, end)
         writeAtomic(File(root, "series.json"), report)
         return File(outDir, "microscope_series_${plan.runId}.json").also { writeAtomic(it, report) }
+    }
+
+    /** Between poses the narrowest camera (the last listed, camera 2) streams to the screen so Foad
+     *  can aim: if the board fits its view, it fits the wider camera's. Nothing is recorded. */
+    private fun aim(plan: Plan) {
+        plan.cameraIds.lastOrNull()?.let { id -> runCatching { station.open(id) } }
     }
 
     private fun capturePose(plan: Plan, index: Int, root: File): JSONObject {
@@ -110,8 +119,8 @@ class SeriesMode(private val station: Station, private val sensors: SensorRecord
         const val STILL_RAD_S = 0.01
         const val MOVED_RAD_S = 0.02
         const val MOVE_RAD_S = 0.15
-        const val STILL_TIMEOUT_MS = 60_000L
-        const val MOVE_TIMEOUT_MS = 90_000L
+        const val STILL_TIMEOUT_MS = 180_000L // run 124500-55c8 gave up after 60 s while Foad read the instructions
+        const val MOVE_TIMEOUT_MS = 180_000L
         const val TONE_VOLUME = 100
         const val TONE_MS = 300
     }

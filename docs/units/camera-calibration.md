@@ -136,6 +136,31 @@ Tests: `test_calibrate.py` gains three streaked-print tests:
 - calibration on streaked views meets the contract;
 - ignoring distortion still fails straightness on streaked views.
 
+## Amendment: the target on a monitor (2026-11-15, after run 1, before run 2)
+
+Run 1 showed that the inked sheet is not flat (a warp of up to 1.4 mm). Foad chose a monitor, which is flat and streak-free.
+
+- **Target:** the same 10 x 8 ChArUco board (DICT_5X5_100, marker 0.7 x square), drawn by `tools/calib/screen_target.py`:
+  - 70 px squares and 49 px markers (7 cells of 7 px), centred on the 1920 x 1080 LG Full HD monitor (EDID `GSM5B55`). The first version had 120 px squares; Foad asked for a board his 30 cm ruler can span;
+  - shown full-screen 1:1 at desktop position (1920, 0);
+  - files: `target_screen_lg_fhd.png` and its `.json`.
+- **Shown exactly:** `screen_target.py verify` grabs that monitor and requires every pixel to equal the PNG within 2 grey levels. On 2026-11-15 it found 0 pixels off; the same grab shifted by 20 px fails, as it must. It cannot see scaling inside the monitor itself: that is the ruler's job.
+- **Scale truth:**
+  - **The EDID is wrong.** It says 480 x 270 mm (0.25 mm pitch, a 21.5-inch panel). Foad's ruler on the 120 px board gave about 43.5 x 35 cm over 1200 x 960 px, which is 0.363 mm: a 31.5-inch 1920 x 1080 panel (698.4 mm wide, 0.36375 mm pitch). The nominal pitch is therefore 0.36375 mm, and the 70 px board is nominally 254.6 x 203.7 mm;
+  - Foad measures the board's width and height on the screen with the ruler, and `calibrate.py --spec tools/calib/target_screen_lg_fhd.json --board-mm W,H` uses his numbers. If they differ from the nominal size by more than 0.5 mm, that is recorded.
+- **Capture changes from run 1:**
+  - camera 0 at 30 to 60 cm, and camera 2 only at 40 cm or more (it is blurred nearer);
+  - the phone propped at varied angles: turned left and right, tipped up and down, and a few on its side;
+  - the 100 mm slide once.
+- **Focus for the screen, still to be tested:**
+  - On the first full-board screen view (`131410-901d` pose 0, about 53 cm, camera 0 at 3.5 D), the corner noise left after a cubic board-to-image fit was 0.60 px, against 0.31 to 0.36 px on paper views and 0.12 to 0.14 px on an earlier partial screen view (`130950-7e1a`).
+  - The 4 frames agree to 0.06 px, so the noise is a fixed pattern in the view, not motion or flicker.
+  - Its sign flips between neighbouring corners, which points to corner parity. The whites are not clipped (maximum 219).
+  - Hypothesis: defocus (3.5 D focus against a 1.9 D distance) under the camera's non-linear tone curve makes the white squares look larger.
+  - Planned test: the same pose at `--focus 2.0`, before any series. The first try (`131946-2602`) saw only a black screen, because the monitor had gone to sleep. `screen_target.py show` now asks Windows to keep the display on while the board is shown.
+- **Thresholds:** unchanged. Straightness stays judged by the RMS (≤ 0.15 px), although the screen has no streaks: the threshold was set before this run and stays.
+- **Expected risks, checked on the first capture:** moiré between the screen's pixel grid and the camera's pixels (camera 0 sees about 0.25 to 0.5 mm per pixel at 30 to 60 cm, against the 0.364 mm pitch), and refresh banding. The monitor runs at full brightness to avoid PWM flicker.
+
 ## Not in this unit
 
 - Focus-dependent calibration: a table over focus distances for focus stacking (Stage 3.6).

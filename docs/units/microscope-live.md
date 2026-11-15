@@ -22,6 +22,7 @@ The Note8 camera 2 bridge (`docs/units/camera-bridge.md`) accepts exactly **one*
   - `SeriesMode` waits for gyroscope stillness, captures each camera in turn, records the accelerometer and gyroscope (`SensorRecorder`), beeps, and waits for the phone to move.
   - It writes `captures/<run>_series/series.json` and `microscope_series_<run>.json`.
   - A series always runs with OIS off. Manual focus applies to camera 0; camera 2 echoes it without applying it.
+  - **Aiming (amended 2026-11-15):** between poses, the last listed camera (camera 2, the narrowest view) streams to the screen so Foad can aim; nothing is recorded from it. Each wait (for stillness, then for movement) gives up after 180 s, not 60 or 90 s: run `124500-55c8` gave up while Foad read the instructions. Verified on the phone in run `131410-901d`: the live camera 2 view showed between pose 0 and pose 1.
 - **Burst capture:** buffers are allocated up front (cap 32 frames, 75 MB at 1440x1080); during a burst the image thread only copies; files are written after the last frame, so the burst frames are consecutive.
 - **Preview:** a separate thread converts its own copy of the newest frame; frames it is busy for are not previewed, so the preview cannot slow the stream.
 - **Errors:** an open or configure failure is shown on screen and written to the run JSON with the exception text; never a silent black view (the microtopos failure).
