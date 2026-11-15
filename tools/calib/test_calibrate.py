@@ -291,6 +291,22 @@ class SeriesCli(unittest.TestCase):
             self.assertEqual(len(reasons), 1)
             self.assertIn("focus 3.2", reasons[0]["reason"])
 
+    def test_cameras_option_judges_only_the_cameras_asked_for(self):
+        import calibrate
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "s"
+            self.write_series(root, 9)
+            s = json.loads((root / "series.json").read_text())
+            s["cameras"] = ["0", "2"]  # camera 2 never captured (run stopped after camera 0)
+            (root / "series.json").write_text(json.dumps(s))
+            out = Path(d) / "r.json"
+            self.assertEqual(calibrate.main([str(root), "--out", str(out)]), 3)  # without: cannot judge
+            code = calibrate.main([str(root), "--out", str(out), "--cameras", "0"])
+            report = json.loads(out.read_text())
+            self.assertIn(code, (0, 1))
+            self.assertEqual(list(report["cameras"]), ["0"])
+            self.assertEqual(report["cameras_judged"], ["0"])
+
     def test_a_hand_held_camera_on_another_clock_fails(self):
         import calibrate
         ok = calibrate.clock_checks({"per_camera": {"0": {"arrival_lag_ms": {"median": 42.0}}}})

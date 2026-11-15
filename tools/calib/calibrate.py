@@ -238,6 +238,8 @@ def clock_checks(series: dict) -> list[dict]:
 
 def evaluate(root: Path, args) -> tuple[dict, int]:
     series = json.loads((root / "series.json").read_text())
+    if args.cameras:  # judge only these (e.g. a run stopped before camera 2); recorded in the report
+        series["cameras"] = [c for c in series["cameras"] if c in args.cameras.split(",")]
     spec = json.loads(Path(args.spec).read_text())
     b = spec["board"]
     drawn = (b["cols"] * b["square_mm"], b["rows"] * b["square_mm"])
@@ -248,7 +250,8 @@ def evaluate(root: Path, args) -> tuple[dict, int]:
     report = {"unit": "camera_calibration", "run_id": series.get("run_id"), "series": root.name,
               "target": spec.get("name", Path(args.spec).stem),
               "board_mm_drawn": list(drawn), "board_mm_measured": list(measured),
-              "focus_diopters": series.get("focus_diopters"), "dropped": dropped, "cameras": {}}
+              "focus_diopters": series.get("focus_diopters"), "cameras_judged": series["cameras"],
+              "dropped": dropped, "cameras": {}}
     short = [c for c, v in views.items() if len(v) < cc.MIN_VIEWS]
     if short:
         report["verdict"] = "cannot judge"
@@ -288,6 +291,7 @@ def main(argv=None) -> int:
     ap.add_argument("--board-mm", help="measured board width,height in mm (default: the drawn size)")
     ap.add_argument("--displacement", help="A,B,MM: poses A and B were MM apart along the wall normal")
     ap.add_argument("--ncc-pose", type=int)
+    ap.add_argument("--cameras", help="comma-separated: judge only these cameras of the series")
     ap.add_argument("--device", default=None, help="results/<device> folder (default: from the run report)")
     ap.add_argument("--out", type=Path, help="report path (default under results/)")
     args = ap.parse_args(argv)

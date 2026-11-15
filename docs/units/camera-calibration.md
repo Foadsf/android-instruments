@@ -307,4 +307,19 @@ Diagnosis (scratch scripts on the same views; exploratory, not evidence):
 - **Camera 0:** fx = 1136.7 px, k1 = 0.151, k2 = −0.391. The centre is the only judged check that fails. Coverage of 0.60 means the image corners were seldom reached, which leaves the centre weakly fixed (a reading, not tested).
 - **Camera 2:** 8 views are the minimum, and the halves (4 views each) are not stable. The bottleneck is the strict gate over a 150 ms window. The pair, the displacement and the NCC ratio were recorded as not captured; fx2/fx0 = 1.903.
 
+**Run 3 (`163037-f2e7`, 2026-11-15, hand-held with `--measure-bridge`): camera 0 only, fail.**
+- **Camera 2's window measured on the screen:** −122 to −2 ms (r = 0.47; `frame_timing_20261115_*.json`). With the 10 ms margins it is 140 ms, no shorter than the 150 ms default. The hypothesis that the bright screen shortens camera 2's exposure did not hold. Camera 2 would again have needed minutes of holding, so the run was stopped after camera 0 and camera 2 was not captured.
+- **Camera 0:** 30 frames in 98 s, 1 near-duplicate dropped. Judged with `calibrate.py --cameras 0` (new, tested). Results: `microscope_series_20261115_163037-f2e7.json` (the app's series file, pulled when the run was stopped) and `camera_calibration_20261115_163037-f2e7.json`.
+  - Held-out error 0.14 px (pass), straightness 0.086 px (pass), corner fraction 1.0 (pass).
+  - The halves disagree: fx by 0.58 % (limit 0.5 %), the centre by 7.2 px (limit 3).
+- **Between runs 2 and 3 (recorded, not judged; not one of the declared checks):**
+
+  | Run | fx (px) | cx | cy | k1 | k2 |
+  |---|---|---|---|---|---|
+  | 2 | 1136.7 | 736.5 | 536.4 | 0.151 | −0.391 |
+  | 3 | 1136.4 | 733.2 | 536.0 | 0.149 | −0.386 |
+
+  The two whole runs agree better (fx 0.03 %, cx 3.3 px, cy 0.4 px) than the halves within each run, which have about 14 views each.
+- **Camera 2 stays open.** Its gate window is set by the bridge, which stamps at delivery and reports no exposure, not by the hand. Making it quick needs the exposure reported by the bridge (or set short through it), which is bridge work outside this unit.
+
 Not yet captured: the known 100 mm displacement. Exploratory first look (run `222032-95ad`, not evidence): accelerometer tilt 12.9° and roll 1.2°; board tilt about 11° on both cameras; distances 274 mm and 250 mm with nominal focal lengths; sheet level to 0.2°.
