@@ -15,7 +15,14 @@ object Optics {
     const val CAM0_SENSOR_MM = 5.645
     const val CAM0_WIDTH = 1440
     val CAM0_RUNS = listOf("20261115_155558-d0aa", "20261115_163037-f2e7")
-    const val MODEL = "thin-lens-breathing-1"
+    /** Camera 0 reports focus this much too far (diopters), fitted on scale run 190102-7738. */
+    const val CAM0_FOCUS_OFFSET_D = 0.824
+    const val CAM0_OFFSET_RUN = "20261115_190102-7738"
+    const val MODEL = "thin-lens-breathing-2-focus-offset"
+
+    /** Camera 0's true focus from the reported one; null (no scale) when not a finite focus > 0. */
+    fun trueFocus(reported: Double?): Double? =
+        reported?.takeIf { it.isFinite() && it > 0.0 }?.plus(CAM0_FOCUS_OFFSET_D)
 
     /** Thin lens through one calibration point: 1/f = 1/v0 + D0, with v0 = fx0 x pitch. */
     fun fromCalibration(fx0Px: Double, d0Diopters: Double, pitchMm: Double): Lens {
@@ -23,9 +30,10 @@ object Optics {
         return Lens(1.0 / (1.0 / v0 + d0Diopters / 1000.0), pitchMm)
     }
 
-    /** Camera 0 for a stream [width] px wide (the calibration was at 1440 px). */
+    /** Camera 0 for a stream [width] px wide (the calibration was at 1440 px); its fixed focus,
+     *  reported as [CAM0_D0], was truly [CAM0_D0] + [CAM0_FOCUS_OFFSET_D]. Use with [trueFocus]. */
     fun camera0(width: Int = CAM0_WIDTH): Lens =
-        fromCalibration(CAM0_FX0 * width / CAM0_WIDTH, CAM0_D0, CAM0_SENSOR_MM / width)
+        fromCalibration(CAM0_FX0 * width / CAM0_WIDTH, CAM0_D0 + CAM0_FOCUS_OFFSET_D, CAM0_SENSOR_MM / width)
 
     /** Image distance v(D) = 1 / (1/f - D), or null when D is not a finite focus in (0, 1/f). */
     fun imageDistanceMm(lens: Lens, diopters: Double?): Double? {

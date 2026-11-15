@@ -81,12 +81,15 @@ class Model(unittest.TestCase):
     def test_hand_calculation(self):
         import scale_check as sk
         lens = sk.camera0(1440)
-        self.assertAlmostEqual(lens[0], 4.40616, delta=0.0001)
-        self.assertAlmostEqual(sk.um_per_px(lens, 10.0), 85.049, delta=0.085)
-        self.assertIsNone(sk.um_per_px(lens, 0.0))
+        self.assertAlmostEqual(lens[0], 4.39022, delta=0.0001)  # model 2: D0 = 2.5 + 0.824
+        self.assertAlmostEqual(sk.predict("calibrated", 10.0, 1440), 78.575, delta=0.079)
+        self.assertAlmostEqual(sk.predict("calibrated", 5.0, 1440), 149.398, delta=0.15)
+        self.assertAlmostEqual(sk.predict("uncorrected", 10.0, 1440), 85.049, delta=0.085)  # model 1
+        self.assertIsNone(sk.predict("calibrated", 0.0, 1440))
+        self.assertIsNone(sk.predict("calibrated", None, 1440))
         self.assertIsNone(sk.um_per_px(lens, 300.0))
-        self.assertAlmostEqual(sk.predict("no-breathing", 10.0, 1440) / 85.049 - 1, 0.0346, delta=0.001)
-        self.assertAlmostEqual(sk.predict("nominal", 10.0, 1440) / 85.049 - 1, 0.0258, delta=0.001)
+        self.assertAlmostEqual(sk.predict("no-breathing", 10.0, 1440) / 78.575 - 1, 0.0346, delta=0.001)
+        self.assertAlmostEqual(sk.predict("nominal", 10.0, 1440) / 78.575 - 1, 0.022, delta=0.002)
 
 
 def row(d, err, af=2, corners=40, burst=0):

@@ -117,3 +117,19 @@ Sensor fusion is one of the keys: the phone's pose is measured over frames, and 
 - **Hypothesis, not tested:** the same offset applies at the calibration's fixed 2.5 D. The lens would then have been focused near 3.3 D (30 cm) while the board sat at 41 to 52 cm. That fits the defocus suspected on the calibration screen views (the camera-calibration amendment "Focus for the screen").
 - **Negative controls:** not run. The calibrated model already fails, so a control failing would show nothing.
 - **Status:** the scale bar is 10 to 19 % too large at 12 to 20 cm. It must not be used for measurement until a focus correction passes on a new run.
+
+### Amendment: focus offset (2026-11-15, after run 1, before run 2; Foad approved)
+
+- **Model 2 (`thin-lens-breathing-2-focus-offset`):** true focus = reported + δ, with δ = 0.824 D for camera 0.
+  - The offset applies to the calibration's fixed focus too: D0 = 2.5 + δ. The lens then has f = 4.3902 mm, and fx at a given reported focus is unchanged; only the object distance moves.
+  - δ was fitted on run 1 so that its median error is zero.
+  - Fitting δ to the frames only, leaving D0 at 2.5, gives 0.806 D, nearly the same. The joint form is chosen because one lens-position map serves both.
+- **Hand calculation:** at a reported 10 D (10.82 D true), fx = 1175.8 px and the scale is 78.58 µm per px; at a reported 5 D it is 149.40 µm per px.
+- **Run 1 under model 2 (the data it was fitted on, so not evidence):**
+  - median 0.0 %, maximum 4.4 %;
+  - bursts 2 and 3 (held steady) are within 1.1 %;
+  - burst 1 reaches +4.4 %. There the board drifted from 94.7 to 104.3 µm per px (about 1 cm) within the burst, while the reported focus stayed at 7.32 D for 7 frames. AF does not refocus inside its depth of field (about ±0.7 D at f/1.7 with a 2 px blur circle).
+  - Scale from focus is therefore limited to about (focus error) / D per frame while the hand drifts.
+- **Run 2 judges model 2 with the thresholds unchanged:** 2 % per frame, 1 % median, ≥ 6 frames at ≥ 3 distances, and the pipeline to 0.1 %. Nothing is tuned on run 2.
+- **New negative control:** `--model uncorrected` (model 1, the run 1 model) must fail run 2's median check.
+- **Capture as run 1**, with one instruction added: after each short beep, hold steady for the second the burst takes.

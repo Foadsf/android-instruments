@@ -45,9 +45,11 @@ class ScaleSave(private val context: Context, private val station: Station) {
             val exp = burst.getJSONArray("exposure_ns").optLong(i, 0L)
             val skew = burst.getJSONArray("rolling_shutter_skew_ns").optLong(i, 0L)
             val g = sensors.gyroMax(t - PAD_NS, t + exp + skew + PAD_NS)
+            val dt = if (lens != null) Optics.trueFocus(d) else null
             per.put(JSONObject().put("ts_ns", t).put("focus_diopters", d ?: JSONObject.NULL)
-                .put("fx_px", lens?.let { Optics.fxPx(it, d) } ?: JSONObject.NULL)
-                .put("um_per_px", lens?.let { Optics.umPerPx(it, d) } ?: JSONObject.NULL)
+                .put("focus_true_diopters", dt ?: JSONObject.NULL)
+                .put("fx_px", lens?.let { Optics.fxPx(it, dt) } ?: JSONObject.NULL)
+                .put("um_per_px", lens?.let { Optics.umPerPx(it, dt) } ?: JSONObject.NULL)
                 .put("gyro_max_rad_s", if (g.isFinite()) g else JSONObject.NULL))
         }
         return JSONObject().put("camera_id", cam).put("width", w).put("height", burst.getInt("height"))
@@ -55,6 +57,7 @@ class ScaleSave(private val context: Context, private val station: Station) {
             .put("reason", if (lens == null) "camera $cam has no calibration; only camera 0 does" else JSONObject.NULL)
             .put("calibration_runs", JSONArray(Optics.CAM0_RUNS))
             .put("fx0_px", Optics.CAM0_FX0).put("d0_diopters", Optics.CAM0_D0)
+            .put("focus_offset_diopters", Optics.CAM0_FOCUS_OFFSET_D).put("focus_offset_run", Optics.CAM0_OFFSET_RUN)
             .put("focal_mm", lens?.focalMm ?: JSONObject.NULL).put("pitch_mm", lens?.pitchMm ?: JSONObject.NULL)
             .put("frames", per)
     }

@@ -214,7 +214,7 @@ class MainActivity : Activity() {
     private fun liveScale(): Double? {
         val s = station.size ?: return null
         if (station.openId != "0") return null
-        return Optics.umPerPx(Optics.camera0(s.w), station.lastMeta?.focusDiopters?.toDouble())
+        return Optics.umPerPx(Optics.camera0(s.w), Optics.trueFocus(station.lastMeta?.focusDiopters?.toDouble()))
     }
 
     private fun draw(px: IntArray, w: Int, h: Int) {
@@ -234,7 +234,7 @@ class MainActivity : Activity() {
             s == null -> ""
             station.openId != "0" -> "no scale: only camera 0 is calibrated"
             um == null -> "no scale: focus not reported"
-            else -> "%.1f µm/px · focus %.1f cm".format(um, 100.0 / (station.lastMeta?.focusDiopters ?: 1f))
+            else -> "%.1f µm/px · focus %.1f cm".format(um, 100.0 / (Optics.trueFocus(station.lastMeta?.focusDiopters?.toDouble()) ?: 1.0))
         }
         scaleBar.set(um, s?.w ?: 0, s?.h ?: 0, station.zoom)
         readout.text = listOf(line, scale, message).filter { it.isNotEmpty() }.joinToString("\n")

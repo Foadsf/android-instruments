@@ -29,18 +29,25 @@ sys.path.insert(0, str(HERE))
 
 # Camera 0 calibration constants, as in Optics.kt (runs 155558-d0aa and 163037-f2e7, at 2.5 D).
 CAM0_FX0, CAM0_D0, CAM0_SENSOR_MM, CAM0_WIDTH = 1136.5, 2.5, 5.645, 1440
+# Model 2 (amendment after run 1): camera 0 reports focus 0.824 D too far, at D0 too.
+CAM0_FOCUS_OFFSET_D = 0.824
 FOCUSED = (2, 4)  # CONTROL_AF_STATE_PASSIVE_FOCUSED, FOCUSED_LOCKED
 MIN_CORNERS = 12
 FRAME_TOL, MEDIAN_TOL, PIPELINE_TOL = 0.02, 0.01, 0.001
 MIN_FRAMES, MIN_DISTANCES, GAP_CM, NEAR_CM = 6, 3, 2.0, 12.0
-MODELS = ("calibrated", "no-breathing", "nominal")
+MODELS = ("calibrated", "uncorrected", "no-breathing", "nominal")
 
 
-def camera0(width: int) -> tuple[float, float]:
-    """(focal mm, pitch mm) of the thin lens through the calibration point: 1/f = 1/v0 + D0."""
+def camera0(width: int, offset: float = CAM0_FOCUS_OFFSET_D) -> tuple[float, float]:
+    """(focal mm, pitch mm) of the thin lens through the calibration point: 1/f = 1/v0 + D0,
+    with D0 the calibration's true focus (reported 2.5 D + offset)."""
     pitch = CAM0_SENSOR_MM / width
     v0 = CAM0_FX0 * width / CAM0_WIDTH * pitch
-    return 1.0 / (1.0 / v0 + CAM0_D0 / 1000.0), pitch
+    return 1.0 / (1.0 / v0 + (CAM0_D0 + offset) / 1000.0), pitch
+
+
+def true_focus(d: float | None, offset: float = CAM0_FOCUS_OFFSET_D) -> float | None:
+    return None if d is None or not math.isfinite(d) or d <= 0 else d + offset
 
 
 def fx_px(lens: tuple[float, float], d: float | None) -> float | None:
@@ -56,13 +63,17 @@ def um_per_px(lens: tuple[float, float], d: float | None) -> float | None:
 
 
 def predict(model: str, d: float | None, width: int) -> float | None:
-    """µm per px at focus d for the model under test or a negative control."""
+    """µm per px at reported focus d for the model under test (model 2) or a negative control:
+    uncorrected = model 1 (no focus offset); nominal and no-breathing at the corrected focus."""
+    if model == "uncorrected":
+        return um_per_px(camera0(width, 0.0), true_focus(d, 0.0))
+    t = true_focus(d)
     if model == "calibrated":
-        return um_per_px(camera0(width), d)
+        return um_per_px(camera0(width), t)
     if model == "nominal":
-        return um_per_px((4.30, CAM0_SENSOR_MM / width), d)
+        return um_per_px((4.30, CAM0_SENSOR_MM / width), t)
     if model == "no-breathing":
-        return None if d is None or not math.isfinite(d) or d <= 0 else 1e6 / (d * CAM0_FX0 * width / CAM0_WIDTH)
+        return None if t is None else 1e6 / (t * CAM0_FX0 * width / CAM0_WIDTH)
     raise ValueError(model)
 
 
