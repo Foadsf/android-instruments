@@ -234,7 +234,8 @@ class MainActivity : Activity() {
             s == null -> ""
             station.openId != "0" -> "no scale: only camera 0 is calibrated"
             um == null -> "no scale: focus not reported"
-            else -> "%.1f µm/px · focus %.1f cm".format(um, 100.0 / (Optics.trueFocus(station.lastMeta?.focusDiopters?.toDouble()) ?: 1.0))
+            // microscope-scale.md runs 1-2: scale from AF focus is good to about ±5 %, not verified to 2 %.
+            else -> "≈ %.0f µm/px (±5 %%) · focus ≈ %.1f cm".format(um, 100.0 / (Optics.trueFocus(station.lastMeta?.focusDiopters?.toDouble()) ?: 1.0))
         }
         scaleBar.set(um, s?.w ?: 0, s?.h ?: 0, station.zoom)
         readout.text = listOf(line, scale, message).filter { it.isNotEmpty() }.joinToString("\n")

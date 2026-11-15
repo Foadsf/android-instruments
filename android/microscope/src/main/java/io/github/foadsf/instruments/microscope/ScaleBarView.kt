@@ -39,7 +39,7 @@ class ScaleBarView(context: Context) : View(context) {
         val left = ((width - shownW) / 2 + MARGIN).toFloat()
         val y = ((height + shownW / aspect) / 2 - BOTTOM).toFloat()
         canvas.drawLine(left, y, left + screenPx, y, bar)
-        val label = if (lengthUm >= 1000) "${(lengthUm / 1000).let { if (it % 1.0 == 0.0) it.toInt() else it }} mm" else "${lengthUm.toInt()} µm"
+        val label = "≈ " + if (lengthUm >= 1000) "${(lengthUm / 1000).let { if (it % 1.0 == 0.0) it.toInt() else it }} mm" else "${lengthUm.toInt()} µm"
         canvas.drawText(label, left, y - 16f, text)
     }
 
