@@ -147,7 +147,9 @@ class MainActivity : Activity() {
         val gates = FrameGate.parseGates(intent.getStringExtra(EXTRA_GATE) ?: "0:0.04,2:0.02")
         require(ids.all { it in gates }) { "no gyro limit for camera(s) ${ids.filter { it !in gates }}" }
         val plan = SweepMode.Plan(runId, ids, frames, gates,
-            focusDiopters = focus, oisOff = intent.getStringExtra(EXTRA_OIS) != "default", maxExposureNs = maxExp)
+            focusDiopters = focus, oisOff = intent.getStringExtra(EXTRA_OIS) != "default", maxExposureNs = maxExp,
+            bridgeWindowMs = intent.getStringExtra(EXTRA_BRIDGE_WINDOW)?.split(',')?.map { it.trim().toInt() }
+                ?.let { (a, b) -> require(a < b) { "bridge window $a..$b" }; a to b })
         return SweepMode(station, SensorRecorder(applicationContext), outDir()) { message = it }.execute(plan)
     }
 
@@ -220,6 +222,7 @@ class MainActivity : Activity() {
         const val EXTRA_FOCUS = "focus_diopters"
         const val EXTRA_SWEEP = "sweep"
         const val EXTRA_TIMING = "timing"
+        const val EXTRA_BRIDGE_WINDOW = "bridge_window_ms"
         const val EXTRA_GATE = "gate_rad_s"
         const val EXTRA_MAX_EXPOSURE_US = "max_exposure_us"
         const val REQUEST_CAMERA = 1

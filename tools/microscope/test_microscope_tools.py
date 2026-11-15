@@ -147,6 +147,17 @@ class StartArgs(unittest.TestCase):
         self.assertNotIn("sweep", a)
         self.assertNotIn("timing", run_live.start_args("r1", "0,2", 800, 4, sweep=30))
 
+    def test_a_measured_bridge_window_is_passed_to_the_sweep_only_if_trusted(self):
+        import run_live
+        a = run_live.start_args("r1", "0,2", 800, 4, sweep=30, bridge_window="-70,-20")
+        self.assertEqual(a[a.index("bridge_window_ms") - 1: a.index("bridge_window_ms") + 2],
+                         ["--es", "bridge_window_ms", "-70,-20"])
+        self.assertNotIn("bridge_window_ms", run_live.start_args("r1", "0,2", 800, 4, sweep=30))
+        self.assertEqual(run_live.bridge_window_from({"ok": True, "start_ms": -70, "end_ms": -20}), "-70,-20")
+        # Not trusted: no window (the sweep keeps its 150 ms default), and never one after the stamp.
+        self.assertIsNone(run_live.bridge_window_from({"ok": False, "start_ms": -70, "end_ms": -20}))
+        self.assertIsNone(run_live.bridge_window_from({"ok": True, "start_ms": -10, "end_ms": 30}))
+
     def test_gates_parse_per_camera_and_refuse_nonsense(self):
         import run_live
         self.assertEqual(run_live.parse_gates("0:0.04,2:0.02"), {"0": 0.04, "2": 0.02})

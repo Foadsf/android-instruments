@@ -1,0 +1,29 @@
+{
+  "unit": "frame_timing",
+  "run_id": "162251-1ead",
+  "cameras": {
+    "0": {
+      "ok": true,
+      "r": 0.825,
+      "start_ms": 14,
+      "end_ms": 29,
+      "min_r": 0.4,
+      "frames": 146,
+      "expected_centre_window_ms": [
+        8.0,
+        32.0
+      ],
+      "control_ok": true,
+      "pulses_commanded": 21
+    },
+    "2": {
+      "ok": true,
+      "r": 0.821,
+      "start_ms": -150,
+      "end_ms": -10,
+      "min_r": 0.4,
+      "frames": 376,
+      "pulses_commanded": 22
+    }
+  }
+}

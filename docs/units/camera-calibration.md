@@ -238,6 +238,17 @@ Run 2's camera 2 kept only 8 frames in 300 s. Its gate window is the 150 ms befo
   - **Camera 0:** r = 0.29, below 0.4. It ran under AE at 12 fps, a window of about 62 ms (exposure plus skew), and gave only 155 frames with sharpness swings of ±0.4.
   - **Camera 2:** r = 0.42, window −110 to −5 ms. A pulse-triggered average (scratch, not evidence) shows camera 2's frames softest when stamped 25 to 125 ms after a pulse onset. With a 60 ms pulse, that points to an exposure about −65 to −25 ms from the stamp.
   - **Amendment before the second timing run:** camera 0 is timed with the sweep's 8 ms cap (30 fps), so the control runs as the sweep uses it. Nothing else changes.
+- **Second timing run (`162251-1ead`, camera 0 capped at 8 ms):**
+  - **Camera 0 (control):** window 14 to 29 ms, r = 0.825.
+    - Against the declared expectation (0 to 40 ms, the stamp to stamp + exposure + skew), the start misses by 14 ms.
+    - **That expectation was wrong, and it is corrected here after seeing the data.** Sharpness is measured on the centre half of the frame. With a rolling shutter, those rows are exposed from a quarter of the skew after the stamp to three quarters of the skew plus the exposure: 8 to 32 ms for 8 ms and 32 ms.
+    - Against that window the control passes (start 6 ms off, end 3 ms off, within 6 and 10). `frame_timing.py` now judges the control against the centre-row window (`centre_window_ms`, tested).
+  - **Camera 2:** −150 to −10 ms, r = 0.821, pointed at a dim room. The pulse-triggered average shows camera 2's frames soft from 25 to 200 ms after a pulse onset, where camera 0's response lasts about 75 ms.
+    - So camera 2's window here is about as wide as the 150 ms default, and the end of the window is consistent across both runs (−5 and −10 ms).
+    - The start differs (−110 and −150 ms), as expected if HAL1's exposure grows in dimmer light. This is a hypothesis: the bridge reports no exposure.
+  - **Consequence:** the window must be measured on the calibration scene itself, the bright screen.
+    - `run_live.py --sweep ... --measure-bridge` first gives 10 s of pulses on camera 2, then runs the sweep with the measured window.
+    - A window that cannot be told, or that does not end before the stamp, is not used, and the sweep keeps 150 ms (`bridge_window_from`, tested).
 - **Use:** camera 2's gate window becomes the measured window, widened by 10 ms on each side. Its limit stays at 0.02 rad/s, since the simulation failures at 0.04 do not depend on timing.
 - **Tests (`test_frame_timing.py`):**
   - on synthetic gyroscope and frame data, a window before the stamp (−90 to −45 ms) and one after it (0 to 40 ms) are recovered within 6 and 10 ms;

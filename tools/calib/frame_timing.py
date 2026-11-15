@@ -26,6 +26,16 @@ WIDTHS_MS = np.arange(10, 151, 5)
 MEDIAN_FRAMES = 31   # sharpness normalised by its running median (scene and focus drift)
 
 
+CONTROL_TOL_MS = (6, 10)  # start, end: the synthetic tests' margins
+
+
+def centre_window_ms(exposure_ms: float, skew_ms: float) -> tuple[float, float]:
+    """The window of the centre-half rows, where sharpness is measured. The Camera2 stamp is the
+    first row's exposure start, so row r of h is exposed over [r / h x skew, r / h x skew +
+    exposure]; the centre half spans r / h from 1/4 to 3/4."""
+    return (round(skew_ms / 4, 1), round(3 * skew_ms / 4 + exposure_ms, 1))
+
+
 def vibration_energy(ts_ns: np.ndarray, gyro: np.ndarray) -> np.ndarray:
     """Squared norm of the gyro after removing its moving mean: vibration, not hand motion."""
     dt = np.median(np.diff(ts_ns)) / 1e6
@@ -88,8 +98,11 @@ def main(argv=None) -> int:
                           np.array([f["sharpness"] for f in fr], float))
         exp = [f["exposure_ns"] for f in fr if f.get("exposure_ns")]
         skew = [f["skew_ns"] for f in fr if f.get("skew_ns")]
-        if exp and skew:  # the capture result's own window, for the control camera
-            res["reported_window_ms"] = [0.0, round((np.median(exp) + np.median(skew)) / 1e6, 1)]
+        if exp and skew:  # the control: the capture result gives the centre rows' window
+            lo, hi = centre_window_ms(np.median(exp) / 1e6, np.median(skew) / 1e6)
+            res["expected_centre_window_ms"] = [lo, hi]
+            res["control_ok"] = bool(res["ok"] and abs(res["start_ms"] - lo) <= CONTROL_TOL_MS[0]
+                                     and abs(res["end_ms"] - hi) <= CONTROL_TOL_MS[1])
         res["pulses_commanded"] = len(c.get("pulse_command_ns", []))
         out["cameras"][cam] = res
     text = json.dumps(out, indent=2)
@@ -97,7 +110,7 @@ def main(argv=None) -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(text + "\n")
     print(text)
-    return 0 if all(r["ok"] for r in out["cameras"].values()) else 1
+    return 0 if all(r["ok"] and r.get("control_ok", True) for r in out["cameras"].values()) else 1
 
 
 if __name__ == "__main__":

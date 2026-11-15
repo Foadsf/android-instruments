@@ -51,6 +51,13 @@ class FrameTiming(unittest.TestCase):
         self.assertLess(abs(r["start_ms"]), 6, r)
         self.assertLess(abs(r["end_ms"] - 40), 10, r)
 
+    def test_the_control_window_is_that_of_the_centre_rows(self):
+        # Sharpness is measured on the centre half: with a rolling shutter those rows are read from
+        # a quarter to three quarters of the skew after the stamp, each exposed for the exposure.
+        import frame_timing as ft
+        self.assertEqual(ft.centre_window_ms(8.0, 32.0), (8.0, 32.0))
+        self.assertEqual(ft.centre_window_ms(30.0, 32.0), (8.0, 54.0))
+
     def test_unrelated_blur_cannot_be_told(self):
         # Negative control: blur that does not follow the vibration must not yield a window.
         import frame_timing as ft

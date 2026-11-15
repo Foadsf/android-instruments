@@ -1,0 +1,3734 @@
+{
+  "unit": "frame_timing",
+  "run_id": "162251-1ead",
+  "model": "SM-N950F",
+  "imu_log": "imu.csv",
+  "cameras": {
+    "0": {
+      "vibrator": true,
+      "pulse_ms": 60,
+      "pulse_command_ns": [
+        92691832039086,
+        92692598427701,
+        92693157172777,
+        92693793487585,
+        92694219282700,
+        92694614300007,
+        92695170020084,
+        92695673775122,
+        92696295348314,
+        92696753779659,
+        92697493377736,
+        92697917190851,
+        92698654140427,
+        92699383874658,
+        92700099048042,
+        92700724665580,
+        92701213306695,
+        92701697398310,
+        92702184064348,
+        92702863624924,
+        92703281153501
+      ],
+      "exposure": {
+        "max_exposure_ns": 8000000,
+        "ae_exposure_ns": 30006000,
+        "ae_iso": 200,
+        "action": "manual",
+        "exposure_ns": 8000000,
+        "iso": 750,
+        "iso_wanted": 750
+      },
+      "frames": [
+        {
+          "ts_ns": 92691122968510,
+          "sharpness": 691.1651453334852,
+          "diff": null,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691222873856,
+          "sharpness": 617.2466734319827,
+          "diff": 24.17794361525705,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691289478548,
+          "sharpness": 434.33322891965497,
+          "diff": 30.05356550580431,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691389401356,
+          "sharpness": 698.3765571444844,
+          "diff": 33.05174129353234,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691456027048,
+          "sharpness": 704.274777106999,
+          "diff": 22.872139303482587,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691555936894,
+          "sharpness": 520.8876085988547,
+          "diff": 30.22072968490879,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691655853163,
+          "sharpness": 769.284438392478,
+          "diff": 31.80563847429519,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691722474701,
+          "sharpness": 684.1393896718477,
+          "diff": 20.08922056384743,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691822397278,
+          "sharpness": 651.3143334955629,
+          "diff": 36.76417910447761,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691922308355,
+          "sharpness": 798.550838243365,
+          "diff": 29.729021558872304,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92691988921932,
+          "sharpness": 813.8309766907249,
+          "diff": 14.987893864013268,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692088840470,
+          "sharpness": 766.7732367895123,
+          "diff": 18.05356550580431,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692188763740,
+          "sharpness": 757.5457746114258,
+          "diff": 22.669485903814262,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692255378393,
+          "sharpness": 756.3782269004153,
+          "diff": 20.623217247097845,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692355297970,
+          "sharpness": 753.6672163485932,
+          "diff": 29.181426202321724,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692455214893,
+          "sharpness": 705.3802513176834,
+          "diff": 31.648590381426203,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692555149932,
+          "sharpness": 675.1645162626461,
+          "diff": 36.099170812603646,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692655051893,
+          "sharpness": 635.9835095422021,
+          "diff": 35.68955223880597,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692721673893,
+          "sharpness": 716.4702654005861,
+          "diff": 26.002653399668326,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692821591431,
+          "sharpness": 713.981956280871,
+          "diff": 34.07031509121062,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92692921500201,
+          "sharpness": 713.2542507585093,
+          "diff": 29.9771144278607,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693021424201,
+          "sharpness": 721.3309016164272,
+          "diff": 26.406965174129354,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693088033470,
+          "sharpness": 703.5350234542461,
+          "diff": 18.392868988391378,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693187949777,
+          "sharpness": 418.5325149371965,
+          "diff": 19.181426202321724,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693254561585,
+          "sharpness": 660.3322891965497,
+          "diff": 14.161857379767827,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693354479085,
+          "sharpness": 571.4196031935053,
+          "diff": 40.9530679933665,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693421105200,
+          "sharpness": 537.6853817398597,
+          "diff": 43.06567164179104,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693521013162,
+          "sharpness": 702.9354827018464,
+          "diff": 42.67031509121061,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693587654085,
+          "sharpness": 619.6057382651106,
+          "diff": 35.6441127694859,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693687563662,
+          "sharpness": 682.1922885752451,
+          "diff": 38.86666666666667,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693754172508,
+          "sharpness": 722.7299914052873,
+          "diff": 27.538805970149255,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693854122008,
+          "sharpness": 582.0190481614563,
+          "diff": 30.309121061359868,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92693954046931,
+          "sharpness": 586.9811848277433,
+          "diff": 36.429353233830845,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694020627815,
+          "sharpness": 577.6295963591555,
+          "diff": 36.649087893864014,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694087227007,
+          "sharpness": 583.6300597487858,
+          "diff": 34.23134328358209,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694220459507,
+          "sharpness": 321.6097016702737,
+          "diff": 26.933333333333334,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694287068046,
+          "sharpness": 569.3097436083297,
+          "diff": 28.396185737976783,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694387001084,
+          "sharpness": 614.0281580391629,
+          "diff": 22.48922056384743,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694453608276,
+          "sharpness": 596.5983939277837,
+          "diff": 21.14676616915423,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694553522815,
+          "sharpness": 586.4502619834112,
+          "diff": 25.717910447761195,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694653435122,
+          "sharpness": 322.83203290843005,
+          "diff": 19.303814262023216,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694720052815,
+          "sharpness": 749.1686401714801,
+          "diff": 16.722885572139305,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694819982892,
+          "sharpness": 735.6982013233786,
+          "diff": 16.54660033167496,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694886588276,
+          "sharpness": 709.1453774942788,
+          "diff": 19.29469320066335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92694986513315,
+          "sharpness": 633.5149915606135,
+          "diff": 27.030514096185737,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695086438238,
+          "sharpness": 617.7870944693542,
+          "diff": 29.234494195688224,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695153042661,
+          "sharpness": 652.1227645980678,
+          "diff": 21.74742951907131,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695252955584,
+          "sharpness": 647.8763940520446,
+          "diff": 24.644610281923715,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695319580968,
+          "sharpness": 617.9246124612979,
+          "diff": 21.83200663349917,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695386186660,
+          "sharpness": 629.8602996758862,
+          "diff": 19.865837479270315,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695486108583,
+          "sharpness": 617.1722333826925,
+          "diff": 22.11658374792703,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695586037968,
+          "sharpness": 614.3450544159219,
+          "diff": 14.806135986733002,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695685925776,
+          "sharpness": 375.7896935933148,
+          "diff": 15.0424543946932,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695752547122,
+          "sharpness": 585.9818138985823,
+          "diff": 12.824709784411278,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695852461852,
+          "sharpness": 583.9874444709075,
+          "diff": 17.893532338308457,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92695919091237,
+          "sharpness": 462.2389433680919,
+          "diff": 15.245107794361525,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696019009352,
+          "sharpness": 554.7156858684284,
+          "diff": 26.262023217247098,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696118928314,
+          "sharpness": 519.8739140114527,
+          "diff": 29.41127694859038,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696185541583,
+          "sharpness": 610.601743794721,
+          "diff": 29.012769485903814,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696285463737,
+          "sharpness": 601.9959563430015,
+          "diff": 26.177114427860698,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696352080737,
+          "sharpness": 457.54018287063406,
+          "diff": 26.47462686567164,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696451988583,
+          "sharpness": 633.8455566370857,
+          "diff": 25.902653399668324,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696551907890,
+          "sharpness": 629.866880326392,
+          "diff": 30.16849087893864,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696618519352,
+          "sharpness": 730.385643723271,
+          "diff": 22.202487562189056,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696718441159,
+          "sharpness": 727.0657081318408,
+          "diff": 11.760199004975124,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696785043429,
+          "sharpness": 343.27789398473664,
+          "diff": 7.392371475953565,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696884971890,
+          "sharpness": 703.387466216566,
+          "diff": 21.599004975124377,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92696984901505,
+          "sharpness": 669.7102753414587,
+          "diff": 28.125207296849087,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697051502428,
+          "sharpness": 702.3276164687121,
+          "diff": 22.396683250414593,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697151415851,
+          "sharpness": 704.047617814872,
+          "diff": 19.855389718076285,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697218059621,
+          "sharpness": 705.0919012954199,
+          "diff": 20.364842454394694,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697317955890,
+          "sharpness": 722.133098963457,
+          "diff": 22.97462686567164,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697384568813,
+          "sharpness": 706.5844922388709,
+          "diff": 18.71094527363184,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697484494274,
+          "sharpness": 673.4991741827257,
+          "diff": 22.70928689883914,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697551109697,
+          "sharpness": 457.692630292738,
+          "diff": 20.667330016583747,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697651020966,
+          "sharpness": 723.0849815161902,
+          "diff": 15.249419568822553,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697750944966,
+          "sharpness": 658.1051790910315,
+          "diff": 23.23134328358209,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697817578159,
+          "sharpness": 632.0898018038541,
+          "diff": 24.560530679933667,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697917467082,
+          "sharpness": 398.7037749427882,
+          "diff": 14.44145936981758,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92697984089505,
+          "sharpness": 664.763153534705,
+          "diff": 7.68391376451078,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698083988620,
+          "sharpness": 716.7972812749169,
+          "diff": 6.579601990049751,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698150625581,
+          "sharpness": 709.6671982272111,
+          "diff": 4.106633499170813,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698250535812,
+          "sharpness": 703.9118964285344,
+          "diff": 8.181923714759536,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698350458351,
+          "sharpness": 709.4209053442545,
+          "diff": 13.704975124378109,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698417074197,
+          "sharpness": 709.2987931159457,
+          "diff": 6.946268656716418,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698516985004,
+          "sharpness": 705.0062208116308,
+          "diff": 5.932835820895522,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698583612312,
+          "sharpness": 703.0961753528492,
+          "diff": 7.4804311774461025,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698683524466,
+          "sharpness": 401.2414208199149,
+          "diff": 15.236152570480929,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698783438696,
+          "sharpness": 693.4570937444988,
+          "diff": 15.729519071310117,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698850061581,
+          "sharpness": 695.7022812231415,
+          "diff": 9.48988391376451,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92698949982004,
+          "sharpness": 697.3699324849075,
+          "diff": 10.712769485903815,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699016579119,
+          "sharpness": 696.7241433763759,
+          "diff": 7.117412935323383,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699116498888,
+          "sharpness": 684.7175963798655,
+          "diff": 11.07346600331675,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699183113581,
+          "sharpness": 680.7013466775741,
+          "diff": 10.2742951907131,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699283034696,
+          "sharpness": 649.006373548995,
+          "diff": 20.345605306799335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699349650965,
+          "sharpness": 678.3599294819355,
+          "diff": 18.175787728026535,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699449571619,
+          "sharpness": 618.0900969235071,
+          "diff": 16.755555555555556,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699549494119,
+          "sharpness": 692.628322684864,
+          "diff": 12.078275290215588,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699616106196,
+          "sharpness": 692.9002987439293,
+          "diff": 10.267661691542289,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92699716022350,
+          "sharpness": 696.6470886705118,
+          "diff": 13.969320066334992,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92699782638773,
+          "sharpness": 694.5645043543093,
+          "diff": 9.439800995024875,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92699882553619,
+          "sharpness": 695.7388294622609,
+          "diff": 12.334162520729684,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92699982469926,
+          "sharpness": 695.3184832920856,
+          "diff": 8.61575456053068,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700049075119,
+          "sharpness": 700.9903490695965,
+          "diff": 5.136152570480928,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700148999888,
+          "sharpness": 501.332778473869,
+          "diff": 5.679601990049751,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700215613042,
+          "sharpness": 701.7903899721448,
+          "diff": 4.470978441127695,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700315541157,
+          "sharpness": 704.8919266653551,
+          "diff": 4.882421227197346,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700415452541,
+          "sharpness": 707.525745306562,
+          "diff": 6.094195688225539,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700482102311,
+          "sharpness": 705.7847309233621,
+          "diff": 4.856716417910448,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700581986118,
+          "sharpness": 703.9501066572781,
+          "diff": 5.231840796019901,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700648604926,
+          "sharpness": 705.7268279297098,
+          "diff": 5.438971807628524,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700748529426,
+          "sharpness": 415.05194105891,
+          "diff": 5.551077943615257,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700815138887,
+          "sharpness": 705.8766814053909,
+          "diff": 3.9550580431177447,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92700915065656,
+          "sharpness": 705.0053017986767,
+          "diff": 2.7013266998341625,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701014979156,
+          "sharpness": 701.8058863426909,
+          "diff": 3.9192371475953567,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701081585349,
+          "sharpness": 703.3532634020565,
+          "diff": 4.21592039800995,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701181525772,
+          "sharpness": 703.6673483758065,
+          "diff": 7.985737976782753,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701248118079,
+          "sharpness": 424.3824103509335,
+          "diff": 6.7444444444444445,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701348027233,
+          "sharpness": 704.8898918930114,
+          "diff": 6.446766169154229,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701414652002,
+          "sharpness": 707.5493807664827,
+          "diff": 4.574461028192371,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701514570425,
+          "sharpness": 700.8398302803118,
+          "diff": 9.264510779436153,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701581193964,
+          "sharpness": 701.0172463783123,
+          "diff": 9.311940298507462,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701681111579,
+          "sharpness": 701.1409248117965,
+          "diff": 11.60530679933665,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701781023848,
+          "sharpness": 680.1937486408964,
+          "diff": 8.378606965174129,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701847637848,
+          "sharpness": 702.9181275952408,
+          "diff": 3.581592039800995,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92701947562040,
+          "sharpness": 704.0016076254776,
+          "diff": 2.6439469320066333,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702014172117,
+          "sharpness": 707.7119658075405,
+          "diff": 4.2,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702114122809,
+          "sharpness": 704.0227190357353,
+          "diff": 5.340132669983416,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702214036502,
+          "sharpness": 404.8760186805563,
+          "diff": 4.344278606965174,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702280608425,
+          "sharpness": 703.6784516055544,
+          "diff": 5.053565505804312,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702380538232,
+          "sharpness": 707.1132948814861,
+          "diff": 4.57379767827529,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702447153425,
+          "sharpness": 692.867600004142,
+          "diff": 4.247927031509121,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702547071155,
+          "sharpness": 701.709568607553,
+          "diff": 6.461525704809287,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702613686617,
+          "sharpness": 704.9239756241521,
+          "diff": 3.976119402985075,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702713615924,
+          "sharpness": 705.1787234262874,
+          "diff": 2.995356550580431,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702813519809,
+          "sharpness": 702.669564361972,
+          "diff": 4.800497512437811,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702880138578,
+          "sharpness": 398.22372140704766,
+          "diff": 4.445936981757877,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92702980059078,
+          "sharpness": 700.774551884106,
+          "diff": 4.594195688225539,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703046680924,
+          "sharpness": 700.6559215499477,
+          "diff": 5.424709784411277,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703146593116,
+          "sharpness": 703.5502324714458,
+          "diff": 5.079767827529022,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703213203386,
+          "sharpness": 699.36823166375,
+          "diff": 3.922719734660033,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703313115001,
+          "sharpness": 409.4365958724669,
+          "diff": 4.885572139303482,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703379736770,
+          "sharpness": 698.4159918609106,
+          "diff": 3.8160862354892204,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703446352462,
+          "sharpness": 701.125798635201,
+          "diff": 3.288391376451078,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703546267962,
+          "sharpness": 698.1381625953961,
+          "diff": 5.324212271973466,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        },
+        {
+          "ts_ns": 92703612901424,
+          "sharpness": 697.8111803750609,
+          "diff": 4.2199004975124375,
+          "exposure_ns": 8000000,
+          "skew_ns": 31998455
+        }
+      ]
+    },
+    "2": {
+      "vibrator": true,
+      "pulse_ms": 60,
+      "pulse_command_ns": [
+        92706963882614,
+        92707537892652,
+        92707969532767,
+        92708567007882,
+        92709156545035,
+        92709848164804,
+        92710575605611,
+        92711218675688,
+        92711589897841,
+        92712337602533,
+        92712831008840,
+        92713184516494,
+        92713796401147,
+        92714293081724,
+        92714787722723,
+        92715565143300,
+        92715992684146,
+        92716458187530,
+        92716959728453,
+        92717524502221,
+        92717958275106,
+        92718598224990
+      ],
+      "exposure": {
+        "max_exposure_ns": 8000000,
+        "action": "none: AE exposure or ISO not reported"
+      },
+      "frames": [
+        {
+          "ts_ns": 92706576652729,
+          "sharpness": 69.54072651209991,
+          "diff": null,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706608726422,
+          "sharpness": 70.30782791935466,
+          "diff": 9.864344941956881,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706643189998,
+          "sharpness": 72.11238881237638,
+          "diff": 8.532669983416252,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706676060152,
+          "sharpness": 73.72479315736608,
+          "diff": 6.537810945273632,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706708559922,
+          "sharpness": 74.45267212724316,
+          "diff": 5.597346600331675,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706742881268,
+          "sharpness": 73.93310103447205,
+          "diff": 3.8029850746268656,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706774476883,
+          "sharpness": 74.40589566225886,
+          "diff": 4.012603648424544,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706809863114,
+          "sharpness": 73.45352383220636,
+          "diff": 4.569485903814262,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706840663844,
+          "sharpness": 72.34316979217364,
+          "diff": 4.509784411276948,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706876115806,
+          "sharpness": 71.03926126891096,
+          "diff": 5.045107794361526,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706910106191,
+          "sharpness": 71.01344088805128,
+          "diff": 5.839966832504146,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706945314844,
+          "sharpness": 70.23986238104607,
+          "diff": 6.765339966832504,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92706978356691,
+          "sharpness": 72.52421793291983,
+          "diff": 6.439469320066335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707008873306,
+          "sharpness": 72.91548705097804,
+          "diff": 4.621227197346601,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707045543075,
+          "sharpness": 46.59343902413768,
+          "diff": 5.588888888888889,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707074362306,
+          "sharpness": 52.017326630147764,
+          "diff": 4.48922056384743,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707106888998,
+          "sharpness": 61.284919903490696,
+          "diff": 6.250746268656717,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707142665883,
+          "sharpness": 62.20378270909486,
+          "diff": 4.96849087893864,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707173913690,
+          "sharpness": 74.910014393555,
+          "diff": 3.473134328358209,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707207465306,
+          "sharpness": 74.90456503505193,
+          "diff": 3.0487562189054724,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707241585037,
+          "sharpness": 74.72752430853983,
+          "diff": 2.9562189054726367,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707274043421,
+          "sharpness": 74.31469333443788,
+          "diff": 3.1167495854063016,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707309131575,
+          "sharpness": 74.79851611767508,
+          "diff": 2.6411276948590383,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707341501729,
+          "sharpness": 75.9276646198134,
+          "diff": 2.7495854063018244,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707375636921,
+          "sharpness": 73.6165489639747,
+          "diff": 2.211608623548922,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707409821921,
+          "sharpness": 74.31717078626089,
+          "diff": 2.2029850746268655,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707440093036,
+          "sharpness": 74.28997059158547,
+          "diff": 1.9834162520729686,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707473855729,
+          "sharpness": 73.13912561742139,
+          "diff": 1.6892205638474296,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707507458921,
+          "sharpness": 73.96852833666422,
+          "diff": 1.8306799336650084,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707540397498,
+          "sharpness": 74.31142113056715,
+          "diff": 2.0829187396351574,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707575182075,
+          "sharpness": 73.05684418717834,
+          "diff": 1.678441127694859,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707607953959,
+          "sharpness": 47.682774849592526,
+          "diff": 4.459701492537313,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707641339805,
+          "sharpness": 54.54019322570958,
+          "diff": 6.381592039800995,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707674519652,
+          "sharpness": 56.77848163527353,
+          "diff": 5.616252072968491,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707707968690,
+          "sharpness": 60.70663035486844,
+          "diff": 4.542454394693201,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707742261575,
+          "sharpness": 72.84003220428492,
+          "diff": 3.641625207296849,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707773881844,
+          "sharpness": 74.9068405629019,
+          "diff": 2.0112769485903814,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707807102921,
+          "sharpness": 73.65438382122997,
+          "diff": 2.0386401326699835,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707840365844,
+          "sharpness": 75.52823829099833,
+          "diff": 3.156716417910448,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707874314344,
+          "sharpness": 75.26308104917625,
+          "diff": 3.0912106135986734,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707908648536,
+          "sharpness": 75.76644644872684,
+          "diff": 4.302653399668325,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707940770690,
+          "sharpness": 76.05572842778888,
+          "diff": 4.097014925373134,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92707974909267,
+          "sharpness": 73.27253005560675,
+          "diff": 4.297512437810945,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708008581998,
+          "sharpness": 74.05436155781756,
+          "diff": 4.704809286898839,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708041901113,
+          "sharpness": 45.27470979900799,
+          "diff": 6.254063018242123,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708074008305,
+          "sharpness": 52.739251431589196,
+          "diff": 6.492205638474295,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708107283921,
+          "sharpness": 62.79831678247093,
+          "diff": 5.12089552238806,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708140513074,
+          "sharpness": 61.157984798749105,
+          "diff": 3.0096185737976784,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708174118459,
+          "sharpness": 65.14450249039567,
+          "diff": 3.3950248756218904,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708207725690,
+          "sharpness": 73.3424475256547,
+          "diff": 2.154726368159204,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708242184613,
+          "sharpness": 73.69414990007353,
+          "diff": 2.4106135986733004,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708273538959,
+          "sharpness": 73.57131540524588,
+          "diff": 2.840630182421227,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708306848074,
+          "sharpness": 74.4363344068095,
+          "diff": 2.4532338308457713,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708341170036,
+          "sharpness": 73.96817885286472,
+          "diff": 2.3683250414593697,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708375179420,
+          "sharpness": 74.32784169160514,
+          "diff": 2.57346600331675,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708408410882,
+          "sharpness": 74.16024738275466,
+          "diff": 2.4033167495854064,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708441670690,
+          "sharpness": 74.21924542564538,
+          "diff": 1.9859038142620231,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708474201997,
+          "sharpness": 73.06471922212673,
+          "diff": 2.30016583747927,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708508123228,
+          "sharpness": 74.08659690797444,
+          "diff": 3.3588723051409617,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708540643036,
+          "sharpness": 73.21045655528057,
+          "diff": 3.3945273631840798,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708574237728,
+          "sharpness": 73.26754149796523,
+          "diff": 3.0643449419568825,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708607284882,
+          "sharpness": 72.93713433639499,
+          "diff": 3.465837479270315,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708641094805,
+          "sharpness": 44.96884157769931,
+          "diff": 7.299668325041459,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708674595112,
+          "sharpness": 54.85275600335505,
+          "diff": 6.2364842454394696,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708708495689,
+          "sharpness": 63.03128268320717,
+          "diff": 5.6135986733001655,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708741689612,
+          "sharpness": 59.208385540172515,
+          "diff": 3.7907131011608626,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708773628612,
+          "sharpness": 62.19729784303777,
+          "diff": 4.801160862354892,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708806753189,
+          "sharpness": 74.44960184734548,
+          "diff": 4.730845771144279,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708839842997,
+          "sharpness": 74.68425821416368,
+          "diff": 3.891542288557214,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708873880343,
+          "sharpness": 73.59576632736535,
+          "diff": 4.149917081260365,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708908120651,
+          "sharpness": 74.73803729898209,
+          "diff": 5.416252072968491,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708940937458,
+          "sharpness": 75.03597353242692,
+          "diff": 3.3829187396351577,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92708974593497,
+          "sharpness": 75.35436362883267,
+          "diff": 3.4102819237147597,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709008187843,
+          "sharpness": 73.40274771929461,
+          "diff": 2.369485903814262,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709041768651,
+          "sharpness": 74.29099833283284,
+          "diff": 3.337810945273632,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709073962381,
+          "sharpness": 74.4169160514026,
+          "diff": 3.0006633499170814,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709107113381,
+          "sharpness": 73.8565796149983,
+          "diff": 2.446268656716418,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709140656958,
+          "sharpness": 73.12555011338807,
+          "diff": 2.3786069651741295,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709174450458,
+          "sharpness": 73.47413043253151,
+          "diff": 2.2351575456053068,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709208242958,
+          "sharpness": 69.79026830000724,
+          "diff": 2.504643449419569,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709241449689,
+          "sharpness": 47.04245063217736,
+          "diff": 7.480099502487562,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709273892420,
+          "sharpness": 52.46621915481873,
+          "diff": 2.959535655058043,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709306988612,
+          "sharpness": 60.2262118027151,
+          "diff": 6.0665008291873965,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709340218997,
+          "sharpness": 59.452182849923894,
+          "diff": 3.289883913764511,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709373344843,
+          "sharpness": 60.47336415694153,
+          "diff": 3.258374792703151,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709407243150,
+          "sharpness": 71.7468598233424,
+          "diff": 2.879933665008292,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709441368843,
+          "sharpness": 71.56726657070963,
+          "diff": 1.9592039800995025,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709473795689,
+          "sharpness": 70.30668627227635,
+          "diff": 1.7796019900497513,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709506891266,
+          "sharpness": 69.85845388367107,
+          "diff": 1.7482587064676618,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709540299996,
+          "sharpness": 69.71171987449648,
+          "diff": 1.6802653399668326,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709574519189,
+          "sharpness": 72.06266373963199,
+          "diff": 3.0013266998341623,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709607426958,
+          "sharpness": 73.24082281430243,
+          "diff": 2.998839137645108,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709640709189,
+          "sharpness": 73.35388211782005,
+          "diff": 2.9180762852404643,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709674655535,
+          "sharpness": 72.9346698284164,
+          "diff": 2.8548922056384742,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709709615073,
+          "sharpness": 72.04864037858157,
+          "diff": 3.3369817578772802,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709740750765,
+          "sharpness": 73.02913659380145,
+          "diff": 3.939966832504146,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709772526612,
+          "sharpness": 71.54530086671983,
+          "diff": 2.10530679933665,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709808569996,
+          "sharpness": 71.09355034119974,
+          "diff": 1.9238805970149253,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709839644227,
+          "sharpness": 71.3681074028435,
+          "diff": 2.3797678275290215,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709873658496,
+          "sharpness": 72.7347443849603,
+          "diff": 2.8182421227197345,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709906919612,
+          "sharpness": 57.97282828178231,
+          "diff": 4.2575456053068,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709939530919,
+          "sharpness": 46.54731751768129,
+          "diff": 8.986898839137645,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92709973423458,
+          "sharpness": 47.85490468152965,
+          "diff": 3.848424543946932,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710006553150,
+          "sharpness": 58.0417671971917,
+          "diff": 4.651575456053068,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710039967265,
+          "sharpness": 57.58263868034917,
+          "diff": 4.518242122719735,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710074492188,
+          "sharpness": 65.44399716270931,
+          "diff": 4.700497512437811,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710107380111,
+          "sharpness": 74.04545619285292,
+          "diff": 3.9533996683250416,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710141057265,
+          "sharpness": 74.4293447308198,
+          "diff": 4.228358208955224,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710174989650,
+          "sharpness": 74.3159022895072,
+          "diff": 3.547761194029851,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710207419111,
+          "sharpness": 72.55046546064554,
+          "diff": 2.4834162520729683,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710241369073,
+          "sharpness": 71.86899793933996,
+          "diff": 2.1391376451077946,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710274964496,
+          "sharpness": 71.21930755609863,
+          "diff": 2.0185737976782754,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710306598804,
+          "sharpness": 71.39074100920566,
+          "diff": 2.0454394693200664,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710339845611,
+          "sharpness": 71.4253424941235,
+          "diff": 2.0543946932006634,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710373832496,
+          "sharpness": 71.851202742024,
+          "diff": 1.8180762852404644,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710406965688,
+          "sharpness": 72.69590767414648,
+          "diff": 2.3721393034825873,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710441424765,
+          "sharpness": 73.69797351171677,
+          "diff": 2.8550580431177446,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710474860496,
+          "sharpness": 74.40003727827194,
+          "diff": 2.4318407960199004,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710507839380,
+          "sharpness": 73.85458626295679,
+          "diff": 2.955887230514096,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710540928265,
+          "sharpness": 73.63360118462064,
+          "diff": 3.6296849087893865,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710574389034,
+          "sharpness": 72.81175508175332,
+          "diff": 4.424212271973466,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710607390880,
+          "sharpness": 71.59297045696948,
+          "diff": 4.793034825870647,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710641054649,
+          "sharpness": 49.78515807022812,
+          "diff": 5.780431177446103,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710673597803,
+          "sharpness": 45.421423098031504,
+          "diff": 8.744444444444444,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710706601380,
+          "sharpness": 56.93017054809415,
+          "diff": 5.097346600331675,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710740448419,
+          "sharpness": 58.771515258203806,
+          "diff": 4.324046434494195,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710778556572,
+          "sharpness": 56.26154590922741,
+          "diff": 4.460696517412935,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710807276842,
+          "sharpness": 65.36288067846455,
+          "diff": 5.170149253731343,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710841504226,
+          "sharpness": 71.90843265576622,
+          "diff": 5.4681592039800995,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710875151226,
+          "sharpness": 71.03189363266405,
+          "diff": 4.634660033167496,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710906209457,
+          "sharpness": 71.61499052510588,
+          "diff": 5.022222222222222,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710943467342,
+          "sharpness": 72.4537594101749,
+          "diff": 4.670149253731343,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92710973849072,
+          "sharpness": 72.22432717896677,
+          "diff": 4.602819237147595,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711006242765,
+          "sharpness": 69.83861355893592,
+          "diff": 5.050082918739635,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711042809688,
+          "sharpness": 70.08274740864235,
+          "diff": 5.020398009950249,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711074300765,
+          "sharpness": 71.41124923631318,
+          "diff": 4.762520729684908,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711107988072,
+          "sharpness": 71.81607314825362,
+          "diff": 4.546766169154229,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711141533918,
+          "sharpness": 71.91089457497593,
+          "diff": 3.483250414593698,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711173926264,
+          "sharpness": 72.15260015946816,
+          "diff": 3.4019900497512436,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711206014726,
+          "sharpness": 72.05159675264831,
+          "diff": 3.5024875621890548,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711241339457,
+          "sharpness": 72.67985989582795,
+          "diff": 3.3361525704809285,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711273594457,
+          "sharpness": 59.72325801741724,
+          "diff": 2.7661691542288556,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711306652611,
+          "sharpness": 45.552308664091704,
+          "diff": 8.269817578772802,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711339949226,
+          "sharpness": 45.332304729163,
+          "diff": 3.1480928689883916,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711373622341,
+          "sharpness": 55.961673276656555,
+          "diff": 4.337479270315091,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711406185303,
+          "sharpness": 56.96261041099295,
+          "diff": 3.5449419568822553,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711439173072,
+          "sharpness": 60.60178521502314,
+          "diff": 4.159203980099503,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711472328110,
+          "sharpness": 70.69726677781114,
+          "diff": 4.340132669983416,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711507509957,
+          "sharpness": 72.84839651655258,
+          "diff": 3.9386401326699834,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711540931764,
+          "sharpness": 72.50453293431775,
+          "diff": 4.211774461028193,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711575037649,
+          "sharpness": 72.44945428751903,
+          "diff": 3.48424543946932,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711606987533,
+          "sharpness": 72.68192055586046,
+          "diff": 2.58424543946932,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711639889956,
+          "sharpness": 65.63022025245674,
+          "diff": 2.558872305140962,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711674047803,
+          "sharpness": 46.690036346315146,
+          "diff": 8.304477611940298,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711707106341,
+          "sharpness": 47.33832879435855,
+          "diff": 2.770315091210614,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711740860841,
+          "sharpness": 58.107558169636846,
+          "diff": 4.612935323383085,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711774717187,
+          "sharpness": 61.90764567002516,
+          "diff": 2.884742951907131,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711808995726,
+          "sharpness": 60.94034182104358,
+          "diff": 3.181426202321725,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711846134764,
+          "sharpness": 68.83097669072495,
+          "diff": 3.896351575456053,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711878475495,
+          "sharpness": 72.47697290076731,
+          "diff": 2.7388059701492535,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711908248533,
+          "sharpness": 72.06505058454401,
+          "diff": 4.399004975124378,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711941004918,
+          "sharpness": 72.75319971834195,
+          "diff": 4.8271973466003315,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92711973137341,
+          "sharpness": 71.90896594215654,
+          "diff": 4.233996683250415,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712008341725,
+          "sharpness": 71.79635449565605,
+          "diff": 3.570978441127695,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712040378918,
+          "sharpness": 71.65364084455996,
+          "diff": 2.6177446102819237,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712073508033,
+          "sharpness": 72.44978564993632,
+          "diff": 2.3951907131011607,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712107141648,
+          "sharpness": 70.200986838699,
+          "diff": 1.6862354892205638,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712139185648,
+          "sharpness": 71.53512441623262,
+          "diff": 2.31592039800995,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712173246764,
+          "sharpness": 70.7445920617991,
+          "diff": 2.511111111111111,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712206538687,
+          "sharpness": 72.80150355696844,
+          "diff": 4.09502487562189,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712240559379,
+          "sharpness": 72.05586822130867,
+          "diff": 4.247927031509121,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712274479264,
+          "sharpness": 72.65154911930082,
+          "diff": 5.372636815920398,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712306807225,
+          "sharpness": 73.2659338724876,
+          "diff": 4.148590381426202,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712339817379,
+          "sharpness": 73.13170361702788,
+          "diff": 3.9388059701492537,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712373693494,
+          "sharpness": 74.18497530314484,
+          "diff": 4.609784411276949,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712406401302,
+          "sharpness": 46.246774393969204,
+          "diff": 5.979104477611941,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712439781264,
+          "sharpness": 53.14430056642263,
+          "diff": 6.419237147595356,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712473347610,
+          "sharpness": 58.4294327489619,
+          "diff": 5.169817578772802,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712507418033,
+          "sharpness": 66.96894253968583,
+          "diff": 3.62106135986733,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712540461494,
+          "sharpness": 65.58998819521388,
+          "diff": 2.486898839137645,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712572842340,
+          "sharpness": 61.94712180675358,
+          "diff": 2.717247097844113,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712606184802,
+          "sharpness": 70.60139689969039,
+          "diff": 3.0054726368159206,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712640558494,
+          "sharpness": 73.73617079661597,
+          "diff": 2.212603648424544,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712673611917,
+          "sharpness": 74.65228950720196,
+          "diff": 3.4225538971807627,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712707285610,
+          "sharpness": 75.2773425769641,
+          "diff": 3.6882255389718077,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712739819802,
+          "sharpness": 74.34859585175674,
+          "diff": 3.3832504145936984,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712774639109,
+          "sharpness": 72.80369365544522,
+          "diff": 5.012603648424544,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712806042571,
+          "sharpness": 74.80183491938574,
+          "diff": 4.903316749585406,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712840239033,
+          "sharpness": 74.16945045614108,
+          "diff": 3.2384742951907133,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712873733456,
+          "sharpness": 72.02962328235185,
+          "diff": 2.438971807628524,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712909201263,
+          "sharpness": 45.17469271313334,
+          "diff": 6.9479270315091215,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712939880956,
+          "sharpness": 52.43001781072993,
+          "diff": 3.958872305140962,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92712973186455,
+          "sharpness": 58.568560955152165,
+          "diff": 5.911940298507463,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713006435994,
+          "sharpness": 69.53126715059386,
+          "diff": 4.08457711442786,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713039979302,
+          "sharpness": 66.53519431299252,
+          "diff": 2.4784411276948592,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713073347186,
+          "sharpness": 61.689094034440984,
+          "diff": 3.0870646766169156,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713106972302,
+          "sharpness": 71.46469695871431,
+          "diff": 3.5049751243781095,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713142060032,
+          "sharpness": 72.07648517670937,
+          "diff": 1.9945273631840796,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713175206955,
+          "sharpness": 71.98440525623634,
+          "diff": 2.149087893864013,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713207755455,
+          "sharpness": 71.8408890867859,
+          "diff": 2.2633499170812605,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713241290532,
+          "sharpness": 67.68362655455572,
+          "diff": 2.71044776119403,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713277262263,
+          "sharpness": 47.16849002288472,
+          "diff": 9.330182421227198,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713307434263,
+          "sharpness": 53.96495583560282,
+          "diff": 3.7761194029850746,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713339132763,
+          "sharpness": 63.19392208841163,
+          "diff": 4.609784411276949,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713372288532,
+          "sharpness": 66.71791220966956,
+          "diff": 3.414593698175788,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713405185455,
+          "sharpness": 65.30427095090658,
+          "diff": 3.464676616915423,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713439576071,
+          "sharpness": 62.34586470058299,
+          "diff": 3.5049751243781095,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713471516340,
+          "sharpness": 71.78609520456452,
+          "diff": 4.8248756218905475,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713505320917,
+          "sharpness": 73.68408217787949,
+          "diff": 5.946268656716418,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713539101186,
+          "sharpness": 73.05209120750536,
+          "diff": 4.806799336650083,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713572715955,
+          "sharpness": 73.52080334676042,
+          "diff": 5.51044776119403,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713606649878,
+          "sharpness": 72.58025183543714,
+          "diff": 4.604809286898839,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713639821224,
+          "sharpness": 73.10807333464497,
+          "diff": 4.544610281923715,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713673680378,
+          "sharpness": 75.30166406063933,
+          "diff": 3.663515754560531,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713706137340,
+          "sharpness": 74.28250458212092,
+          "diff": 2.450580431177446,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713739834263,
+          "sharpness": 73.84975303144836,
+          "diff": 2.469651741293532,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713773721340,
+          "sharpness": 73.5476437025608,
+          "diff": 2.212106135986733,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713805689070,
+          "sharpness": 72.7958781621812,
+          "diff": 1.8824212271973466,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713839023263,
+          "sharpness": 71.70365068188173,
+          "diff": 2.7308457711442786,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713873283609,
+          "sharpness": 44.28953308964389,
+          "diff": 7.105970149253731,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713907029070,
+          "sharpness": 49.498643485104225,
+          "diff": 3.739469320066335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713939551762,
+          "sharpness": 56.46115034534177,
+          "diff": 9.019568822553897,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92713972855109,
+          "sharpness": 61.30199542305661,
+          "diff": 7.619900497512438,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714006702339,
+          "sharpness": 62.45291288274948,
+          "diff": 7.720563847429519,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714040340070,
+          "sharpness": 63.07370742769569,
+          "diff": 7.7376451077943615,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714073845647,
+          "sharpness": 74.33647782460574,
+          "diff": 5.51575456053068,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714106567416,
+          "sharpness": 75.95204046763521,
+          "diff": 4.099502487562189,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714140456762,
+          "sharpness": 75.25502997794369,
+          "diff": 3.3903814262023215,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714173528570,
+          "sharpness": 75.57442192790796,
+          "diff": 3.283582089552239,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714206549801,
+          "sharpness": 74.35890950699485,
+          "diff": 3.026865671641791,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714239929493,
+          "sharpness": 75.00236872352984,
+          "diff": 3.2354892205638475,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714273359570,
+          "sharpness": 74.83893456627766,
+          "diff": 3.5719734660033167,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714307215878,
+          "sharpness": 75.2334059914467,
+          "diff": 4.079767827529022,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714339642955,
+          "sharpness": 70.65728324238125,
+          "diff": 3.0739635157545604,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714373413185,
+          "sharpness": 42.30580350208655,
+          "diff": 7.76849087893864,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714405907108,
+          "sharpness": 56.79882159240351,
+          "diff": 4.056716417910447,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714439958993,
+          "sharpness": 58.39035787141067,
+          "diff": 5.906301824212272,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714473401147,
+          "sharpness": 62.60324786944321,
+          "diff": 4.290049751243781,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714507012454,
+          "sharpness": 62.20605305940707,
+          "diff": 3.1164179104477614,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714539715916,
+          "sharpness": 64.74095484151557,
+          "diff": 3.7742951907131013,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714572931647,
+          "sharpness": 74.03106781538972,
+          "diff": 2.941127694859038,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714605744570,
+          "sharpness": 73.30578020316658,
+          "diff": 2.0865671641791046,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714639441993,
+          "sharpness": 73.30685971979166,
+          "diff": 2.9354892205638476,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714672536493,
+          "sharpness": 75.09960547162191,
+          "diff": 4.434328358208956,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714706261954,
+          "sharpness": 75.51970829752203,
+          "diff": 4.060862354892206,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714739865262,
+          "sharpness": 75.14057273922813,
+          "diff": 2.798341625207297,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714774752993,
+          "sharpness": 73.09434509324745,
+          "diff": 2.0114427860696518,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714805651800,
+          "sharpness": 73.01035507554028,
+          "diff": 2.1966832504145937,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714838624800,
+          "sharpness": 67.99961168466724,
+          "diff": 3.1096185737976785,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714872823531,
+          "sharpness": 45.417216348593264,
+          "diff": 9.701824212271973,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714905739377,
+          "sharpness": 52.36397055016516,
+          "diff": 4.203814262023217,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714939112877,
+          "sharpness": 63.906703358151,
+          "diff": 4.685572139303482,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92714972497646,
+          "sharpness": 59.66872818962214,
+          "diff": 3.163515754560531,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715005715185,
+          "sharpness": 58.540731689637674,
+          "diff": 3.3865671641791044,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715039136492,
+          "sharpness": 61.54050387797579,
+          "diff": 3.390547263681592,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715073923569,
+          "sharpness": 73.06048399623076,
+          "diff": 3.7129353233830846,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715107576723,
+          "sharpness": 72.38078978161145,
+          "diff": 2.176782752902156,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715139048415,
+          "sharpness": 73.59148191486057,
+          "diff": 3.1145936981757876,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715173150454,
+          "sharpness": 74.6251126114465,
+          "diff": 3.251077943615257,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715206766108,
+          "sharpness": 73.27986921539592,
+          "diff": 2.8366500829187395,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715239497300,
+          "sharpness": 72.32964347474915,
+          "diff": 3.654726368159204,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715275861800,
+          "sharpness": 72.98329208561576,
+          "diff": 4.339469320066335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715307385608,
+          "sharpness": 73.87479678164252,
+          "diff": 4.267330016583748,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715339559108,
+          "sharpness": 73.62612740884944,
+          "diff": 2.9893864013267,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715374014223,
+          "sharpness": 72.83871193215354,
+          "diff": 3.4091210613598673,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715404890415,
+          "sharpness": 74.43535067463317,
+          "diff": 4.080265339966832,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715438445146,
+          "sharpness": 73.26087541808617,
+          "diff": 2.566169154228856,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715471681031,
+          "sharpness": 72.33563906348697,
+          "diff": 2.1014925373134328,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715504711223,
+          "sharpness": 72.94837477089395,
+          "diff": 3.379436152570481,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715538696146,
+          "sharpness": 73.51346677574013,
+          "diff": 3.4741293532338307,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715572435954,
+          "sharpness": 72.95293100413167,
+          "diff": 3.2228855721393033,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715606091454,
+          "sharpness": 71.10614211305672,
+          "diff": 2.775290215588723,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715639141069,
+          "sharpness": 44.79948172846921,
+          "diff": 7.143283582089552,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715672368684,
+          "sharpness": 48.99020668730778,
+          "diff": 4.769651741293532,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715705824300,
+          "sharpness": 57.53936481966636,
+          "diff": 5.860033167495854,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715739592684,
+          "sharpness": 58.98201064501765,
+          "diff": 4.875621890547263,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715772833338,
+          "sharpness": 63.478552049787204,
+          "diff": 4.241459369817579,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715805923684,
+          "sharpness": 61.439244183036315,
+          "diff": 3.1897180762852404,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715838694146,
+          "sharpness": 61.644960702488326,
+          "diff": 3.6149253731343283,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715873041030,
+          "sharpness": 71.54168435658738,
+          "diff": 3.814759535655058,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715906124415,
+          "sharpness": 72.38669217466942,
+          "diff": 2.8354892205638476,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715939655376,
+          "sharpness": 71.02690248625363,
+          "diff": 2.1718076285240464,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92715972905300,
+          "sharpness": 69.78638773544853,
+          "diff": 1.9834162520729686,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716006317684,
+          "sharpness": 71.28164511085109,
+          "diff": 3.4359867330016582,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716039127953,
+          "sharpness": 72.07953474645598,
+          "diff": 4.001492537313433,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716072596569,
+          "sharpness": 46.244537697652504,
+          "diff": 7.3159203980099505,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716106177684,
+          "sharpness": 51.385454743142354,
+          "diff": 3.446932006633499,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716139745030,
+          "sharpness": 60.82073293224674,
+          "diff": 7.07893864013267,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716173563184,
+          "sharpness": 65.1245741475184,
+          "diff": 4.348092868988392,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716206755761,
+          "sharpness": 67.7441933913908,
+          "diff": 2.8349917081260365,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716239645222,
+          "sharpness": 65.0502816580547,
+          "diff": 1.843117744610282,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716274291338,
+          "sharpness": 65.01317942239389,
+          "diff": 2.161028192371476,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716305653568,
+          "sharpness": 62.96422321400835,
+          "diff": 2.335323383084577,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716338776145,
+          "sharpness": 64.43903967029439,
+          "diff": 2.763515754560531,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716372131761,
+          "sharpness": 73.27311511737479,
+          "diff": 2.4538971807628522,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716405637722,
+          "sharpness": 72.77005778132151,
+          "diff": 2.154228855721393,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716440125722,
+          "sharpness": 74.1111902123826,
+          "diff": 2.360033167495854,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716472332184,
+          "sharpness": 72.67463317144899,
+          "diff": 1.945273631840796,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716505791645,
+          "sharpness": 69.588251131292,
+          "diff": 2.4759535655058045,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716539866453,
+          "sharpness": 47.99333133135206,
+          "diff": 7.954394693200664,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716572803376,
+          "sharpness": 50.36142837912003,
+          "diff": 2.834825870646766,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716606236184,
+          "sharpness": 61.812415217819016,
+          "diff": 5.399004975124378,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716638932261,
+          "sharpness": 62.33890608981992,
+          "diff": 2.9019900497512436,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716673168607,
+          "sharpness": 65.84949415455986,
+          "diff": 2.547927031509121,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716706290568,
+          "sharpness": 63.65882355986787,
+          "diff": 2.7938640132669983,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716739468145,
+          "sharpness": 64.18256257054395,
+          "diff": 3.166500829187396,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716773908991,
+          "sharpness": 73.15072330202649,
+          "diff": 2.8401326699834164,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716805288376,
+          "sharpness": 75.074623851881,
+          "diff": 3.6439469320066333,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716838462222,
+          "sharpness": 74.02515247848733,
+          "diff": 2.025704809286899,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716872883107,
+          "sharpness": 72.06284754222283,
+          "diff": 1.9106135986733002,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716905409530,
+          "sharpness": 72.95937962742438,
+          "diff": 2.5207296849087895,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716939921760,
+          "sharpness": 72.73807871928426,
+          "diff": 2.0533996683250413,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92716972760914,
+          "sharpness": 72.83806473993228,
+          "diff": 2.7529021558872304,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717006413991,
+          "sharpness": 70.72316223296849,
+          "diff": 3.0398009950248754,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717038874145,
+          "sharpness": 44.44310403744395,
+          "diff": 8.625870646766169,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717072243183,
+          "sharpness": 52.23358979403755,
+          "diff": 4.00547263681592,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717106557645,
+          "sharpness": 61.69590767414648,
+          "diff": 4.688723051409618,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717138644491,
+          "sharpness": 61.17726853817398,
+          "diff": 2.8412935323383084,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717173153568,
+          "sharpness": 61.34287985005851,
+          "diff": 2.1449419568822554,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717206284299,
+          "sharpness": 59.37454567106067,
+          "diff": 1.8315091210613599,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717239037222,
+          "sharpness": 60.3347485269905,
+          "diff": 2.2427860696517414,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717274117683,
+          "sharpness": 65.27795611518987,
+          "diff": 3.3993366500829185,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717305767722,
+          "sharpness": 72.86975644862329,
+          "diff": 3.6524046434494197,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717338516452,
+          "sharpness": 72.0406229613445,
+          "diff": 3.5791044776119403,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717371510337,
+          "sharpness": 72.82603990846113,
+          "diff": 3.1628524046434494,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717405168722,
+          "sharpness": 72.44532520114734,
+          "diff": 2.8570480928689883,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717438393683,
+          "sharpness": 72.32678288513115,
+          "diff": 2.4437810945273633,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717472667645,
+          "sharpness": 73.17263981940748,
+          "diff": 2.4109452736318406,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717507143221,
+          "sharpness": 69.94701048969152,
+          "diff": 1.7706467661691543,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717538979568,
+          "sharpness": 71.44145499166416,
+          "diff": 2.2184079601990048,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717571267491,
+          "sharpness": 69.52752896832382,
+          "diff": 2.1424543946932006,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717604174606,
+          "sharpness": 43.15841194561514,
+          "diff": 7.667993366500829,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717637984875,
+          "sharpness": 50.792999451181,
+          "diff": 4.344610281923715,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717674547683,
+          "sharpness": 62.421772581830986,
+          "diff": 4.278109452736318,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717709148798,
+          "sharpness": 56.20970840107279,
+          "diff": 2.575124378109453,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717740362683,
+          "sharpness": 57.91231839786271,
+          "diff": 3.019568822553897,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717774646644,
+          "sharpness": 61.04983380103758,
+          "diff": 4.1626865671641795,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717805981414,
+          "sharpness": 61.39429021134709,
+          "diff": 5.139469320066335,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717839699721,
+          "sharpness": 69.41824408984064,
+          "diff": 5.685406301824212,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717873359990,
+          "sharpness": 73.36489474065714,
+          "diff": 4.9479270315091215,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717904913414,
+          "sharpness": 73.6425557361941,
+          "diff": 3.7165837479270314,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717942091413,
+          "sharpness": 73.85873605947955,
+          "diff": 2.6087893864013267,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92717974917644,
+          "sharpness": 73.02565211088215,
+          "diff": 2.144278606965174,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718010744183,
+          "sharpness": 69.68334955628501,
+          "diff": 2.3097844112769486,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718038153375,
+          "sharpness": 47.016089198620705,
+          "diff": 7.994361525704809,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718070681298,
+          "sharpness": 50.89301394828675,
+          "diff": 3.2470978441127696,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718105037260,
+          "sharpness": 58.99936316285427,
+          "diff": 6.634991708126036,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718137350644,
+          "sharpness": 61.464554576425634,
+          "diff": 4.909286898839138,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718171530029,
+          "sharpness": 64.58760652783963,
+          "diff": 3.7751243781094526,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718205470452,
+          "sharpness": 64.2973175176813,
+          "diff": 4.179436152570481,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718239816375,
+          "sharpness": 63.14852025970529,
+          "diff": 5.089220563847429,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718273216413,
+          "sharpness": 62.32506653136035,
+          "diff": 4.557379767827529,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718305140990,
+          "sharpness": 67.4607801513912,
+          "diff": 4.030348258706468,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718339504836,
+          "sharpness": 71.02003965993931,
+          "diff": 3.091708126036484,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718372227375,
+          "sharpness": 71.37386741361279,
+          "diff": 4.801658374792703,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718405743490,
+          "sharpness": 72.13851984550227,
+          "diff": 4.021558872305141,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718439477836,
+          "sharpness": 72.69401010655373,
+          "diff": 2.9331674958540632,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718473050413,
+          "sharpness": 71.61380228018763,
+          "diff": 2.5719734660033167,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718505421875,
+          "sharpness": 71.90062234003997,
+          "diff": 3.4258706467661693,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718538562798,
+          "sharpness": 72.33206138488781,
+          "diff": 4.344444444444444,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718572287067,
+          "sharpness": 71.99248998146442,
+          "diff": 2.6014925373134328,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718605104836,
+          "sharpness": 71.58358358099223,
+          "diff": 2.4393034825870648,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718639274875,
+          "sharpness": 72.04317807623407,
+          "diff": 3.4946932006633498,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718672411336,
+          "sharpness": 45.165347257458244,
+          "diff": 6.399336650082919,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718705183567,
+          "sharpness": 52.56211750939723,
+          "diff": 3.380928689883914,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718738041490,
+          "sharpness": 59.22833200443197,
+          "diff": 5.339137645107795,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718773270144,
+          "sharpness": 61.6577958186205,
+          "diff": 3.582089552238806,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718805450605,
+          "sharpness": 63.233235132700294,
+          "diff": 3.4451077943615256,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718839005951,
+          "sharpness": 64.8485155999213,
+          "diff": 3.905638474295191,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718872675836,
+          "sharpness": 62.29799836389807,
+          "diff": 2.9895522388059703,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718905731451,
+          "sharpness": 65.6919002599124,
+          "diff": 3.354228855721393,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718939451374,
+          "sharpness": 74.0214634828261,
+          "diff": 3.610116086235489,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92718972931028,
+          "sharpness": 74.02254558822007,
+          "diff": 3.5703150912106136,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92719005671605,
+          "sharpness": 73.01802818651562,
+          "diff": 4.462189054726368,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92719039114874,
+          "sharpness": 72.33023371405494,
+          "diff": 5.259867330016584,
+          "exposure_ns": null,
+          "skew_ns": null
+        },
+        {
+          "ts_ns": 92719072493067,
+          "sharpness": 73.76298267595863,
+          "diff": 4.822553897180763,
+          "exposure_ns": null,
+          "skew_ns": null
+        }
+      ]
+    }
+  }
+}

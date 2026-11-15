@@ -39,7 +39,8 @@ TORCH_MODES = ("off", "on", "request", "mode")
 
 def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
                ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None,
-               sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0, timing: int = 0) -> list[str]:
+               sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0, timing: int = 0,
+               bridge_window: str | None = None) -> list[str]:
     """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
     request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
     ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested).
@@ -52,6 +53,8 @@ def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, tor
         args += ["--ei", "timing", str(timing)]
     elif sweep > 0:
         args += ["--ei", "sweep", str(sweep), "--es", "gate_rad_s", gate]
+        if bridge_window:
+            args += ["--es", "bridge_window_ms", bridge_window]
     if (timing > 0 or sweep > 0) and max_exposure_us > 0:
         args += ["--el", "max_exposure_us", str(max_exposure_us)]
     elif series > 0:
@@ -72,6 +75,36 @@ def parse_gates(text: str) -> dict[str, float]:
             raise ValueError(f"gate {part!r}: want CAMERA:RAD_S with a positive rate, each camera once")
         out[cam.strip()] = rate
     return out
+
+
+def bridge_window_from(result: dict) -> str | None:
+    """'START,END' (ms from the stamp) for the sweep, from frame_timing.find_window on camera 2,
+    or None if not trusted: could not tell, or a window not wholly before the stamp, which a stamp
+    taken at delivery cannot have."""
+    if not result.get("ok") or result["end_ms"] > 0:
+        return None
+    return f"{result['start_ms']},{result['end_ms']}"
+
+
+def measure_bridge(adb: Adb, args: argparse.Namespace, out: Path) -> str | None:
+    """Times camera 2 on the calibration scene (10 s of vibration pulses) and returns its window."""
+    sys.path.insert(0, str(REPO / "tools" / "calib"))
+    import frame_timing  # noqa: E402
+    run_id = dt.datetime.now().strftime("%H%M%S") + "-" + secrets.token_hex(2)
+    adb.run(*start_args(run_id, "2", args.stream_ms, args.burst, timing=10))
+    t_args = argparse.Namespace(**{**vars(args), "timing": 10, "cameras": "2"})
+    if run_timing(adb, t_args, run_id, out) != 0:
+        return None
+    ts_g, gyro, rep = frame_timing.load(args.bursts / f"{run_id}_timing")
+    fr = rep["cameras"]["2"]["frames"]
+    import numpy as np
+    res = frame_timing.find_window(ts_g, gyro, np.array([f["ts_ns"] for f in fr], np.int64),
+                                   np.array([f["sharpness"] for f in fr], float))
+    (out / f"frame_timing_{dt.date.today():%Y%m%d}_{run_id}.json").write_text(json.dumps(res, indent=2) + "\n")
+    window = bridge_window_from(res)
+    print(f"camera 2 window: {res} -> {window or 'not trusted; the sweep keeps 150 ms before the stamp'}")
+    adb.run("shell", "am", "force-stop", PACKAGE)
+    return window
 
 
 def run_timing(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
@@ -156,9 +189,12 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
     # A calibration series always runs with OIS off (camera-calibration.md): the stabiliser moves
     # the image by ~1 px between frames of a still phone (burst-merge.md run 3).
     ois = "off" if args.series > 0 or args.sweep > 0 else args.ois
+    window = args.bridge_window
+    if args.sweep and args.measure_bridge and "2" in args.cameras.split(","):
+        window = measure_bridge(adb, args, out)
     adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, ois,
                         args.series, args.still_ms, args.focus, args.sweep, args.gate, args.max_exposure_us,
-                        args.timing))
+                        args.timing, window))
     if args.timing > 0:
         return run_timing(adb, args, run_id, out)
     if args.series > 0 or args.sweep > 0:
@@ -201,6 +237,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--gate", default="0:0.04,2:0.02", help="sweep: gyro limit (rad/s) per camera over each kept frame")
     ap.add_argument("--max-exposure-us", type=int, default=0, help="sweep: cap camera 0's exposure (0: AE)")
     ap.add_argument("--timing", type=int, default=0, help="frame-timing run: SECONDS of vibration pulses per camera")
+    ap.add_argument("--bridge-window", help="sweep: camera 2's exposure window START,END in ms from its stamp")
+    ap.add_argument("--measure-bridge", action="store_true",
+                    help="sweep: first time camera 2 on the scene (10 s of buzzing) and use its window")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")

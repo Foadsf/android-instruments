@@ -25,7 +25,8 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
     /** [gates]: gyro limit (rad/s) per camera id; camera 2's long focal length needs the stricter one. */
     data class Plan(val runId: String, val cameraIds: List<String>, val frames: Int, val gates: Map<String, Double>,
                     val minGapMs: Long = 600, val maxMs: Long = 300_000, val warmMs: Long = 1500,
-                    val focusDiopters: Float? = null, val oisOff: Boolean = true, val maxExposureNs: Long? = null)
+                    val focusDiopters: Float? = null, val oisOff: Boolean = true, val maxExposureNs: Long? = null,
+                    val bridgeWindowMs: Pair<Int, Int>? = null)
 
     /** [lagNs]: arrival time minus sensor timestamp, both elapsedRealtimeNanos if the camera's
      *  timestamp source is REALTIME as reported; recorded to check that claim on the bridge. */
@@ -37,7 +38,10 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
     @Volatile private var lastKept: Long? = null
     @Volatile private var lastCandidate = 0L
 
+    private var bridgeWindow: Pair<Int, Int>? = null
+
     fun execute(plan: Plan): File {
+        bridgeWindow = plan.bridgeWindowMs
         station.oisOff = plan.oisOff
         station.focusDiopters = plan.focusDiopters
         val root = File(outDir, "captures/${plan.runId}_series").apply { mkdirs() }
@@ -85,7 +89,7 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
             pending.poll()
             lags.add(p.lagNs)
             val m = station.meta(p.ts)
-            val (start, exp, skew) = timing(p.ts, m)
+            val (start, exp, skew) = timing(p.ts, m, plan.bridgeWindowMs)
             val w = gate.window(start, exp, skew)
             val d = gate.decide(start, exp, skew, sensors.gyroRates(w.first, w.last), lastKept)
             if (d.maxRate.isFinite()) rates.put(Math.round(d.maxRate * 1e4) / 1e4)
@@ -114,12 +118,18 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
      * capture result (camera 0), the timestamp is the first row's exposure start (Camera2). The
      * camera 2 bridge reports neither, and stamps the frame when HAL1 delivers it (bridge_tele.c,
      * CLOCK_BOOTTIME at the data callback), after exposure, readout and the ISP: so the window is
-     * the BRIDGE_BEFORE_NS before the stamp (the HAL1 delivery delay itself is not measured).
+     * the BRIDGE_BEFORE_NS before the stamp, or [measured] (ms from the stamp, frame_timing.py on
+     * the same scene) widened by BRIDGE_MARGIN_NS on each side.
      */
-    private fun timing(ts: Long, m: FrameMeta?): Triple<Long, Long, Long> {
+    private fun timing(ts: Long, m: FrameMeta?, measured: Pair<Int, Int>?): Triple<Long, Long, Long> {
         val exp = m?.exposureNs
         val skew = m?.skewNs
-        return if (exp != null && skew != null) Triple(ts, exp, skew) else Triple(ts - BRIDGE_BEFORE_NS, 0L, BRIDGE_BEFORE_NS)
+        if (exp != null && skew != null) return Triple(ts, exp, skew)
+        if (measured != null) {
+            val start = ts + measured.first * MS - BRIDGE_MARGIN_NS
+            return Triple(start, 0L, (measured.second - measured.first) * MS + 2 * BRIDGE_MARGIN_NS)
+        }
+        return Triple(ts - BRIDGE_BEFORE_NS, 0L, BRIDGE_BEFORE_NS)
     }
 
     /** On the image thread: copy the luma of a candidate frame into a free slot, never more. */
@@ -145,7 +155,8 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
             .put("iso", m?.iso ?: JSONObject.NULL).put("rolling_shutter_skew_ns", m?.skewNs ?: JSONObject.NULL)
             .put("ois_mode", m?.oisMode ?: JSONObject.NULL)
             .put("timing", if (m?.exposureNs != null && m.skewNs != null) "capture result: exposure and skew after the stamp"
-                else "bridge: ${BRIDGE_BEFORE_NS / MS} ms before the delivery stamp")
+                else bridgeWindow?.let { "bridge: measured ${it.first}..${it.second} ms from the stamp, +-${BRIDGE_MARGIN_NS / MS} ms" }
+                    ?: "bridge: ${BRIDGE_BEFORE_NS / MS} ms before the delivery stamp")
         return JSONObject().apply {
             put("index", index)
             put("camera", id)
@@ -173,6 +184,7 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
         put("gate_pad_ns", PAD_NS)
         put("min_gap_ms", plan.minGapMs)
         put("max_exposure_ns", plan.maxExposureNs ?: JSONObject.NULL)
+        put("bridge_window_ms", plan.bridgeWindowMs?.let { JSONArray(listOf(it.first, it.second)) } ?: JSONObject.NULL)
         put("focus_diopters", plan.focusDiopters ?: JSONObject.NULL)
         put("ois", if (plan.oisOff) "off" else "camera default")
         put("gyroscope", sensors.hasGyro)
@@ -200,6 +212,7 @@ class SweepMode(private val station: Station, private val sensors: SensorRecorde
         const val CANDIDATE_NS = 20 * MS
         const val DECIDE_AFTER_NS = 150 * MS  // exposure + readout + sensor delivery, all well inside
         const val BRIDGE_BEFORE_NS = 150 * MS  // camera 2: exposure, readout and HAL1 delay before its stamp
+        const val BRIDGE_MARGIN_NS = 10 * MS  // around a measured window (frame timing amendment)
         const val ACCEL_PAD_NS = 50 * MS
         const val EXPOSURE_SETTLE_MS = 600L
         const val POLL_MS = 5L
