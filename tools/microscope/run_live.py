@@ -38,26 +38,49 @@ TORCH_MODES = ("off", "on", "request", "mode")
 
 
 def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
-               ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None) -> list[str]:
+               ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None,
+               sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0) -> list[str]:
     """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
     request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
     ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested).
-    series > 0: the calibration capture series of that many poses (camera-calibration.md)."""
+    series > 0: the calibration capture series of that many still poses; sweep > 0: the hand-held
+    sweep keeping that many gyro-calm frames per camera (camera-calibration.md)."""
     args = ["shell", "am", "start", "-W", "-n", ACTIVITY, "--es", "run_id", run_id,
             "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst), "--es", "torch", torch,
             "--es", "ois", ois]
-    if series > 0:
+    if sweep > 0:
+        args += ["--ei", "sweep", str(sweep), "--es", "gate_rad_s", gate]
+        if max_exposure_us > 0:
+            args += ["--el", "max_exposure_us", str(max_exposure_us)]
+    elif series > 0:
         args += ["--ei", "series", str(series), "--el", "still_ms", str(still_ms)]
-        if focus is not None:
-            args += ["--ef", "focus_diopters", str(focus)]
+    if (series > 0 or sweep > 0) and focus is not None:
+        args += ["--ef", "focus_diopters", str(focus)]
     return args + (["--es", "cameras", cameras] if cameras else [])
+
+
+def parse_gates(text: str) -> dict[str, float]:
+    """'0:0.04,2:0.02' -> {'0': 0.04, '2': 0.02}: the gyro limit per camera (camera-calibration.md,
+    hand-held amendment). Raises ValueError on anything else."""
+    out: dict[str, float] = {}
+    for part in text.split(","):
+        cam, sep, val = part.partition(":")
+        rate = float(val) if sep and cam.strip() else float("nan")
+        if not rate > 0 or cam.strip() in out:
+            raise ValueError(f"gate {part!r}: want CAMERA:RAD_S with a positive rate, each camera once")
+        out[cam.strip()] = rate
+    return out
 
 
 def run_series(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
     """Waits for the series report (minutes: Foad moves the phone), pulls it and the series folder."""
     name = f"microscope_series_{run_id}.json"
-    timeout = max(args.timeout, args.series * 90)
-    print(f"series {run_id}: move the phone to a pose, hold it still until the beep, repeat ({args.series} poses)")
+    timeout = max(args.timeout, args.series * 90, 400 if args.sweep else 0)
+    if args.sweep:
+        print(f"sweep {run_id}: point at the screen and move slowly around it; a short beep = a frame kept, "
+              f"a long beep = next camera ({args.sweep} frames per camera)")
+    else:
+        print(f"series {run_id}: move the phone to a pose, hold it still until the beep, repeat ({args.series} poses)")
     if not wait_for(adb, name, timeout):
         print(f"could not tell: no report {name} after {timeout} s", file=sys.stderr)
         return 3
@@ -112,10 +135,10 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
     adb.run("shell", "am", "force-stop", PACKAGE)
     # A calibration series always runs with OIS off (camera-calibration.md): the stabiliser moves
     # the image by ~1 px between frames of a still phone (burst-merge.md run 3).
-    ois = "off" if args.series > 0 else args.ois
+    ois = "off" if args.series > 0 or args.sweep > 0 else args.ois
     adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, ois,
-                        args.series, args.still_ms, args.focus))
-    if args.series > 0:
+                        args.series, args.still_ms, args.focus, args.sweep, args.gate, args.max_exposure_us))
+    if args.series > 0 or args.sweep > 0:
         return run_series(adb, args, run_id, out)
     name = f"microscope_live_{run_id}.json"
     if not wait_for(adb, name, args.timeout):
@@ -150,7 +173,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ois", choices=("default", "off"), default="default", help="optical stabilisation")
     ap.add_argument("--series", type=int, default=0, help="calibration series of N poses (OIS off unless --ois default)")
     ap.add_argument("--still-ms", type=int, default=1000, help="series: stillness needed before each pose")
-    ap.add_argument("--focus", type=float, help="series: manual focus in diopters (camera 0)")
+    ap.add_argument("--focus", type=float, help="series/sweep: manual focus in diopters (camera 0)")
+    ap.add_argument("--sweep", type=int, default=0, help="hand-held calibration: keep N gyro-calm frames per camera")
+    ap.add_argument("--gate", default="0:0.04,2:0.02", help="sweep: gyro limit (rad/s) per camera over each kept frame")
+    ap.add_argument("--max-exposure-us", type=int, default=0, help="sweep: cap camera 0's exposure (0: AE)")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")
@@ -164,6 +190,17 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.series and not (1 <= args.series <= 40 and args.cameras):
         print("--series needs 1..40 poses and --cameras (e.g. 0,2)", file=sys.stderr)
+        return 2
+    if args.sweep and not (1 <= args.sweep <= 80 and args.cameras and not args.series):
+        print("--sweep needs 1..80 frames, --cameras (e.g. 0,2), and no --series", file=sys.stderr)
+        return 2
+    try:
+        missing = set(args.cameras.split(",")) - set(parse_gates(args.gate)) if args.sweep else set()
+    except ValueError as e:
+        print(f"--gate: {e}", file=sys.stderr)
+        return 2
+    if missing:
+        print(f"--gate has no limit for camera(s) {sorted(missing)}", file=sys.stderr)
         return 2
     try:
         return run(Adb(args.serial, args.verbose, False), args)

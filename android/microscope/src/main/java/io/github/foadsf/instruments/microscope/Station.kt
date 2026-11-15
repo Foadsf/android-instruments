@@ -48,6 +48,32 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
     var oisOff by camera::oisOff
     var focusDiopters by camera::focusDiopters
 
+    /** Called on the image thread with every frame outside bursts, before the preview: it must only
+     *  copy (the buffer is reused for the next frame). Used by the hand-held sweep. */
+    @Volatile var tap: ((i420: ByteArray, w: Int, h: Int, tsNs: Long) -> Unit)? = null
+
+    fun meta(tsNs: Long): FrameMeta? = camera.meta(tsNs)
+
+    /**
+     * Caps the open camera's exposure at [maxNs] for hand-held capture: reads what AE chose on the
+     * latest frame and, if longer, switches to manual exposure [maxNs] with the ISO raised to keep
+     * exposure x ISO (clamped to the camera's range). Returns what was done, for the report.
+     */
+    fun capExposure(maxNs: Long): JSONObject {
+        val m = camera.meta(lastTs)
+        val out = JSONObject().put("max_exposure_ns", maxNs)
+        val e = m?.exposureNs
+        val iso = m?.iso
+        if (e == null || iso == null) return out.put("action", "none: AE exposure or ISO not reported")
+        out.put("ae_exposure_ns", e).put("ae_iso", iso)
+        if (e <= maxNs) return out.put("action", "none: AE already within the cap")
+        val range = camera.isoRange()
+        val want = (iso.toDouble() * e / maxNs).toInt()
+        val set = range?.let { want.coerceIn(it.first, it.last) } ?: want
+        camera.setManualExposure(maxNs to set)
+        return out.put("action", "manual").put("exposure_ns", maxNs).put("iso", set).put("iso_wanted", want)
+    }
+
     fun cameras(): Pair<List<String>, Set<String>> = camera.listed() to camera.rear()
 
     fun open(id: String): Size2 {
@@ -59,6 +85,7 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
 
     fun close() {
         recorder = null
+        tap = null
         torchOff()
         camera.close()
     }
@@ -140,6 +167,7 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
             r.offer(i420, ts)
             return
         }
+        tap?.invoke(i420, w, h, ts)
         if (frames % FPS_EVERY == 0) fps = rate.fps(FPS_WINDOW_NS)
         // The preview thread works on its own copy, at its own pace; frames it is too busy for
         // are simply not previewed, so the preview can never slow the camera stream.

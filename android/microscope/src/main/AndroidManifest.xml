@@ -3,6 +3,8 @@
 
     <!-- Camera only. No INTERNET: CI fails the build if it ever appears. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Gyroscope above 200 Hz for the hand-held calibration frame gate (Android 12+). -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <application

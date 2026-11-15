@@ -16,6 +16,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import io.github.foadsf.instruments.microscope.core.CameraChoice
+import io.github.foadsf.instruments.microscope.core.FrameGate
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -108,7 +109,9 @@ class MainActivity : Activity() {
             val ids = intent.getStringExtra(EXTRA_CAMERAS)?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
                 ?: listOfNotNull(CameraChoice.pickCamera(listed, rear, intent.getStringExtra(EXTRA_CAMERA)))
             val series = intent.getIntExtra(EXTRA_SERIES, 0)
-            val result = if (series > 0) runCatching { runSeries(runId, ids, series) } else {
+            val sweep = intent.getIntExtra(EXTRA_SWEEP, 0)
+            val result = if (sweep > 0) runCatching { runSweep(runId, ids, sweep) }
+            else if (series > 0) runCatching { runSeries(runId, ids, series) } else {
                 val plan = RunMode.Plan(runId, ids, intent.getLongExtra(EXTRA_STREAM_MS, 10_000L),
                     intent.getIntExtra(EXTRA_BURST, 16), intent.getStringExtra(EXTRA_TORCH) ?: "off",
                     intent.getStringExtra(EXTRA_OIS) == "off")
@@ -129,6 +132,17 @@ class MainActivity : Activity() {
             oisOff = intent.getStringExtra(EXTRA_OIS) != "default")
         message = "Calibration series: hold each pose still; a beep means move on"
         return SeriesMode(station, SensorRecorder(applicationContext), outDir()).execute(plan)
+    }
+
+    /** The hand-held calibration sweep (camera-calibration.md, hand-held amendment); OIS off. */
+    private fun runSweep(runId: String, ids: List<String>, frames: Int): File {
+        val focus = intent.getFloatExtra(EXTRA_FOCUS, -1f).takeIf { it >= 0f }
+        val maxExp = intent.getLongExtra(EXTRA_MAX_EXPOSURE_US, 0L).takeIf { it > 0 }?.let { it * 1000 }
+        val gates = FrameGate.parseGates(intent.getStringExtra(EXTRA_GATE) ?: "0:0.04,2:0.02")
+        require(ids.all { it in gates }) { "no gyro limit for camera(s) ${ids.filter { it !in gates }}" }
+        val plan = SweepMode.Plan(runId, ids, frames, gates,
+            focusDiopters = focus, oisOff = intent.getStringExtra(EXTRA_OIS) != "default", maxExposureNs = maxExp)
+        return SweepMode(station, SensorRecorder(applicationContext), outDir()) { message = it }.execute(plan)
     }
 
     /** On the worker thread. */
@@ -198,6 +212,9 @@ class MainActivity : Activity() {
         const val EXTRA_SERIES = "series"
         const val EXTRA_STILL_MS = "still_ms"
         const val EXTRA_FOCUS = "focus_diopters"
+        const val EXTRA_SWEEP = "sweep"
+        const val EXTRA_GATE = "gate_rad_s"
+        const val EXTRA_MAX_EXPOSURE_US = "max_exposure_us"
         const val REQUEST_CAMERA = 1
         const val TICK_MS = 500L
         const val WARM_MS = 2000L

@@ -34,6 +34,8 @@ NCC_REL = 0.01
 MIN_CORNER_FRACTION = 0.6
 STEREO_T_MM, STEREO_R_DEG = (5.0, 20.0), 3.0
 FOCUS_TOL_D = 0.05
+CLOCK_LAG_MS = (0, 1000)
+DUP_PX = 30.0  # hand-held amendment: about 1.5 deg of turn on camera 0, 0.8 deg on camera 2
 
 
 def check(name, ok, value, threshold, judged=True):
@@ -49,8 +51,23 @@ def mean_luma(burst: Path):
     return np.round(np.mean(frames, axis=0)).astype(np.uint8), (w, h)
 
 
+def near_duplicate(view: dict, kept: list) -> int | None:
+    """The pose of a kept view this one barely differs from (most corners shared, every shared
+    corner within DUP_PX), or None. A slow hand-held sweep can keep two frames of almost one view;
+    both in the fit, or one held out, would make the held-out and halves checks look better than
+    the views deserve. The largest shift, not the median: a 20 deg turn about the board centre
+    moves the median corner under 30 px but the board's edge by 50 px."""
+    for k in kept:
+        common, ia, ib = np.intersect1d(view["ids"], k["ids"], return_indices=True)
+        if len(common) >= 0.8 * min(len(view["ids"]), len(k["ids"])) and \
+                float(np.linalg.norm(view["img"][ia] - k["img"][ib], axis=1).max()) < DUP_PX:
+            return k["pose"]
+    return None
+
+
 def collect(root: Path, series: dict, board, scale_xy) -> tuple[dict, list, dict]:
     """Per camera: usable views; plus the dropped list and each pose's mean frame per camera."""
+    hand_held = series.get("capture") == "hand-held sweep"
     views: dict[str, list] = {c: [] for c in series["cameras"]}
     dropped, frames = [], {}
     for p in series["poses"]:
@@ -70,8 +87,13 @@ def collect(root: Path, series: dict, board, scale_xy) -> tuple[dict, list, dict
             if n < cc.MIN_CORNERS:
                 dropped.append({"pose": p["index"], "camera": cam, "reason": f"{n} corners"})
                 continue
-            views[cam].append({"pose": p["index"], "obj": cc.object_points(board, ids, scale_xy), "img": corners,
-                               "ids": ids, "size": size})
+            view = {"pose": p["index"], "obj": cc.object_points(board, ids, scale_xy), "img": corners, "ids": ids,
+                    "size": size}
+            twin = near_duplicate(view, views[cam]) if hand_held else None
+            if twin is not None:
+                dropped.append({"pose": p["index"], "camera": cam, "reason": f"near-duplicate of pose {twin}"})
+                continue
+            views[cam].append(view)
     return views, dropped, frames
 
 
@@ -202,6 +224,18 @@ def imu_report(series: dict, views0: list, cal0: dict) -> dict:
                              judged=False)]}
 
 
+def clock_checks(series: dict) -> list[dict]:
+    """Hand-held sweep: the gyro gate compares frame and gyro timestamps, so they must share one
+    clock. A frame reaches the app after its exposure: the arrival lag must be positive and short."""
+    out = []
+    for cam, s in series.get("per_camera", {}).items():
+        lag = (s.get("arrival_lag_ms") or {}).get("median")
+        ok = lag is not None and CLOCK_LAG_MS[0] < lag < CLOCK_LAG_MS[1]
+        out.append(check(f"camera {cam}: frame clock is the gyro clock (median arrival lag, ms)", ok,
+                         None if lag is None else round(lag, 1), f"{CLOCK_LAG_MS[0]}..{CLOCK_LAG_MS[1]}"))
+    return out
+
+
 def evaluate(root: Path, args) -> tuple[dict, int]:
     series = json.loads((root / "series.json").read_text())
     spec = json.loads(Path(args.spec).read_text())
@@ -224,6 +258,10 @@ def evaluate(root: Path, args) -> tuple[dict, int]:
     disp = tuple(float(x) for x in args.displacement.split(",")) if args.displacement else None
     disp = (int(disp[0]), int(disp[1]), disp[2]) if disp else None
     report["pair_checks"] = displacement_checks(reps, disp) + ratio_checks(reps, frames, args.ncc_pose)
+    if series.get("capture") == "hand-held sweep":
+        report["pair_checks"] += clock_checks(series)
+        report["hand_held_note"] = ("one camera at a time while moving: no pose is shared by both cameras, so the "
+                                    "pair, the known displacement and the NCC ratio are recorded as not captured")
     if {"0", "2"} <= set(reps):
         report["stereo"] = stereo_report(views, {c: r["_cal"] for c, r in reps.items()})
     if "0" in reps:

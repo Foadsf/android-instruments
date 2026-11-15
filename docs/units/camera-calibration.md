@@ -161,6 +161,67 @@ Run 1 showed that the inked sheet is not flat (a warp of up to 1.4 mm). Foad cho
 - **Thresholds:** unchanged. Straightness stays judged by the RMS (≤ 0.15 px), although the screen has no streaks: the threshold was set before this run and stays.
 - **Expected risks, checked on the first capture:** moiré between the screen's pixel grid and the camera's pixels (camera 0 sees about 0.25 to 0.5 mm per pixel at 30 to 60 cm, against the 0.364 mm pitch), and refresh banding. The monitor runs at full brightness to avoid PWM flicker.
 
+## Amendment: hand-held capture (2026-11-15, before run 2)
+
+Foad cannot hold the phone still and has to hold it in his hand, so the capture must work with tremor and involuntary movement. The still-pose series (wait for stillness, then a 4-frame burst per camera) cannot: run `124500-55c8` never saw a still phone. The capture changes; the thresholds do not.
+
+- **Capture (run mode `sweep`, `SweepMode.kt`):**
+  - One camera at a time (camera 0, then camera 2), each streaming to the phone screen for aiming. Foad moves the phone slowly around the screen target, holding it with both hands.
+  - **Frame gate (`core/FrameGate.kt`):** a frame is kept only if the gyroscope stayed below the camera's limit over the whole time the sensor saw it. The limit is 0.04 rad/s for camera 0 and 0.02 rad/s for camera 2 (see the evidence and the mechanics run below; the first draft had 0.02 for both). That window runs from the frame's sensor timestamp minus 5 ms to plus the exposure, the rolling-shutter skew and 5 ms (both from the capture result).
+  - Camera 2's bridge reports neither exposure nor skew, and stamps the frame at delivery, so its window is the 150 ms before the stamp (mechanics run below).
+  - A window with fewer than 4 gyroscope samples is refused. The gyroscope runs at `SENSOR_DELAY_FASTEST`, which needs the `HIGH_SAMPLING_RATE_SENSORS` permission.
+  - Kept frames are at least 0.6 s apart, 30 per camera, within 300 s per camera. A short beep marks each kept frame; a long beep marks a camera's start and end.
+  - **Camera 0's exposure** is capped at 8 ms: if AE chose longer, manual exposure with the ISO raised to keep exposure × ISO. This roughly halves the motion blur at the gate (AE chose 20 ms on the screen, run `131410-901d`) and covers translation, which the gyroscope cannot see. What was set is recorded.
+  - **Each kept frame is one view.** There is no burst averaging: frames of a moving phone cannot be averaged without registering them, and registration would move the corners.
+  - **Recorded per frame:** the luma plane, timestamp, exposure, ISO, skew, focus, the gate window, the gyroscope maximum and mean, and the accelerometer mean (±50 ms).
+  - **Recorded per camera:** rejections by reason, every candidate frame's gyroscope maximum (Foad's tremor), the exposure cap, and the arrival lag. The raw IMU stream goes to `imu.csv`.
+  - **Command:** `run_live.py --cameras 0,2 --sweep 30 --gate 0:0.04,2:0.02 --max-exposure-us 8000 --focus 2.5`.
+- **Distances:** camera 0 at 35 to 50 cm (focus 2.5 D; depth of field about 35 to 47 cm), camera 2 at 45 to 65 cm (whole board in view, beyond its near limit of about 40 cm). Tilts up to about 25° each way, and a few frames with the phone on its side.
+- **Host:**
+  - A sweep series uses the same layout as the still series, one "pose" per kept frame with one camera each, so `calibrate.py` reads it unchanged.
+  - **Near-duplicates are dropped:** a kept frame whose shared corners all lie within 30 px of an earlier kept view's adds nothing new, and would flatter the held-out and halves checks. The largest shift is used, not the median: a 20° turn about the board centre moves the median corner less than 30 px but the board's edge by 50 px (seen in the test).
+- **Clock check (judged):** the gate compares frame and gyroscope timestamps. All three cameras report timestamp source REALTIME (`dumpsys media.camera`, 2026-11-15), but camera 2 passes through the bridge. Each camera's median arrival lag (arrival time minus sensor timestamp) must therefore lie between 0 and 1000 ms, or the gate is unproven and the run fails.
+- **What hand-held capture cannot measure:**
+  - **The pair** (`stereoCalibrate`) needs both cameras at one instant, and the bridge gives one stream at a time.
+  - **The known 100 mm displacement** needs two still poses.
+  - **The NCC ratio** needs one scene seen from one place by both cameras.
+  - All three are recorded as "not captured", not judged. The focal length therefore has no outside check in a hand-held run. `imu.csv` is kept so that a gyroscope-against-vision rotation check can be added (`motion_prior`).
+- **Synthetic evidence** (`render_moving`: per-row poses for the rolling shutter and the exposure averaged over instants for blur; the rotation is at 0.3 to 1 × the gate in a random direction, about a pivot up to 400 mm away, so the camera also translates; 20 random hand-held views per run):
+
+| Camera, exposure, readout | Gate (rad/s) | Seeds | Focal | Centre (px) | k1 | Held-out (px) | Straightness (px) |
+|---|---|---|---|---|---|---|---|
+| 0, 20 ms, 25 ms | 0.02 | 3 | ≤ 0.08 % | ≤ 0.56 | ≤ 0.0021 | ≤ 0.08 | ≤ 0.043 |
+| 0, 8 ms, 25 ms | 0.02 | 1 | 0.04 % | 0.08 | 0.0022 | 0.10 | 0.048 |
+| 0, 8 ms, 32 ms (as run) | 0.04 | 2 | ≤ 0.11 % | ≤ 0.57 | ≤ 0.0019 | ≤ 0.09 | ≤ 0.047 |
+| 0, 8 ms, 32 ms (as run) | 0.06 | 2 | ≤ 0.17 % | ≤ 0.98 | ≤ 0.0025 | ≤ 0.11 | ≤ 0.045 |
+| 2, 20 ms, 33 ms | 0.04 | 2 | ≤ 0.33 % (fail) | ≤ 6.25 (fail) | ≤ 0.0165 (fail) | ≤ 0.07 | ≤ 0.032 |
+| 2, 40 ms, 33 ms | 0.04 | 1 | 0.08 % | 1.52 | 0.0022 | 0.09 | 0.030 |
+| 2, 33 to 40 ms, 25 to 33 ms | 0.02 | 3 | ≤ 0.03 % | ≤ 1.17 | ≤ 0.0072 | ≤ 0.08 | ≤ 0.032 |
+| 0, 20 ms, 25 ms | 0.05 | 1 | 0.44 % (fail) | 1.86 | 0.0045 | 0.08 | 0.226 (fail) |
+| 2, 33 ms, 25 ms | 0.05 | 1 | 0.11 % | 3.34 (fail) | 0.0059 | 0.07 | 0.026 |
+| 2, 40 ms, 33 ms (negative control) | 0.2 | 1 | 0.02 % | 6.24 (fail) | 0.035 (fail) | 0.95 (fail) | 0.268 (fail) |
+
+- **Tests:**
+  - `HandHeld` in `test_calibrate.py`: camera 2 at 0.02 rad/s and camera 0 at 0.04 rad/s (8 ms, 32 ms) meet every synthetic threshold, and free-hand motion (0.2 rad/s) fails straightness;
+  - **Why the limits differ:** camera 0 passes at 0.04 and at 0.06 rad/s with its 8 ms exposure. Camera 2 fails at 0.04 in two of three seeds: its focal length is nearly twice camera 0's, so the same turn smears and shears its image twice as far. Which of blur and rolling shutter matters more is not separated: the passing camera 2 seed had the longer exposure, so seed-to-seed variation is at least as large as the exposure effect. Camera 0 keeps a margin at 0.04 rather than 0.06;
+  - `FrameGateTest`: a jerk inside the readout rejects, a jerk outside does not, too few gyroscope samples cannot pass as calm (negative control), and the gap is enforced;
+  - the near-duplicate and clock checks in `SeriesCli`.
+- **Mechanics run `153949-0113` (5 frames per camera, phone in Foad's hand; he had not been told a run was going, so it includes handling):**
+  - 10 of 10 frames were written in the series layout.
+  - Camera 0's exposure was capped as designed: AE chose 20 ms at ISO 50; the run used 8 ms at ISO 124. Camera 0 reports a rolling-shutter skew of 32.0 ms.
+  - The gyroscope gave 24 to 25 samples per camera 0 window (about 500 Hz).
+  - Arrival lag: camera 0 median 155 ms (133 to 187), camera 2 median 21 ms (11 to 35). Both are positive, so the frames and the gyroscope share one clock.
+  - **Camera 2's stamp is the delivery time, not the exposure start.** A 21 ms lag is shorter than an exposure plus a readout. The bridge stamps each frame with `CLOCK_BOOTTIME` when HAL1's data callback fires (`bridge_tele.c`), after exposure, readout and the ISP. Camera 2's gate window is therefore the 150 ms before the stamp. That covers the exposure if HAL1's delivery delay is under about 100 ms, which is not measured.
+  - **Foad's tremor:**
+
+    | Camera | Median rate (rad/s) | Under 0.02 | Under 0.03 | Under 0.04 | Under 0.05 |
+    |---|---|---|---|---|---|
+    | 0 | 0.066 | 0.3 % | 2.7 % | 9.7 % | 19 % |
+    | 2 | 0.055 | 0.6 % | 4.9 % | 20 % | 31 % |
+
+    The medians are over the calm phases (rate below 0.15 rad/s); the fractions are of all candidates. With 0.3 % of frames under 0.02 rad/s, camera 0 took 138 s for 5 frames: the first gate is unusable for this hand.
+  - Every frame is now a candidate (8 slots), where the mechanics run evaluated about 14 per second.
+
 ## Not in this unit
 
 - Focus-dependent calibration: a table over focus distances for focus stacking (Stage 3.6).

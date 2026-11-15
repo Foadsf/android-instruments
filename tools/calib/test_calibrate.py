@@ -158,6 +158,76 @@ class StreakedPrint(unittest.TestCase):
         self.assertGreater(cc.straightness(views, [v["ids"] for v in views], cal["K"], cal["dist"], 10), 0.15)
 
 
+def hand_held_views(cam, n, gate, exposure_s, readout_s, seed, steps=3):
+    """n views from a hand-held camera: random tilts within 25 deg, some on its side, and in each
+    frame a rotation rate of 0.3 to 1 x `gate` (rad/s) in a random direction, about a pivot up to
+    400 mm away (the wrist or elbow), so the camera also translates. Distances keep the 200 mm
+    board's size in view as the 255 mm screen board at 40 to 60 cm (camera 0) or 70 to 90 cm (2)."""
+    import numpy as np
+    import calib_core as cc
+    import make_target as mt
+    import synth_camera as sc
+    b = mt.default_spec()["board"]
+    bmp, board = mt.board_bitmap(b), mt.board_object(b)
+    rng = np.random.default_rng(seed)
+    far = (560, 700) if cam["fx"] > 1500 else (320, 470)
+    out = []
+    for i in range(n):
+        rx, ry = rng.uniform(-25, 25, 2)
+        rz = rng.choice([0, 0, 0, 90]) + rng.uniform(-8, 8)
+        r, t = sc.pose(rx, ry, rz, rng.uniform(*far), centre_mm=(100, 80), offset_mm=tuple(rng.uniform(-15, 15, 2)))
+        d, lever = rng.normal(size=3), rng.normal(size=3)
+        om = d / np.linalg.norm(d) * gate * rng.uniform(0.3, 1.0)
+        vel = np.cross(om, lever / np.linalg.norm(lever) * rng.uniform(0, 400))
+        img = sc.render_moving(bmp, mt.PX_PER_MM, cam, r, t, rng, om, vel, exposure_s, readout_s, steps=steps)
+        c, ids = cc.detect_corners(img, board)
+        if ids is not None and len(ids) >= cc.MIN_CORNERS:
+            out.append({"pose": i, "obj": cc.object_points(board, ids), "img": c, "ids": ids, "size": cam["size"]})
+    return out
+
+
+def contract_errors(views, cam) -> dict:
+    """The synthetic thresholds' quantities: focal and centre error, k1 error, held-out RMS, straightness."""
+    import calib_core as cc
+    train, ev = cc.split_views(len(views))
+    cal = cc.calibrate([views[i] for i in train], cam["size"])
+    k, d = cal["K"], cal["dist"]
+    full = cc.calibrate(views, cam["size"])
+    return {"fx_rel": abs(k[0, 0] / cam["fx"] - 1), "c_px": max(abs(k[0, 2] - cam["cx"]), abs(k[1, 2] - cam["cy"])),
+            "k1": abs(d[0] - cam["k"][0]), "held": cc.reprojection_rms([views[i] for i in ev], k, d),
+            "straight": cc.straightness(views, [v["ids"] for v in views], full["K"], full["dist"], 10)}
+
+
+@unittest.skipUnless(HAS_ALL, "needs numpy and cv2")
+class HandHeld(unittest.TestCase):
+    """Hand-held amendment: frames kept only when the gyro stayed under the camera's limit over the
+    exposure and readout: 0.04 rad/s for camera 0, 0.02 for camera 2. Camera 2 is the hard case
+    (longest focal length; its bridge reports no exposure: 40 ms exposure and 33 ms readout assumed)."""
+
+    def test_camera_2_within_the_gyro_gate_meets_the_contract(self):
+        e = contract_errors(hand_held_views(TELE, 16, 0.02, 0.040, 0.033, seed=61), TELE)
+        self.assertLess(e["fx_rel"], 0.003, e)
+        self.assertLess(e["c_px"], 2.0, e)
+        self.assertLess(e["k1"], 0.01, e)
+        self.assertLess(e["held"], 0.8, e)
+        self.assertLess(e["straight"], 0.15, e)
+
+    def test_camera_0_within_its_looser_gate_meets_the_contract(self):
+        # Camera 0 as run: 8 ms exposure cap, 32 ms skew (153949-0113), gate 0.04 rad/s.
+        e = contract_errors(hand_held_views(WIDE, 16, 0.04, 0.008, 0.032, seed=62), WIDE)
+        self.assertLess(e["fx_rel"], 0.003, e)
+        self.assertLess(e["c_px"], 2.0, e)
+        self.assertLess(e["k1"], 0.01, e)
+        self.assertLess(e["held"], 0.5, e)
+        self.assertLess(e["straight"], 0.15, e)
+
+    def test_free_hand_motion_fails_the_contract(self):
+        # Negative control: 0.2 rad/s, an arm moving freely, must not pass as a calibration.
+        e = contract_errors(hand_held_views(TELE, 16, 0.2, 0.040, 0.033, seed=61), TELE)
+        self.assertTrue(e["c_px"] > 2.0 or e["k1"] > 0.01 or e["held"] > 0.8 or e["straight"] > 0.15, e)
+        self.assertGreater(e["straight"], 0.15, e)
+
+
 def cc_k(cam):
     import numpy as np
     return np.array([[cam["fx"], 0, cam["cx"]], [0, cam["fy"], cam["cy"]], [0, 0, 1.0]])
@@ -170,10 +240,13 @@ def cc_d(cam):
 
 @unittest.skipUnless(HAS_ALL, "needs numpy and cv2")
 class SeriesCli(unittest.TestCase):
-    def write_series(self, root: Path, n_poses: int, moved=()):
+    def write_series(self, root: Path, n_poses: int, moved=(), repeat=()):
+        """repeat: poses whose image is the previous pose's again (a hand-held sweep's near-duplicate)."""
         import numpy as np
         import synth_camera as sc
         _, imgs = views_for(WIDE, sc.POSES[:n_poses], seed=31)
+        for i in repeat:
+            imgs[i] = imgs[i - 1]
         poses = []
         for i, img in enumerate(imgs):
             d = root / f"pose_{i:02d}" / "cam0"
@@ -217,6 +290,30 @@ class SeriesCli(unittest.TestCase):
             reasons = [x for x in json.loads(out.read_text())["dropped"] if x["pose"] == 4]
             self.assertEqual(len(reasons), 1)
             self.assertIn("focus 3.2", reasons[0]["reason"])
+
+    def test_a_hand_held_camera_on_another_clock_fails(self):
+        import calibrate
+        ok = calibrate.clock_checks({"per_camera": {"0": {"arrival_lag_ms": {"median": 42.0}}}})
+        self.assertTrue(ok[0]["ok"])
+        for lag in (-3.0, 5000.0, None):  # negative control: a frame "before" its exposure, or far off
+            bad = calibrate.clock_checks({"per_camera": {"2": {"arrival_lag_ms": {"median": lag}}}})
+            self.assertFalse(bad[0]["ok"], lag)
+
+    def test_a_hand_held_near_duplicate_is_dropped_and_named(self):
+        import calibrate
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "s"
+            self.write_series(root, 10, repeat=(5,))
+            s = json.loads((root / "series.json").read_text())
+            out = Path(d) / "r.json"
+            calibrate.main([str(root), "--out", str(out)])  # a still series keeps it (distinct poses by design)
+            self.assertFalse([x for x in json.loads(out.read_text())["dropped"] if x["pose"] == 5])
+            s["capture"] = "hand-held sweep"
+            (root / "series.json").write_text(json.dumps(s))
+            calibrate.main([str(root), "--out", str(out)])
+            dropped = [x for x in json.loads(out.read_text())["dropped"] if x["pose"] == 5]
+            self.assertEqual(len(dropped), 1)
+            self.assertIn("near-duplicate of pose 4", dropped[0]["reason"])
 
 
 if __name__ == "__main__":

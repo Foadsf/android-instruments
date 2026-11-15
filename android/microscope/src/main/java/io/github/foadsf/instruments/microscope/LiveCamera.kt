@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /** What the capture result reported for one frame, matched to the image by sensor timestamp. */
 data class FrameMeta(val focusDiopters: Float?, val afMode: Int?, val afState: Int?, val exposureNs: Long?,
-                     val frameDurationNs: Long?, val oisMode: Int? = null)
+                     val frameDurationNs: Long?, val oisMode: Int? = null, val skewNs: Long? = null, val iso: Int? = null)
 
 /**
  * One camera, one YUV_420_888 stream (the camera 2 bridge accepts exactly one). Every frame is
@@ -79,6 +79,23 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
     /** Manual focus in diopters for every request (AF off), set before [open]; null = the camera's AF.
      *  The bridged camera 2 ignores it; the reported focus per frame shows what each camera did. */
     @Volatile var focusDiopters: Float? = null
+
+    /** Manual exposure (ns) and ISO for every request, AE off; null = the camera's AE. Set with
+     *  [setManualExposure], which re-issues the request at once. The bridged camera 2 ignores it. */
+    @Volatile var manualExposure: Pair<Long, Int>? = null
+        private set
+
+    fun setManualExposure(exposure: Pair<Long, Int>?) {
+        manualExposure = exposure
+        val dev = device ?: return
+        val ir = reader ?: return
+        session?.setRepeatingRequest(request(dev, ir), resultCallback, camHandler)
+    }
+
+    /** The open camera's ISO range, or null if it does not report one. */
+    fun isoRange(): IntRange? = openId?.let { id ->
+        manager.getCameraCharacteristics(id).get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)?.let { it.lower..it.upper }
+    }
 
     /** FLASH_MODE_TORCH in the repeating request of the open camera (re-issued at once). */
     @Volatile var flashTorch = false
@@ -150,6 +167,7 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
         openId = null
         size = null
         flashTorch = false
+        manualExposure = null
         meta.clear()
         failures.set(0)
     }
@@ -189,6 +207,12 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
                 set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
                 set(CaptureRequest.LENS_FOCUS_DISTANCE, it)
             }
+            manualExposure?.let { (ns, iso) ->
+                set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+                set(CaptureRequest.SENSOR_EXPOSURE_TIME, ns)
+                set(CaptureRequest.SENSOR_SENSITIVITY, iso)
+                set(CaptureRequest.SENSOR_FRAME_DURATION, FRAME_NS)
+            }
             if (flashTorch) {
                 set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
                 set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH)
@@ -200,7 +224,8 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
             val ts = r.get(CaptureResult.SENSOR_TIMESTAMP) ?: return
             meta[ts] = FrameMeta(r.get(CaptureResult.LENS_FOCUS_DISTANCE), r.get(CaptureResult.CONTROL_AF_MODE),
                 r.get(CaptureResult.CONTROL_AF_STATE), r.get(CaptureResult.SENSOR_EXPOSURE_TIME),
-                r.get(CaptureResult.SENSOR_FRAME_DURATION), r.get(CaptureResult.LENS_OPTICAL_STABILIZATION_MODE))
+                r.get(CaptureResult.SENSOR_FRAME_DURATION), r.get(CaptureResult.LENS_OPTICAL_STABILIZATION_MODE),
+                r.get(CaptureResult.SENSOR_ROLLING_SHUTTER_SKEW), r.get(CaptureResult.SENSOR_SENSITIVITY))
             if (meta.size > META_KEEP) meta.keys.sorted().take(meta.size - META_KEEP).forEach(meta::remove)
         }
 
@@ -261,5 +286,6 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
         const val TIMEOUT_S = 5L
         const val OPEN_ATTEMPTS = 3
         const val RETRY_MS = 1000L
+        const val FRAME_NS = 33_333_333L
     }
 }

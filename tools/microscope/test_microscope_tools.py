@@ -125,6 +125,27 @@ class StartArgs(unittest.TestCase):
         b = run_live.start_args("r1", "0,2", 800, 4, series=3)
         self.assertNotIn("focus_diopters", b)
 
+    def test_sweep_extras_are_passed_only_for_a_sweep(self):
+        import run_live
+        a = run_live.start_args("r1", "0,2", 800, 4, ois="off", focus=2.0,
+                                sweep=30, gate="0:0.04,2:0.02", max_exposure_us=8000)
+        self.assertEqual(a[a.index("sweep") - 1: a.index("sweep") + 2], ["--ei", "sweep", "30"])
+        self.assertEqual(a[a.index("gate_rad_s") - 1: a.index("gate_rad_s") + 2],
+                         ["--es", "gate_rad_s", "0:0.04,2:0.02"])
+        self.assertEqual(a[a.index("max_exposure_us") - 1: a.index("max_exposure_us") + 2],
+                         ["--el", "max_exposure_us", "8000"])
+        self.assertEqual(a[a.index("focus_diopters") + 1], "2.0")
+        self.assertNotIn("series", a)
+        b = run_live.start_args("r1", "0,2", 800, 4, series=3)
+        self.assertNotIn("sweep", b)
+
+    def test_gates_parse_per_camera_and_refuse_nonsense(self):
+        import run_live
+        self.assertEqual(run_live.parse_gates("0:0.04,2:0.02"), {"0": 0.04, "2": 0.02})
+        for bad in ("0.04", "0:", "0:-1", "0:0.04,0:0.02", "0:abc"):
+            with self.assertRaises(ValueError, msg=bad):
+                run_live.parse_gates(bad)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -102,6 +102,49 @@ def render(board_black: np.ndarray, px_per_mm: float, cam: dict, r: np.ndarray, 
     return np.clip(np.round(img), 0, 255).astype(np.uint8)
 
 
+def rodrigues(w: np.ndarray) -> np.ndarray:
+    """Rotation matrices for rotation vectors w (... x 3), written out (no OpenCV)."""
+    th = np.linalg.norm(w, axis=-1)[..., None, None]
+    k = w / np.where(th[..., 0] > 0, th[..., 0], 1.0)
+    kx = np.zeros(w.shape[:-1] + (3, 3))
+    kx[..., 0, 1], kx[..., 0, 2], kx[..., 1, 2] = -k[..., 2], k[..., 1], -k[..., 0]
+    kx = kx - np.swapaxes(kx, -1, -2)
+    return np.eye(3) + np.sin(th) * kx + (1 - np.cos(th)) * kx @ kx
+
+
+def render_moving(board_black: np.ndarray, px_per_mm: float, cam: dict, r: np.ndarray, t: np.ndarray,
+                  rng: np.random.Generator, omega=(0.0, 0.0, 0.0), vel_mm_s=(0.0, 0.0, 0.0), exposure_s: float = 0.0,
+                  readout_s: float = 0.0, steps: int = 5, noise: float = 2.0, blur_px: float = 0.8, supersample: int = 2):
+    """A frame from a hand-held camera: rotating at `omega` (rad/s, camera axes) and moving at
+    `vel_mm_s` while it exposes. Motion blur: the exposure is averaged over `steps` instants.
+    Rolling shutter: row v is exposed `readout_s` x (v / h - 0.5) later than the middle row. (r, t)
+    is the pose at the middle of the frame; each row's pose comes from its own homography."""
+    import cv2  # only for the optical blur, never for the projection
+    w, h = cam["size"]
+    paper = np.where(board_black, 25.0, 235.0) if board_black.dtype == bool else board_black.astype(float)
+    row_t = readout_s * ((np.arange(h) + 0.5) / h - 0.5)
+    taus = [0.0] if steps < 2 or exposure_s <= 0 else list(np.linspace(-exposure_s / 2, exposure_s / 2, steps))
+    acc = np.zeros((h, w))
+    for tau in taus:
+        tt = row_t + tau
+        rm = rodrigues(np.outer(tt, omega))                       # h x 3 x 3
+        rr = rm @ r
+        tr = (rm @ t) + np.outer(tt, vel_mm_s)
+        hinv = np.linalg.inv(np.stack([rr[:, :, 0], rr[:, :, 1], tr], axis=-1))[:, None]  # h x 1 x 3 x 3
+        for x, y in rays(cam, supersample):
+            wx = hinv[..., 0, 0] * x + hinv[..., 0, 1] * y + hinv[..., 0, 2]
+            wy = hinv[..., 1, 0] * x + hinv[..., 1, 1] * y + hinv[..., 1, 2]
+            ww = hinv[..., 2, 0] * x + hinv[..., 2, 1] * y + hinv[..., 2, 2]
+            visible = ww > 0
+            bx, by = wx / np.where(visible, ww, 1) * px_per_mm - 0.5, wy / np.where(visible, ww, 1) * px_per_mm - 0.5
+            acc += np.where(visible, sample_bilinear(paper, bx, by, 225.0), 225.0)
+    img = acc / (supersample ** 2 * len(taus))
+    if blur_px > 0:
+        img = cv2.GaussianBlur(img, (0, 0), blur_px)
+    img = img + rng.normal(0, noise, img.shape)
+    return np.clip(np.round(img), 0, 255).astype(np.uint8)
+
+
 def streaked(board_black: np.ndarray, px_per_mm: float, rng: np.random.Generator, per_mm: float = 0.6,
              lift=(0.3, 0.6), width_mm=(0.15, 0.4)) -> np.ndarray:
     """Paper luma with inkjet nozzle streaks: lines of constant board x, brighter than the black by

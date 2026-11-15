@@ -8,6 +8,9 @@ import android.hardware.SensorManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
+import io.github.foadsf.instruments.microscope.core.FrameGate
+import java.io.BufferedWriter
+import java.io.File
 import kotlin.math.sqrt
 
 /**
@@ -26,27 +29,47 @@ class SensorRecorder(context: Context) : SensorEventListener {
 
     val hasGyro: Boolean get() = manager.getDefaultSensor(Sensor.TYPE_GYROSCOPE) != null
 
-    fun start() {
+    /** [fastest]: SENSOR_DELAY_FASTEST (hundreds of Hz, for the hand-held frame gate); else GAME. */
+    fun start(fastest: Boolean = false) {
         val h = Handler(thread.looper)
+        val delay = if (fastest) SensorManager.SENSOR_DELAY_FASTEST else SensorManager.SENSOR_DELAY_GAME
         for (type in intArrayOf(Sensor.TYPE_ACCELEROMETER, Sensor.TYPE_GYROSCOPE)) {
-            manager.getDefaultSensor(type)?.let { manager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME, h) }
+            manager.getDefaultSensor(type)?.let { manager.registerListener(this, it, delay, h) }
         }
     }
 
     fun stop() {
         manager.unregisterListener(this)
         thread.quitSafely()
+        stopLog()
     }
 
     fun now(): Long = SystemClock.elapsedRealtimeNanos()
+
+    private var log: BufferedWriter? = null
+
+    /** Appends every later sample to [file] as CSV (type, ts_ns, x, y, z), raw, for later analysis. */
+    fun startLog(file: File) = synchronized(samples) {
+        log = file.bufferedWriter().apply { write("type,ts_ns,x,y,z\n") }
+    }
+
+    fun stopLog() = synchronized(samples) {
+        runCatching { log?.close() }
+        log = null
+    }
 
     override fun onSensorChanged(e: SensorEvent) {
         val s = Sample(e.sensor.type, e.timestamp, e.values[0], e.values[1], e.values[2])
         synchronized(samples) {
             samples.addLast(s)
             while (samples.isNotEmpty() && s.tsNs - samples.first().tsNs > KEEP_NS) samples.removeFirst()
+            log?.let { w -> runCatching { w.write("${if (s.type == Sensor.TYPE_GYROSCOPE) "g" else "a"},${s.tsNs},${s.x},${s.y},${s.z}\n") } }
         }
     }
+
+    /** Gyroscope rates in the window, for the frame gate. */
+    fun gyroRates(fromNs: Long, toNs: Long): List<FrameGate.Rate> =
+        window(Sensor.TYPE_GYROSCOPE, fromNs, toNs).map { FrameGate.Rate(it.tsNs, it.norm) }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
