@@ -145,4 +145,33 @@ Tests: `test_calibrate.py` gains three streaked-print tests:
 
 ## Device evidence
 
-None yet. Exploratory first look (run `222032-95ad`, not evidence): accelerometer tilt 12.9° and roll 1.2°; board tilt about 11° on both cameras; distances 274 mm and 250 mm with nominal focal lengths; sheet level to 0.2°.
+**Run 1 (`124641-dbc4`, 2026-11-15): fail.**
+- **Capture:** 15 poses, 14 still. Pose 7 moved and was dropped. Foad set the phone down on the table at each pose. The earlier attempt `124500-55c8` ended at pose 1 ("never still"), because the phone was held in a hand.
+- **Results:** `results/sm-n950f/microscope_series_20261115_124641-dbc4.json`, `camera_calibration_20261115_124641-dbc4.json`.
+
+| Check | Camera 0 | Camera 2 |
+|---|---|---|
+| held-out RMS | 0.78 px (limit 0.5) | 5.0 px (limit 0.8) |
+| halves: fx | 1.0 % (limit 0.5 %) | 4.7 % |
+| halves: centre | 13 px (limit 3) | 46 px |
+| straightness RMS | 0.26 px (limit 0.15) | 1.96 px |
+| corner fraction | 1.00 (pass) | 1.00 |
+
+- **Other results:**
+  - fx2 / fx0 = 1.861 against NCC 1.843 (1.0 %, limit 1 %): fail by a hair.
+  - The pair translation of 11.4 mm and rotation of 0.46° are inside the sanity bounds (recorded).
+  - The IMU residual is 0.22° after a fitted 14.8° rotation (recorded).
+
+Diagnosis (scratch scripts on the same views; exploratory, not evidence):
+- **Camera 2 is out of focus closer than about 40 cm.**
+  - Its Laplacian sharpness is 10 to 13 at 20 to 32 cm, against 17 to 19 at 37 to 42 cm, and the crops are visibly blurred.
+  - Its per-view RMS is 0.75 to 1.1 px at 37 to 42 cm and 2 to 6.8 px nearer.
+  - The telephoto's near focus limit is beyond the close poses, so camera 2 needs poses at 40 cm or more.
+- **Camera 0's residual is a fixed pattern on the paper, not lens-model error.**
+  - The residual RMS is 0.44 px at the image centre, the same as further out.
+  - Half its variance repeats at the same corner in every view, and the per-corner pattern correlates 0.91 between two halves of the views.
+  - `cv2.calibrateCameraRO`, which refines the board points, brings the fit from 0.50 to 0.23 px. That is the synthetic streak floor (0.21 px).
+  - Its refined board is a smooth warp of up to 1.4 mm out of plane, so the inked sheet is not flat even when taped at four corners. It also moved the in-plane points by 1.1 mm RMS, which the weak pose geometry (next point) makes unreliable.
+- **The poses have little angle diversity.** Every view has a 14.5 to 17° tilt except two (24°, 31°): the phone rested on the table at one attitude, and only the distance changed. That leaves the focal length weakly separated from distance, which matches the halves disagreeing.
+
+Not yet captured: the known 100 mm displacement. Exploratory first look (run `222032-95ad`, not evidence): accelerometer tilt 12.9° and roll 1.2°; board tilt about 11° on both cameras; distances 274 mm and 250 mm with nominal focal lengths; sheet level to 0.2°.

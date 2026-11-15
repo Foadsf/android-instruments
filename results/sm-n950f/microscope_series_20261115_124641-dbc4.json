@@ -1,0 +1,589 @@
+{
+  "unit": "camera_calibration_series",
+  "run_id": "124641-dbc4",
+  "model": "SM-N950F",
+  "cameras": [
+    "0",
+    "2"
+  ],
+  "poses_requested": 15,
+  "still_ms": 1000,
+  "still_rad_s": 0.01,
+  "moved_rad_s": 0.02,
+  "focus_diopters": 3.5,
+  "ois": "off",
+  "gyroscope": true,
+  "end": "completed",
+  "poses": [
+    {
+      "index": 0,
+      "dir": "pose_00",
+      "status": "ok",
+      "gyro_max_rad_s": 0.001864140150923696,
+      "accel_mean": [
+        9.695516508452746,
+        -0.13374303849984187,
+        2.9699925228041044
+      ],
+      "gyro_mean": [
+        -2.8797933227164027E-4,
+        -2.1193284257457648E-4,
+        -3.0231595829922746E-4
+      ],
+      "accel_samples": 245,
+      "capture_s": 4.890562651,
+      "bursts": {
+        "0": "pose_00\/cam0",
+        "2": "pose_00\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 1,
+      "dir": "pose_01",
+      "status": "ok",
+      "gyro_max_rad_s": 0.006625582837745694,
+      "accel_mean": [
+        9.702707463362085,
+        -0.05861081144823803,
+        2.922179749631506
+      ],
+      "gyro_mean": [
+        -2.008159271364401E-4,
+        -1.5271631402685856E-4,
+        3.066352231924855E-5
+      ],
+      "accel_samples": 254,
+      "capture_s": 5.074924958,
+      "bursts": {
+        "0": "pose_01\/cam0",
+        "2": "pose_01\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 2,
+      "dir": "pose_02",
+      "status": "ok",
+      "gyro_max_rad_s": 0.010423097830882019,
+      "accel_mean": [
+        9.714668175530813,
+        -0.01977116556742066,
+        2.8894119688442776
+      ],
+      "gyro_mean": [
+        -1.43058357215965E-4,
+        -2.6740444966282683E-4,
+        2.0432598488437557E-4
+      ],
+      "accel_samples": 253,
+      "capture_s": 5.048557342,
+      "bursts": {
+        "0": "pose_02\/cam0",
+        "2": "pose_02\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 3,
+      "dir": "pose_03",
+      "status": "ok",
+      "gyro_max_rad_s": 0.014633896683789463,
+      "accel_mean": [
+        9.712140903398684,
+        -0.019386512444785828,
+        2.900170147187051
+      ],
+      "gyro_mean": [
+        -1.1706269452174408E-4,
+        -3.915955112673567E-4,
+        2.1184189706576032E-4
+      ],
+      "accel_samples": 257,
+      "capture_s": 5.143165612,
+      "bursts": {
+        "0": "pose_03\/cam0",
+        "2": "pose_03\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 4,
+      "dir": "pose_04",
+      "status": "ok",
+      "gyro_max_rad_s": 0.003953700925945745,
+      "accel_mean": [
+        9.704635358992077,
+        -0.04324764315970242,
+        2.923709825863914
+      ],
+      "gyro_mean": [
+        -5.242047284679886E-5,
+        -4.2299994623005787E-4,
+        1.7150284333587883E-4
+      ],
+      "accel_samples": 252,
+      "capture_s": 5.060677843,
+      "bursts": {
+        "0": "pose_04\/cam0",
+        "2": "pose_04\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 5,
+      "dir": "pose_05",
+      "status": "ok",
+      "gyro_max_rad_s": 0.0045853055850724545,
+      "accel_mean": [
+        9.709656133614912,
+        -0.018044330871890526,
+        2.8980748938777734
+      ],
+      "gyro_mean": [
+        -4.097986605101981E-5,
+        -1.786603869552972E-4,
+        4.156948541224535E-5
+      ],
+      "accel_samples": 259,
+      "capture_s": 5.178971112,
+      "bursts": {
+        "0": "pose_05\/cam0",
+        "2": "pose_05\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 6,
+      "dir": "pose_06",
+      "status": "ok",
+      "gyro_max_rad_s": 0.006262299911561271,
+      "accel_mean": [
+        9.717663712181121,
+        -0.021065189506814415,
+        2.8677332241073428
+      ],
+      "gyro_mean": [
+        2.0221321183954377E-5,
+        -3.6519117310105753E-4,
+        8.148884071955612E-6
+      ],
+      "accel_samples": 253,
+      "capture_s": 5.056664843,
+      "bursts": {
+        "0": "pose_06\/cam0",
+        "2": "pose_06\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 7,
+      "dir": "pose_07",
+      "status": "moved",
+      "gyro_max_rad_s": 0.030227609140427467,
+      "accel_mean": [
+        9.703292477633305,
+        -0.06177223823836137,
+        2.916247770704072
+      ],
+      "gyro_mean": [
+        9.683734917200538E-5,
+        -4.405953319898496E-4,
+        1.9601515590853748E-5
+      ],
+      "accel_samples": 261,
+      "capture_s": 5.211878381,
+      "bursts": {
+        "0": "pose_07\/cam0",
+        "2": "pose_07\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 8,
+      "dir": "pose_08",
+      "status": "ok",
+      "gyro_max_rad_s": 0.01319163075264657,
+      "accel_mean": [
+        9.707946015140726,
+        -0.020549460858983997,
+        2.9026506794005287
+      ],
+      "gyro_mean": [
+        -1.7394336194661177E-5,
+        -5.017821645565533E-4,
+        -2.1787134831718216E-4
+      ],
+      "accel_samples": 259,
+      "capture_s": 5.186461535,
+      "bursts": {
+        "0": "pose_08\/cam0",
+        "2": "pose_08\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 9,
+      "dir": "pose_09",
+      "status": "ok",
+      "gyro_max_rad_s": 0.0026340797099277118,
+      "accel_mean": [
+        9.707970131011237,
+        0.013852166934012776,
+        2.8958345046119085
+      ],
+      "gyro_mean": [
+        6.666188179108773E-5,
+        -4.169397588633555E-4,
+        -2.302865343355936E-5
+      ],
+      "accel_samples": 252,
+      "capture_s": 5.045761343,
+      "bursts": {
+        "0": "pose_09\/cam0",
+        "2": "pose_09\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 10,
+      "dir": "pose_10",
+      "status": "ok",
+      "gyro_max_rad_s": 0.004813592866674484,
+      "accel_mean": [
+        9.703857425629623,
+        0.001036858974449982,
+        2.90995425126684
+      ],
+      "gyro_mean": [
+        7.9965625066213E-5,
+        -5.158684731485858E-4,
+        -3.0663522032793527E-5
+      ],
+      "accel_samples": 254,
+      "capture_s": 5.090907804,
+      "bursts": {
+        "0": "pose_10\/cam0",
+        "2": "pose_10\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 11,
+      "dir": "pose_11",
+      "status": "ok",
+      "gyro_max_rad_s": 0.00651778481568043,
+      "accel_mean": [
+        9.700977995991707,
+        -0.019125556495055207,
+        2.914295284077525
+      ],
+      "gyro_mean": [
+        -1.9089544622374888E-5,
+        -4.7485227662491525E-4,
+        -5.24962432848497E-5
+      ],
+      "accel_samples": 256,
+      "capture_s": 5.117546765,
+      "bursts": {
+        "0": "pose_11\/cam0",
+        "2": "pose_11\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 12,
+      "dir": "pose_12",
+      "status": "ok",
+      "gyro_max_rad_s": 0.00807160239944181,
+      "accel_mean": [
+        9.707296653480382,
+        -0.03352813957012639,
+        2.8903604592794574
+      ],
+      "gyro_mean": [
+        7.576391920547004E-5,
+        -6.97028138237672E-4,
+        -6.447363039433362E-5
+      ],
+      "accel_samples": 257,
+      "capture_s": 5.136201535,
+      "bursts": {
+        "0": "pose_12\/cam0",
+        "2": "pose_12\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 13,
+      "dir": "pose_13",
+      "status": "ok",
+      "gyro_max_rad_s": 0.006080909827745895,
+      "accel_mean": [
+        9.698329905833095,
+        -0.022190885897340976,
+        2.9276041294917587
+      ],
+      "gyro_mean": [
+        1.5334736557378172E-4,
+        -7.61057307928308E-4,
+        -1.5965796822358755E-4
+      ],
+      "accel_samples": 242,
+      "capture_s": 4.851639496,
+      "bursts": {
+        "0": "pose_13\/cam0",
+        "2": "pose_13\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 19990000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    },
+    {
+      "index": 14,
+      "dir": "pose_14",
+      "status": "ok",
+      "gyro_max_rad_s": 0.007000839428803071,
+      "accel_mean": [
+        9.716231673955917,
+        -0.03445405872480478,
+        2.857573315501213
+      ],
+      "gyro_mean": [
+        1.1483550557045419E-4,
+        -7.176473459935551E-4,
+        -8.381500992982183E-5
+      ],
+      "accel_samples": 256,
+      "capture_s": 5.129794843,
+      "bursts": {
+        "0": "pose_14\/cam0",
+        "2": "pose_14\/cam2"
+      },
+      "cameras": {
+        "0": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": 30006000,
+          "ois_mode": 0
+        },
+        "2": {
+          "frames": 4,
+          "focus_diopters": 3.5,
+          "af_mode": 0,
+          "exposure_ns": null,
+          "ois_mode": 0
+        }
+      }
+    }
+  ]
+}

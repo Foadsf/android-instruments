@@ -1,0 +1,505 @@
+{
+  "unit": "camera_calibration",
+  "run_id": "124641-dbc4",
+  "series": "124641-dbc4_series",
+  "board_mm_drawn": [
+    200.0,
+    160.0
+  ],
+  "board_mm_measured": [
+    200.0,
+    160.0
+  ],
+  "focus_diopters": 3.5,
+  "dropped": [
+    {
+      "pose": 7,
+      "camera": "all",
+      "reason": "moved"
+    }
+  ],
+  "cameras": {
+    "0": {
+      "views": 14,
+      "train": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6,
+        9,
+        10,
+        11,
+        13,
+        14
+      ],
+      "eval": [
+        3,
+        8,
+        12
+      ],
+      "fx": 1163.3904600113876,
+      "fy": 1165.2246348822632,
+      "cx": 724.1451623831326,
+      "cy": 545.9225239057374,
+      "dist": [
+        0.15611692321106224,
+        -0.36914193777790627,
+        0.0027619141264799427,
+        -0.0016812853521717976,
+        0.0
+      ],
+      "std": {
+        "fx": 2.7829953348532226,
+        "fy": 2.5810499206911817,
+        "cx": 1.2009794522349233,
+        "cy": 1.7824620972706735,
+        "k1": 0.0028742186071155267,
+        "k2": 0.007052792641559188,
+        "p1": 0.0004889451719539806,
+        "p2": 0.00035168743261032776,
+        "k3": 0.0
+      },
+      "fit_rms": 0.4500743361877645,
+      "poses": {
+        "0": {
+          "distance_mm": 327.52,
+          "tilt_deg": 15.48,
+          "mm_per_px": 0.28152,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "1": {
+          "distance_mm": 295.8,
+          "tilt_deg": 17.14,
+          "mm_per_px": 0.25426,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "2": {
+          "distance_mm": 375.05,
+          "tilt_deg": 16.35,
+          "mm_per_px": 0.32238,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "3": {
+          "distance_mm": 408.36,
+          "tilt_deg": 14.43,
+          "mm_per_px": 0.35101,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "4": {
+          "distance_mm": 307.8,
+          "tilt_deg": 17.33,
+          "mm_per_px": 0.26457,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "5": {
+          "distance_mm": 283.9,
+          "tilt_deg": 14.65,
+          "mm_per_px": 0.24403,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "6": {
+          "distance_mm": 263.82,
+          "tilt_deg": 16.31,
+          "mm_per_px": 0.22677,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "8": {
+          "distance_mm": 206.76,
+          "tilt_deg": 15.15,
+          "mm_per_px": 0.17772,
+          "corners": 61,
+          "corner_fraction": 0.968
+        },
+        "9": {
+          "distance_mm": 429.07,
+          "tilt_deg": 14.81,
+          "mm_per_px": 0.36881,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "10": {
+          "distance_mm": 406.45,
+          "tilt_deg": 15.25,
+          "mm_per_px": 0.34937,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "11": {
+          "distance_mm": 257.88,
+          "tilt_deg": 15.01,
+          "mm_per_px": 0.22166,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "12": {
+          "distance_mm": 210.44,
+          "tilt_deg": 15.05,
+          "mm_per_px": 0.18089,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "13": {
+          "distance_mm": 326.51,
+          "tilt_deg": 24.13,
+          "mm_per_px": 0.28065,
+          "corners": 63,
+          "corner_fraction": 1.0
+        },
+        "14": {
+          "distance_mm": 250.34,
+          "tilt_deg": 31.24,
+          "mm_per_px": 0.21518,
+          "corners": 63,
+          "corner_fraction": 1.0
+        }
+      },
+      "checks": [
+        {
+          "check": "held-out reprojection RMS (px)",
+          "ok": false,
+          "judged": true,
+          "value": 0.776,
+          "threshold": 0.5
+        },
+        {
+          "check": "halves agree: fx (relative)",
+          "ok": false,
+          "judged": true,
+          "value": 0.01038,
+          "threshold": 0.005
+        },
+        {
+          "check": "halves agree: cx, cy (px)",
+          "ok": false,
+          "judged": true,
+          "value": 13.16,
+          "threshold": 3.0
+        },
+        {
+          "check": "straightness after undistortion, RMS (px)",
+          "ok": false,
+          "judged": true,
+          "value": 0.262,
+          "threshold": 0.15
+        },
+        {
+          "check": "straightness after undistortion, max (px)",
+          "ok": true,
+          "judged": false,
+          "value": 3.093,
+          "threshold": "recorded"
+        },
+        {
+          "check": "median corner fraction per view",
+          "ok": true,
+          "judged": true,
+          "value": 1.0,
+          "threshold": 0.6
+        },
+        {
+          "check": "image coverage by corners (8 x 6 cells)",
+          "ok": true,
+          "judged": false,
+          "value": 0.708,
+          "threshold": "recorded"
+        }
+      ]
+    },
+    "2": {
+      "views": 14,
+      "train": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        6,
+        9,
+        10,
+        11,
+        13,
+        14
+      ],
+      "eval": [
+        3,
+        8,
+        12
+      ],
+      "fx": 2165.380000648306,
+      "fy": 2176.11505175313,
+      "cx": 716.1159610679265,
+      "cy": 578.9526990289672,
+      "dist": [
+        0.264672316980266,
+        -0.8795990939403644,
+        0.010849447565752677,
+        -0.004470006757967848,
+        0.0
+      ],
+      "std": {
+        "fx": 24.055954083474045,
+        "fy": 22.549618400583203,
+        "cx": 13.103894372325385,
+        "cy": 16.70596199627103,
+        "k1": 0.02495506744358462,
+        "k2": 0.16213582152919212,
+        "p1": 0.0028464053448344173,
+        "p2": 0.0025469568239370522,
+        "k3": 0.0
+      },
+      "fit_rms": 2.540068700748959,
+      "poses": {
+        "0": {
+          "distance_mm": 324.33,
+          "tilt_deg": 16.79,
+          "mm_per_px": 0.14978,
+          "corners": 48,
+          "corner_fraction": 1.0
+        },
+        "1": {
+          "distance_mm": 294.03,
+          "tilt_deg": 17.72,
+          "mm_per_px": 0.13579,
+          "corners": 47,
+          "corner_fraction": 1.0
+        },
+        "2": {
+          "distance_mm": 373.95,
+          "tilt_deg": 16.81,
+          "mm_per_px": 0.17269,
+          "corners": 54,
+          "corner_fraction": 1.0
+        },
+        "3": {
+          "distance_mm": 406.11,
+          "tilt_deg": 15.13,
+          "mm_per_px": 0.18754,
+          "corners": 54,
+          "corner_fraction": 1.0
+        },
+        "4": {
+          "distance_mm": 304.59,
+          "tilt_deg": 18.52,
+          "mm_per_px": 0.14067,
+          "corners": 39,
+          "corner_fraction": 1.0
+        },
+        "5": {
+          "distance_mm": 281.97,
+          "tilt_deg": 15.45,
+          "mm_per_px": 0.13022,
+          "corners": 51,
+          "corner_fraction": 0.944
+        },
+        "6": {
+          "distance_mm": 262.99,
+          "tilt_deg": 16.73,
+          "mm_per_px": 0.12145,
+          "corners": 43,
+          "corner_fraction": 1.0
+        },
+        "8": {
+          "distance_mm": 205.7,
+          "tilt_deg": 16.27,
+          "mm_per_px": 0.095,
+          "corners": 32,
+          "corner_fraction": 0.889
+        },
+        "9": {
+          "distance_mm": 426.3,
+          "tilt_deg": 15.59,
+          "mm_per_px": 0.19687,
+          "corners": 48,
+          "corner_fraction": 0.98
+        },
+        "10": {
+          "distance_mm": 403.88,
+          "tilt_deg": 16.02,
+          "mm_per_px": 0.18652,
+          "corners": 54,
+          "corner_fraction": 1.0
+        },
+        "11": {
+          "distance_mm": 256.11,
+          "tilt_deg": 15.75,
+          "mm_per_px": 0.11827,
+          "corners": 41,
+          "corner_fraction": 0.976
+        },
+        "12": {
+          "distance_mm": 209.7,
+          "tilt_deg": 15.51,
+          "mm_per_px": 0.09684,
+          "corners": 38,
+          "corner_fraction": 0.95
+        },
+        "13": {
+          "distance_mm": 325.58,
+          "tilt_deg": 24.07,
+          "mm_per_px": 0.15036,
+          "corners": 42,
+          "corner_fraction": 1.0
+        },
+        "14": {
+          "distance_mm": 250.67,
+          "tilt_deg": 31.43,
+          "mm_per_px": 0.11576,
+          "corners": 51,
+          "corner_fraction": 0.944
+        }
+      },
+      "checks": [
+        {
+          "check": "held-out reprojection RMS (px)",
+          "ok": false,
+          "judged": true,
+          "value": 5.024,
+          "threshold": 0.8
+        },
+        {
+          "check": "halves agree: fx (relative)",
+          "ok": false,
+          "judged": true,
+          "value": 0.04675,
+          "threshold": 0.005
+        },
+        {
+          "check": "halves agree: cx, cy (px)",
+          "ok": false,
+          "judged": true,
+          "value": 46.25,
+          "threshold": 3.0
+        },
+        {
+          "check": "straightness after undistortion, RMS (px)",
+          "ok": false,
+          "judged": true,
+          "value": 1.959,
+          "threshold": 0.15
+        },
+        {
+          "check": "straightness after undistortion, max (px)",
+          "ok": true,
+          "judged": false,
+          "value": 11.288,
+          "threshold": "recorded"
+        },
+        {
+          "check": "median corner fraction per view",
+          "ok": true,
+          "judged": false,
+          "value": 1.0,
+          "threshold": 0.6
+        },
+        {
+          "check": "image coverage by corners (8 x 6 cells)",
+          "ok": true,
+          "judged": false,
+          "value": 1.0,
+          "threshold": "recorded"
+        }
+      ]
+    }
+  },
+  "pair_checks": [
+    {
+      "check": "known displacement",
+      "ok": true,
+      "judged": false,
+      "value": "not captured",
+      "threshold": "--displacement A,B,MM"
+    },
+    {
+      "check": "fx2/fx0 vs NCC scale on the same undistorted pose (relative)",
+      "ok": false,
+      "judged": true,
+      "value": {
+        "fx_ratio": 1.8613,
+        "ncc_scale": 1.8427,
+        "ncc": 0.97,
+        "pose": 0,
+        "rel": 0.0101
+      },
+      "threshold": 0.01
+    }
+  ],
+  "stereo": {
+    "pairs": 14,
+    "rms": 2.2912219210486517,
+    "R": [
+      [
+        0.9999769289275319,
+        0.00401251582374127,
+        0.005480997119694087
+      ],
+      [
+        -0.003989449102332696,
+        0.9999831674903277,
+        -0.004212959989253335
+      ],
+      [
+        -0.005497809429378741,
+        0.004190996632709043,
+        0.9999761045338548
+      ]
+    ],
+    "T_mm": [
+      0.378909250242518,
+      11.147153053061247,
+      2.2239747756098787
+    ],
+    "checks": [
+      {
+        "check": "pair translation 5-20 mm and rotation < 3 deg (sanity)",
+        "ok": true,
+        "judged": false,
+        "value": {
+          "T_mm": 11.37,
+          "R_deg": 0.458
+        },
+        "threshold": "recorded"
+      }
+    ]
+  },
+  "imu": {
+    "poses": 14,
+    "rotation": [
+      [
+        0.9676716627320419,
+        -0.06984634900775642,
+        0.24234900593089356
+      ],
+      [
+        0.06077095007547738,
+        0.9971488820619845,
+        0.044732523173393164
+      ],
+      [
+        -0.24478244375839006,
+        -0.028558615737129183,
+        0.9691573456848221
+      ]
+    ],
+    "rotation_deg": 14.763,
+    "residual_rms_deg": 0.215,
+    "checks": [
+      {
+        "check": "IMU-to-camera residual after the fitted rotation (deg)",
+        "ok": true,
+        "judged": false,
+        "value": 0.215,
+        "threshold": "recorded"
+      }
+    ]
+  },
+  "verdict": "fail"
+}
