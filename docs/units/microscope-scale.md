@@ -95,4 +95,25 @@ Sensor fusion is one of the keys: the phone's pose is measured over frames, and 
 
 ## Device evidence
 
-None yet.
+### Run 1: `190102-7738` (2026-11-15, hand-held, 20 px screen board): fail
+
+- **Capture:** 3 bursts of 16 frames at about 12, 15.6 and 19.2 cm (board distance). Every frame had continuous AF at PASSIVE_FOCUSED, 63 of 63 corners, exposure 20 ms, and a gyroscope maximum of 0.02 to 0.05 rad/s.
+- **Result:** fail.
+  - 44 of 48 frames were judged, at 3 distances.
+  - The predicted scale is 10 to 19 % larger than the board's: median +15.4 %, maximum +19.0 %.
+  - The app's saved µm per px equals the host's thin-lens computation to 4e-8, so the pipeline is right and the error lies in an input.
+  - Results: `microscope_scale_20261115_190102-7738.json` and `microscope_scale_check_20261115_190102-7738_calibrated.json`.
+- **What fails is the reported focus distance, not the lens model.** The focus at which the model gives the board's scale is the reported focus plus 0.84 D on average (sd 0.08 D over the 44 frames):
+
+  | Reported focus | Frames | Focus that fits the board |
+  |---|---|---|
+  | 4.37 D (22.9 cm) | 16 | 5.17 ± 0.01 D (19.3 cm) |
+  | 5.57 D (18.0 cm) | 16 | 6.38 ± 0.03 D (15.7 cm) |
+  | 7.32 D (13.7 cm) | 7 | 8.31 ± 0.09 D (12.0 cm) |
+  | 7.77 D (12.9 cm) | 4 | 8.59 ± 0.07 D |
+
+  - The straight-line fit is: fitted focus = 1.033 × reported + 0.65 D, with residuals of 0.07 D.
+  - The offset is constant in diopters, not in distance (the distance gaps are 1.7, 2.4 and 3.6 cm). That is the signature of an offset in the lens-position-to-diopter map, not of a different distance reference such as the front of the phone versus the lens.
+- **Hypothesis, not tested:** the same offset applies at the calibration's fixed 2.5 D. The lens would then have been focused near 3.3 D (30 cm) while the board sat at 41 to 52 cm. That fits the defocus suspected on the calibration screen views (the camera-calibration amendment "Focus for the screen").
+- **Negative controls:** not run. The calibrated model already fails, so a control failing would show nothing.
+- **Status:** the scale bar is 10 to 19 % too large at 12 to 20 cm. It must not be used for measurement until a focus correction passes on a new run.
