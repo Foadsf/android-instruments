@@ -222,6 +222,23 @@ Foad cannot hold the phone still and has to hold it in his hand, so the capture 
     The medians are over the calm phases (rate below 0.15 rad/s); the fractions are of all candidates. With 0.3 % of frames under 0.02 rad/s, camera 0 took 138 s for 5 frames: the first gate is unusable for this hand.
   - Every frame is now a candidate (8 slots), where the mechanics run evaluated about 14 per second.
 
+## Amendment: frame timing for camera 2 (2026-11-15, after run 2, before run 3)
+
+Run 2's camera 2 kept only 8 frames in 300 s. Its gate window is the 150 ms before the bridge's delivery stamp, because the HAL1 delay is unknown.
+
+- **Gain:** on run 2's own gyroscope log (`imu.csv`, camera 2's 300 s), the share of windows under 0.02 rad/s is 0.38 % for 150 ms windows, 1.6 % for 70 ms and 3.0 % for 50 ms. Measuring the window would therefore pass about 8 times more frames.
+- **Measurement (run mode `timing`, `TimingMode.kt`; host `tools/calib/frame_timing.py`):**
+  - Each camera streams for 12 s while the vibration motor gives 60 ms pulses at random gaps of 350 to 800 ms. Foad holds the phone at anything with detail.
+  - The app records each frame's timestamp and centre-half sharpness. The raw gyroscope goes to `imu.csv`.
+  - The host high-passes the gyroscope (it subtracts a 40 ms moving mean, which removes the hand tremor) and takes the squared norm as vibration energy.
+  - It then searches windows [ts + start, ts + end] (start −300 to +100 ms, width 10 to 150 ms) for the one whose mean energy best correlates with each frame's loss of sharpness, normalised by its 31-frame running median.
+  - A window with r < 0.4 counts as "could not tell".
+- **Control:** camera 0's window is known from its capture result: from the stamp to stamp + exposure + skew (0 to about 40 ms). The method is trusted for camera 2 only if it finds camera 0's window within 6 ms at the start and 10 ms at the end, the margins the synthetic tests hold.
+- **Use:** camera 2's gate window becomes the measured window, widened by 10 ms on each side. Its limit stays at 0.02 rad/s, since the simulation failures at 0.04 do not depend on timing.
+- **Tests (`test_frame_timing.py`):**
+  - on synthetic gyroscope and frame data, a window before the stamp (−90 to −45 ms) and one after it (0 to 40 ms) are recovered within 6 and 10 ms;
+  - blur unrelated to the vibration gives "could not tell" (negative control).
+
 ## Not in this unit
 
 - Focus-dependent calibration: a table over focus distances for focus stacking (Stage 3.6).

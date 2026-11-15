@@ -39,7 +39,7 @@ TORCH_MODES = ("off", "on", "request", "mode")
 
 def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
                ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None,
-               sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0) -> list[str]:
+               sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0, timing: int = 0) -> list[str]:
     """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
     request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
     ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested).
@@ -48,7 +48,9 @@ def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, tor
     args = ["shell", "am", "start", "-W", "-n", ACTIVITY, "--es", "run_id", run_id,
             "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst), "--es", "torch", torch,
             "--es", "ois", ois]
-    if sweep > 0:
+    if timing > 0:
+        args += ["--ei", "timing", str(timing)]
+    elif sweep > 0:
         args += ["--ei", "sweep", str(sweep), "--es", "gate_rad_s", gate]
         if max_exposure_us > 0:
             args += ["--el", "max_exposure_us", str(max_exposure_us)]
@@ -70,6 +72,24 @@ def parse_gates(text: str) -> dict[str, float]:
             raise ValueError(f"gate {part!r}: want CAMERA:RAD_S with a positive rate, each camera once")
         out[cam.strip()] = rate
     return out
+
+
+def run_timing(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
+    """Waits for the frame-timing report, pulls it and the timing folder (camera-calibration.md)."""
+    name = f"microscope_timing_{run_id}.json"
+    print(f"timing {run_id}: point the phone at something with detail and hold it; it will buzz "
+          f"for about {args.timing * len(args.cameras.split(','))} s")
+    if not wait_for(adb, name, max(args.timeout, args.timing * 10)):
+        print(f"could not tell: no report {name}", file=sys.stderr)
+        return 3
+    out.mkdir(parents=True, exist_ok=True)
+    local = out / f"microscope_timing_{dt.date.today():%Y%m%d}_{run_id}.json"
+    adb.run("pull", f"{REMOTE_DIR}/{name}", str(local))
+    args.bursts.mkdir(parents=True, exist_ok=True)
+    adb.run("pull", f"{REMOTE_DIR}/captures/{run_id}_timing", str(args.bursts), timeout=600)
+    print(json.dumps({"report": str(local), "folder": str(args.bursts / f"{run_id}_timing")}, indent=2))
+    print(f"next: python tools/calib/frame_timing.py {args.bursts / (run_id + '_timing')}")
+    return 0
 
 
 def run_series(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
@@ -137,7 +157,10 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
     # the image by ~1 px between frames of a still phone (burst-merge.md run 3).
     ois = "off" if args.series > 0 or args.sweep > 0 else args.ois
     adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, ois,
-                        args.series, args.still_ms, args.focus, args.sweep, args.gate, args.max_exposure_us))
+                        args.series, args.still_ms, args.focus, args.sweep, args.gate, args.max_exposure_us,
+                        args.timing))
+    if args.timing > 0:
+        return run_timing(adb, args, run_id, out)
     if args.series > 0 or args.sweep > 0:
         return run_series(adb, args, run_id, out)
     name = f"microscope_live_{run_id}.json"
@@ -177,6 +200,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--sweep", type=int, default=0, help="hand-held calibration: keep N gyro-calm frames per camera")
     ap.add_argument("--gate", default="0:0.04,2:0.02", help="sweep: gyro limit (rad/s) per camera over each kept frame")
     ap.add_argument("--max-exposure-us", type=int, default=0, help="sweep: cap camera 0's exposure (0: AE)")
+    ap.add_argument("--timing", type=int, default=0, help="frame-timing run: SECONDS of vibration pulses per camera")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")
@@ -193,6 +217,9 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if args.sweep and not (1 <= args.sweep <= 80 and args.cameras and not args.series):
         print("--sweep needs 1..80 frames, --cameras (e.g. 0,2), and no --series", file=sys.stderr)
+        return 2
+    if args.timing and not (3 <= args.timing <= 60 and args.cameras and not (args.series or args.sweep)):
+        print("--timing needs 3..60 s, --cameras, and no --series or --sweep", file=sys.stderr)
         return 2
     try:
         missing = set(args.cameras.split(",")) - set(parse_gates(args.gate)) if args.sweep else set()

@@ -110,7 +110,12 @@ class MainActivity : Activity() {
                 ?: listOfNotNull(CameraChoice.pickCamera(listed, rear, intent.getStringExtra(EXTRA_CAMERA)))
             val series = intent.getIntExtra(EXTRA_SERIES, 0)
             val sweep = intent.getIntExtra(EXTRA_SWEEP, 0)
-            val result = if (sweep > 0) runCatching { runSweep(runId, ids, sweep) }
+            val timing = intent.getIntExtra(EXTRA_TIMING, 0)
+            val result = if (timing > 0) runCatching {
+                TimingMode(applicationContext, station, SensorRecorder(applicationContext), outDir()) { message = it }
+                    .execute(TimingMode.Plan(runId, ids, timing))
+            }
+            else if (sweep > 0) runCatching { runSweep(runId, ids, sweep) }
             else if (series > 0) runCatching { runSeries(runId, ids, series) } else {
                 val plan = RunMode.Plan(runId, ids, intent.getLongExtra(EXTRA_STREAM_MS, 10_000L),
                     intent.getIntExtra(EXTRA_BURST, 16), intent.getStringExtra(EXTRA_TORCH) ?: "off",
@@ -213,6 +218,7 @@ class MainActivity : Activity() {
         const val EXTRA_STILL_MS = "still_ms"
         const val EXTRA_FOCUS = "focus_diopters"
         const val EXTRA_SWEEP = "sweep"
+        const val EXTRA_TIMING = "timing"
         const val EXTRA_GATE = "gate_rad_s"
         const val EXTRA_MAX_EXPOSURE_US = "max_exposure_us"
         const val REQUEST_CAMERA = 1

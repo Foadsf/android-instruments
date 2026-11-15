@@ -139,6 +139,13 @@ class StartArgs(unittest.TestCase):
         b = run_live.start_args("r1", "0,2", 800, 4, series=3)
         self.assertNotIn("sweep", b)
 
+    def test_timing_extra_is_passed_only_for_a_timing_run(self):
+        import run_live
+        a = run_live.start_args("r1", "0,2", 800, 4, timing=12)
+        self.assertEqual(a[a.index("timing") - 1: a.index("timing") + 2], ["--ei", "timing", "12"])
+        self.assertNotIn("sweep", a)
+        self.assertNotIn("timing", run_live.start_args("r1", "0,2", 800, 4, sweep=30))
+
     def test_gates_parse_per_camera_and_refuse_nonsense(self):
         import run_live
         self.assertEqual(run_live.parse_gates("0:0.04,2:0.02"), {"0": 0.04, "2": 0.02})
