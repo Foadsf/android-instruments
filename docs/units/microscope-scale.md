@@ -159,3 +159,4 @@ Sensor fusion is one of the keys: the phone's pose is measured over frames, and 
   - a manual focus sweep with the sharpness peak fitted (depth from focus, plan 3.3/3.6), which needs its own lens-map calibration;
   - an object of known size in view;
   - pose from the camera 0 + 2 rig, or from structure from motion (the fusion line).
+- **Decision (Foad, 2026-11-15):** accept the approximate scale (about ±5 %) for now and go on to fusion (`align` next). The contract stays not passed, and the readout must be shown as approximate. A precise scale comes back later through the rig, structure from motion, or a focus sweep.
