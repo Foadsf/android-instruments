@@ -16,10 +16,29 @@ MIN_VIEWS = 8
 EVAL_EVERY = 4  # every 4th usable view is held out of the fit
 
 
-def detect_corners(img, board):
-    """(corners N x 2 float, ids N int) in pixel-centre-at-integer coordinates, or (None, None)."""
+def detect_corners(img, board, destreak: bool = True):
+    """(corners N x 2 float, ids N int) in pixel-centre-at-integer coordinates, or (None, None).
+
+    destreak: find markers and corners on a 5 x 5 median of the frame, which removes the thin
+    bright nozzle streaks of the 2026-11-14 print (they split marker borders: 21 of 63 corners on
+    the real frame, 63 of 63 after the median), then refine on the original frame: refining on
+    the median adds 0.1 px RMS error on the synthetic streaked renders, refining on the original
+    stays unbiased (camera-calibration.md, amendment for the existing print). With destreak the
+    detector also widens the adaptive threshold window to 43 px (camera 2's markers are ~110 px),
+    re-finds missed markers, and accepts a corner next to a single marker: on the real camera 2
+    frames 15 -> 54 corners, camera 0 57 -> 63; positions still come from cornerSubPix."""
     import cv2
-    corners, ids, _, _ = cv2.aruco.CharucoDetector(board).detectBoard(img)
+    det = cv2.aruco.CharucoDetector(board)
+    found = img
+    if destreak:
+        found = cv2.medianBlur(img, 5)
+        dp = cv2.aruco.DetectorParameters()
+        dp.adaptiveThreshWinSizeMax = 43
+        cp = cv2.aruco.CharucoParameters()
+        cp.tryRefineMarkers, cp.minMarkers = True, 1
+        det.setDetectorParameters(dp)
+        det.setCharucoParameters(cp)
+    corners, ids, _, _ = det.detectBoard(found)
     if ids is None or len(ids) == 0:
         return None, None
     crit = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1e-4)
@@ -97,11 +116,14 @@ def halves(n_views: int, a: list[int] | None = None, b: list[int] | None = None)
     return a, b
 
 
-def straightness(views: list[dict], ids_list: list, k, dist, cols: int) -> float:
-    """Max distance (px) of undistorted corners from their row or column line (total least
-    squares), over all views; rows and columns with fewer than 3 corners are skipped."""
+def straightness(views: list[dict], ids_list: list, k, dist, cols: int, stat: str = "rms") -> float:
+    """Distance (px) of undistorted corners from their row or column line (total least squares),
+    over all views: RMS (judged) or max (recorded); rows and columns with fewer than 3 corners
+    are skipped. The RMS, not the max, is judged since the streaked print: its corner noise put
+    the max at 0.52 px with the right model, while the RMS separates 0.087 px (right model) from
+    0.21 px (distortion ignored) on the synthetic streaked renders."""
     import cv2
-    worst = 0.0
+    devs = []
     for v, ids in zip(views, ids_list):
         und = cv2.undistortPoints(v["img"].reshape(-1, 1, 2).astype(np.float64), k, dist, P=k).reshape(-1, 2)
         for key in (ids // (cols - 1), ids % (cols - 1)):
@@ -111,8 +133,11 @@ def straightness(views: list[dict], ids_list: list, k, dist, cols: int) -> float
                     continue
                 c = pts - pts.mean(0)
                 normal = np.linalg.svd(c)[2][1]
-                worst = max(worst, float(np.abs(c @ normal).max()))
-    return worst
+                devs.extend(np.abs(c @ normal).tolist())
+    if not devs:
+        return float("inf")
+    d = np.asarray(devs)
+    return float(np.sqrt(np.mean(d ** 2))) if stat == "rms" else float(d.max())
 
 
 def wall_distance_tilt(rvec, tvec) -> tuple[float, float]:

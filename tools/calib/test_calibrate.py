@@ -16,8 +16,10 @@ TELE = {"fx": 2050.0, "fy": 2050.0, "cx": 718.0, "cy": 542.0, "k": [0.02, 0.0, 0
 BARREL = {"fx": 1100.0, "fy": 1100.0, "cx": 720.0, "cy": 540.0, "k": [0.10, 0.0, 0.0, 0.0, 0.0], "size": (1440, 1080)}
 
 
-def views_for(cam, poses, scale=1.0, seed=7):
-    """Renders the board through `cam` at each pose and returns detected views (and the images)."""
+def views_for(cam, poses, scale=1.0, seed=7, streaks=False, destreak=True, truth=False):
+    """Renders the board through `cam` at each pose and returns detected views (and the images).
+    streaks: the paper carries nozzle streaks like the 2026-11-14 print (sharper optics, blur
+    0.6 px). truth: each view also carries the true corner pixels ('true')."""
     import numpy as np
     import calib_core as cc
     import make_target as mt
@@ -28,12 +30,16 @@ def views_for(cam, poses, scale=1.0, seed=7):
     out, imgs = [], []
     for i, p in enumerate(poses):
         r, t = sc.pose(*p, centre_mm=(100, 80))
-        img = sc.render(bmp, mt.PX_PER_MM, cam, r, t, rng)
-        corners, ids = cc.detect_corners(img, board)
+        paper = sc.streaked(bmp, mt.PX_PER_MM, rng) if streaks else bmp
+        img = sc.render(paper, mt.PX_PER_MM, cam, r, t, rng, blur_px=0.6 if streaks else 0.8)
+        corners, ids = cc.detect_corners(img, board, destreak=destreak)
         imgs.append(img)
         if ids is not None and len(ids) >= cc.MIN_CORNERS:
-            out.append({"pose": i, "obj": cc.object_points(board, ids, (scale, scale)), "img": corners, "ids": ids,
-                        "size": cam["size"]})
+            v = {"pose": i, "obj": cc.object_points(board, ids, (scale, scale)), "img": corners, "ids": ids,
+                 "size": cam["size"]}
+            if truth:
+                v["true"] = sc.project(cam, r, t, cc.object_points(board, ids)[:, :2])
+            out.append(v)
     return out, imgs
 
 
@@ -62,7 +68,7 @@ class Synthetic(unittest.TestCase):
     def test_straightness_passes_with_the_distortion_model(self):
         import calib_core as cc
         cal = cc.calibrate(self.views, WIDE["size"])
-        self.assertLess(cc.straightness(self.views, [v["ids"] for v in self.views], cal["K"], cal["dist"], 10), 0.3)
+        self.assertLess(cc.straightness(self.views, [v["ids"] for v in self.views], cal["K"], cal["dist"], 10), 0.15)
 
     def test_halves_refuse_overlapping_sets(self):
         import calib_core as cc
@@ -88,7 +94,7 @@ class NegativeControlsAndPairs(unittest.TestCase):
         import synth_camera as sc
         views, _ = views_for(BARREL, sc.POSES)
         cal = cc.calibrate(views, BARREL["size"], fix_distortion=True)
-        self.assertGreater(cc.straightness(views, [v["ids"] for v in views], cal["K"], cal["dist"], 10), 0.3)
+        self.assertGreater(cc.straightness(views, [v["ids"] for v in views], cal["K"], cal["dist"], 10), 0.15)
         self.assertGreater(abs(cal["K"][0, 0] / BARREL["fx"] - 1), 0.003)
 
     def test_known_displacement_and_a_wrong_square_size(self):
@@ -110,6 +116,46 @@ class NegativeControlsAndPairs(unittest.TestCase):
         cal_t = {"K": cc_k(TELE), "dist": cc_d(TELE)}
         s, _ = cc.ncc_ratio(wide[0], tele[0], cal_w, cal_t)
         self.assertLess(abs(s / (TELE["fx"] / WIDE["fx"]) - 1), 0.01, s)
+
+
+@unittest.skipUnless(HAS_ALL, "needs numpy and cv2")
+class StreakedPrint(unittest.TestCase):
+    """The existing 2026-11-14 print has nozzle streaks; there will be no reprint."""
+
+    def test_destreak_recovers_the_corners_streaks_hide_without_bias(self):
+        import numpy as np
+        import synth_camera as sc
+        poses = sc.POSES[:6]
+        plain, _ = views_for(WIDE, poses, seed=51, streaks=True, destreak=False)
+        clean, _ = views_for(WIDE, poses, seed=51, streaks=True, truth=True)
+        n_plain = sum(len(v["ids"]) for v in plain) / len(poses)
+        n_clean = sum(len(v["ids"]) for v in clean) / len(poses)
+        self.assertLess(n_plain, 0.8 * 63, n_plain)  # the failure seen on the real print
+        self.assertGreaterEqual(n_clean, 0.9 * 63, n_clean)
+        err = np.concatenate([v["img"] - v["true"] for v in clean])
+        self.assertLess(np.abs(err.mean(0)).max(), 0.05, err.mean(0))
+        self.assertLess(float(np.sqrt((err ** 2).sum(1).mean())), 0.3)
+
+    def test_calibration_on_streaked_views_meets_the_contract(self):
+        import calib_core as cc
+        import synth_camera as sc
+        views, _ = views_for(WIDE, sc.POSES, seed=41, streaks=True)
+        train, ev = cc.split_views(len(views))
+        cal = cc.calibrate([views[i] for i in train], WIDE["size"])
+        k, d = cal["K"], cal["dist"]
+        self.assertLess(abs(k[0, 0] / WIDE["fx"] - 1), 0.003)
+        self.assertLess(max(abs(k[0, 2] - WIDE["cx"]), abs(k[1, 2] - WIDE["cy"])), 2.0)
+        self.assertLess(abs(d[0] - WIDE["k"][0]), 0.01)
+        self.assertLess(cc.reprojection_rms([views[i] for i in ev], k, d), 0.5)
+        full = cc.calibrate(views, WIDE["size"])
+        self.assertLess(cc.straightness(views, [v["ids"] for v in views], full["K"], full["dist"], 10), 0.15)
+
+    def test_ignoring_distortion_still_fails_straightness_on_streaked_views(self):
+        import calib_core as cc
+        import synth_camera as sc
+        views, _ = views_for(BARREL, sc.POSES, seed=43, streaks=True)
+        cal = cc.calibrate(views, BARREL["size"], fix_distortion=True)
+        self.assertGreater(cc.straightness(views, [v["ids"] for v in views], cal["K"], cal["dist"], 10), 0.15)
 
 
 def cc_k(cam):

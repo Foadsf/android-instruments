@@ -21,7 +21,7 @@ Calibration needs several views at different angles and distances, a clean print
 
 ### Capture (phone, run mode `series`)
 
-- **Setup:** the target stays taped flat on the wall, freshly printed after the Epson's nozzle check and head cleaning (`tpdprint print tools/calib/target_a4_v2_landscape.pdf`); Foad re-measures it with the ruler. Foad moves the phone through about 15 poses (distances 20 to 45 cm, tilts up to about 25° each way, a few at 90° roll), resting it on something at each pose.
+- **Setup:** the target is the existing 2026-11-14 print (`tpdprint`, v2 landscape), taped flat on the wall at all four corners. No reprint: the printer does not work properly (amendment below). Foad checked that print with the ruler ("seems OK"). Foad moves the phone through about 15 poses (distances 20 to 45 cm, tilts up to about 25° each way, a few at 90° roll), resting it on something at each pose.
 - **Per pose:** the app waits until the gyroscope shows the phone still (rate below 0.01 rad/s for 1 s). It then captures a 4-frame burst from camera 0, closes it, captures a 4-frame burst from camera 2, closes it, and gives a short tone so Foad moves on. With each pose it records:
   - the mean accelerometer and gyroscope readings over the capture, from Android's `SensorManager`, saved raw with timestamps;
   - each camera's reported focus distance, AF mode, exposure and OIS mode.
@@ -67,11 +67,11 @@ Calibration needs several views at different angles and distances, a clean print
 | synthetic: k1 | within 0.01 | the same |
 | synthetic: reported standard deviations | each true error within 3 σ | the uncertainties must be usable |
 | print (Foad's ruler) | board 200.0 x 160.0 mm, square 20.0 mm, each within 0.5 mm; else his measurements become the truth | `calib-target.md` |
-| corners per usable view, camera 0 at about 30 cm | ≥ 60 % of the visible corners | a clean print; the streaked v2 print gave 22 % |
+| corners per usable view, camera 0 at about 30 cm | ≥ 60 % of the visible corners | the streaked print gave 22 % with plain detection, 100 % with the destreaked detection (amendment) |
 | held-out reprojection RMS | camera 0 ≤ 0.5 px, camera 2 ≤ 0.8 px | sub-pixel corners; camera 2 is softer at this range (seen in run `222032-95ad`) |
 | two halves of the views agree | fx within 0.5 %, cx and cy within 3 px | stability of the fit |
 | known 100 mm displacement | computed change 100 ± 1.5 mm, on each camera | Foad's ruler (±0.5 mm), plus pose noise |
-| straightness after undistortion | max corner deviation from its row or column line ≤ 0.3 px | the distortion model removes the bending |
+| straightness after undistortion | RMS corner deviation from its row or column line ≤ 0.15 px; the max is recorded (amended from max ≤ 0.3 px) | the distortion model removes the bending; streak noise sets the floor (amendment) |
 | fx2 / fx0 vs NCC on the same undistorted scene | within 1 % | two independent ways to measure one ratio |
 | pair: translation 0 → 2 | recorded; a sanity bound of 5 to 20 mm, and rotation under 3° | the lenses sit side by side on the back plate |
 | IMU residual after the fitted rotation | recorded, not judged | depends on the wall and the taping |
@@ -104,6 +104,37 @@ Host result: `test_calibrate.py` 10/10 (the 10th is the camera-0 focus-mismatch 
 - the IMU rotation fit;
 - "cannot judge" with too few views;
 - moved poses dropped and named.
+
+## Amendment for the existing print (2026-11-15, before any device run)
+
+The printer cannot make a clean reprint, so the calibration uses the streaked 2026-11-14 sheet.
+
+- **The streaks:** on camera 0 at 29 cm, thin bright vertical lines run through the black areas. They are 1 to 2 px wide (0.25 to 0.5 mm on paper), +20 to +60 grey levels over a black of 57 and a white of 175. They split the marker borders, so plain detection finds 21 of 63 corners.
+- **Synthetic model:** `synth_camera.streaked` puts lines like these into the rendered paper, and it reproduces the failure: plain detection loses 20 to 40 % of the corners.
+- **Detection (`calib_core.detect_corners`):**
+  - markers and corners are found on a 5 x 5 median of the frame;
+  - the adaptive threshold window is widened to 43 px, missed markers are re-found, and a corner next to a single marker is accepted;
+  - positions are refined with `cornerSubPix` on the original frame. Refining on a median or a morphological opening was no better overall on the synthetic truth: 0.19 to 0.35 px RMS, against 0.20 to 0.26 px on the original.
+- **Real frames (sheet not yet flat, so detection data only):**
+
+  | Frames | Camera 0 | Camera 2 |
+  |---|---|---|
+  | `225402-81cd` | 21 → 63 | 15 → 54 |
+  | `222032-95ad` | 16 → 63 | 13 → 54 |
+
+  Camera 2 sees only part of the board.
+- **Accuracy on the synthetic streaked renders:**
+  - corner error mean below 0.04 px, so no bias;
+  - RMS 0.20 to 0.26 px, max under 0.9 px (camera 0 and camera 2 models), against 0.05 to 0.08 px on a clean sheet;
+  - the full calibration still meets the synthetic thresholds (all 63 corners in all 15 views; focal length −0.11 %, centre 1.4 px, k1 −0.005, held-out RMS 0.22 px).
+- **Straightness is judged by the RMS.** The streak noise put the max corner deviation at 0.52 px with the right lens model, which would fail the old max ≤ 0.3 px. The RMS deviation separates the two cases: 0.087 px with the right model, 0.21 px with distortion ignored (k1 = 0.1). The threshold is RMS ≤ 0.15 px, and the max is recorded.
+- **Flatness:** until 2026-11-15 the sheet was taped at the top corners only and was not flat or vertical. Foad then taped the bottom corners too. Frames from before that are not calibration data.
+- **Print size:** with the drawn sizes (200 x 160 mm, 20 mm squares) unless Foad's ruler gives other numbers (`--board-mm`). His check of this print found no visible error.
+
+Tests: `test_calibrate.py` gains three streaked-print tests:
+- detection recovers the hidden corners without bias, and plain detection loses them (the negative control);
+- calibration on streaked views meets the contract;
+- ignoring distortion still fails straightness on streaked views.
 
 ## Not in this unit
 

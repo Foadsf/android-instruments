@@ -29,7 +29,7 @@ SPEC = HERE / "target_a4_v2_landscape.json"
 HELDOUT_RMS = {"0": 0.5, "2": 0.8}
 HALVES_FX_REL, HALVES_C_PX = 0.005, 3.0
 DISPLACEMENT_TOL_MM = 1.5
-STRAIGHT_PX = 0.3
+STRAIGHT_RMS_PX = 0.15  # amended for the streaked print (was max 0.3 px), before any device run
 NCC_REL = 0.01
 MIN_CORNER_FRACTION = 0.6
 STEREO_T_MM, STEREO_R_DEG = (5.0, 20.0), 3.0
@@ -95,7 +95,8 @@ def camera_report(cam: str, views: list, board, scale_xy, cols: int) -> dict:
     cb = cc.calibrate([views[train[i]] for i in b], size)
     k, d = cal["K"], cal["dist"]
     held = cc.reprojection_rms([views[i] for i in ev], k, d)
-    straight = cc.straightness(views, [v["ids"] for v in views], k, d, cols)
+    ids = [v["ids"] for v in views]
+    straight, straight_max = cc.straightness(views, ids, k, d, cols), cc.straightness(views, ids, k, d, cols, "max")
     poses = {}
     for v in views:
         rv, tv = cc.solve_pose(v, k, d)
@@ -110,7 +111,9 @@ def camera_report(cam: str, views: list, board, scale_xy, cols: int) -> dict:
         check("held-out reprojection RMS (px)", held <= HELDOUT_RMS[cam], round(held, 3), HELDOUT_RMS[cam]),
         check("halves agree: fx (relative)", fx_rel <= HALVES_FX_REL, round(fx_rel, 5), HALVES_FX_REL),
         check("halves agree: cx, cy (px)", c_px <= HALVES_C_PX, round(c_px, 2), HALVES_C_PX),
-        check("straightness after undistortion (px)", straight <= STRAIGHT_PX, round(straight, 3), STRAIGHT_PX),
+        check("straightness after undistortion, RMS (px)", straight <= STRAIGHT_RMS_PX, round(straight, 3),
+              STRAIGHT_RMS_PX),
+        check("straightness after undistortion, max (px)", True, round(straight_max, 3), "recorded", judged=False),
         check("median corner fraction per view", float(np.median(fractions)) >= MIN_CORNER_FRACTION,
               round(float(np.median(fractions)), 3), MIN_CORNER_FRACTION, judged=(cam == "0")),
         check("image coverage by corners (8 x 6 cells)", True, round(cc.coverage(views, size), 3), "recorded",

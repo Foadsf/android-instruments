@@ -80,10 +80,11 @@ def rays(cam: dict, supersample: int) -> list:
 def render(board_black: np.ndarray, px_per_mm: float, cam: dict, r: np.ndarray, t: np.ndarray,
            rng: np.random.Generator, noise: float = 2.0, blur_px: float = 0.8, supersample: int = 2):
     """One 8-bit luma frame of the board (True = black in `board_black`, origin at its top-left
-    corner, x right, y down, in mm / px_per_mm). cam: fx, fy, cx, cy, k (5), size (w, h)."""
+    corner, x right, y down, in mm / px_per_mm), or a float luma map of the paper (`streaked`).
+    cam: fx, fy, cx, cy, k (5), size (w, h)."""
     import cv2  # only for the optical blur, never for the projection
     w, h = cam["size"]
-    paper = np.where(board_black, 25.0, 235.0)
+    paper = np.where(board_black, 25.0, 235.0) if board_black.dtype == bool else board_black.astype(float)
     hom = np.column_stack([r[:, 0], r[:, 1], t])
     hinv = np.linalg.inv(hom)
     acc = np.zeros((h, w))
@@ -99,6 +100,23 @@ def render(board_black: np.ndarray, px_per_mm: float, cam: dict, r: np.ndarray, 
         img = cv2.GaussianBlur(img, (0, 0), blur_px)
     img = img + rng.normal(0, noise, img.shape)
     return np.clip(np.round(img), 0, 255).astype(np.uint8)
+
+
+def streaked(board_black: np.ndarray, px_per_mm: float, rng: np.random.Generator, per_mm: float = 0.6,
+             lift=(0.3, 0.6), width_mm=(0.15, 0.4)) -> np.ndarray:
+    """Paper luma with inkjet nozzle streaks: lines of constant board x, brighter than the black by
+    `lift` x the black-to-white swing, only where the paper is black. Defaults match the
+    2026-11-14 print seen by camera 0 at 29 cm (1 to 2 px wide at 4.25 px/mm, +20 to +60 over
+    a black of 57 and a white of 175) and reproduce its failure: plain detection loses corners."""
+    luma = np.where(board_black, 25.0, 235.0)
+    w = board_black.shape[1]
+    for _ in range(int(per_mm * w / px_per_mm)):
+        x0 = rng.uniform(0, w)
+        a = int(x0)
+        b = int(min(w, x0 + max(1.0, rng.uniform(*width_mm) * px_per_mm)))
+        col = luma[:, a:b]
+        col[board_black[:, a:b]] += rng.uniform(*lift) * 210.0
+    return luma
 
 
 def project(cam: dict, r: np.ndarray, t: np.ndarray, pts_mm: np.ndarray) -> np.ndarray:
