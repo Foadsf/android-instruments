@@ -100,6 +100,39 @@ This unit only **estimates** the shift. Moving the pixels is a separate unit, `w
 - After `warp`: `burst_merge` on aligned camera 0 bursts, judged against the threshold the contract already declares (G(16) ≥ 3.6 on a lit 32-frame burst with `--ois off`).
 - Then a rolling-shutter revision of this unit if the row residuals call for it, and `burst_sr`, which needs exactly these sub-pixel warps.
 
+## Build state (2026-11-15, stopped mid-unit)
+
+- **Built:**
+  - `core/align/` (C): `align.c`, `align_image.c`, `align_math.c`;
+  - `align_cli`;
+  - the synthetic oracle `tests/synth_texture.hpp` and its tests.
+- **Synthetic results (Release, MSVC), all 8 test cases pass:**
+
+  | Case | Result | Threshold |
+  |---|---|---|
+  | noise σ = 2 | RMS 0.0031 / 0.0027 px, max 0.0088 | ≤ 0.01 RMS, ≤ 0.03 max |
+  | reported standard error | 0.0029 px, vs actual 0.0031 | within a factor of 2 |
+  | noise σ = 8 | RMS 0.017 / 0.014 px | ≤ 0.03 |
+  | gain 1.04 + offset 5 | RMS 0.0039 / 0.0030 px | ≤ 0.01 |
+  | ±64 px shifts, ±10 % scale, roll 0.3° | max 0.003 to 0.008 px | ≤ 0.03 |
+
+  Sign convention, flat-scene refusal, small-overlap refusal and invalid input also pass.
+- **Method changes from the contract text, made on the synthetic tests only, with no threshold changed:**
+  - **Top-level search:** ±10 px (was ±6) x 5 scales (0.90, 0.95, 1, 1.05, 1.10), so about ±80 px at 512 px and ±160 px at 1440x1080.
+    - The contract's "±130 px" for ±6 was wrong: it is ±96 px.
+    - With ±6 and translation only, the ±64 px and ±10 % cases converged to wrong peaks. They were refused (residual 40 to 67 grey levels), not returned.
+  - **"Textured" defined:** a gradient above 4x the noise gradient, estimated from the fit residual (rms / 2). With a fixed 1-grey-level threshold, pure noise at σ = 2 counts as textured.
+- **Negative controls:**
+  - sign: fails, as it must;
+  - identity stub: fails, as it must;
+  - **bilinear: did NOT fail.** RMS 0.0030 / 0.0026 px, max 0.009, the same as bicubic. So "bicubic is needed" is not supported on this oracle; the texture may be too smooth (amplitude ∝ 1/f) to show interpolation bias. It is unregistered from ctest and kept as a plain executable until decided: either a texture with more high-frequency power, or drop the claim and keep bicubic as the default.
+- **Not done yet:**
+  - the full ctest run (Debug), the `check_limits` run, and Linux CI;
+  - `tools/fusion/align_eval.py` (decimation pair, OpenCV ECC homography cross-check, board corners, closure, row residuals) and its tests;
+  - the device evaluation on the judged bursts;
+  - the translation-only device negative control (`align_cli --model translation`).
+- The test binary takes about 80 s in Release; Debug will be slower (the synthesis is about 2.5 G cosines).
+
 ## Device evidence
 
 None yet.
