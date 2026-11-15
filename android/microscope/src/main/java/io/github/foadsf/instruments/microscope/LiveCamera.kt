@@ -67,6 +67,10 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
 
     fun meta(tsNs: Long): FrameMeta? = meta[tsNs]
 
+    /** The newest capture result (for the live scale readout). */
+    @Volatile var lastMeta: FrameMeta? = null
+        private set
+
     /** Cameras whose characteristics say they own a flash unit. */
     fun flashIds(): List<String> = listed().filter {
         runCatching { manager.getCameraCharacteristics(it).get(CameraCharacteristics.FLASH_INFO_AVAILABLE) }.getOrNull() == true
@@ -168,6 +172,7 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
         size = null
         flashTorch = false
         manualExposure = null
+        lastMeta = null
         meta.clear()
         failures.set(0)
     }
@@ -222,10 +227,12 @@ class LiveCamera(context: Context, private val onFrame: (i420: ByteArray, w: Int
     private val resultCallback = object : CameraCaptureSession.CaptureCallback() {
         override fun onCaptureCompleted(s: CameraCaptureSession, req: CaptureRequest, r: TotalCaptureResult) {
             val ts = r.get(CaptureResult.SENSOR_TIMESTAMP) ?: return
-            meta[ts] = FrameMeta(r.get(CaptureResult.LENS_FOCUS_DISTANCE), r.get(CaptureResult.CONTROL_AF_MODE),
+            val m = FrameMeta(r.get(CaptureResult.LENS_FOCUS_DISTANCE), r.get(CaptureResult.CONTROL_AF_MODE),
                 r.get(CaptureResult.CONTROL_AF_STATE), r.get(CaptureResult.SENSOR_EXPOSURE_TIME),
                 r.get(CaptureResult.SENSOR_FRAME_DURATION), r.get(CaptureResult.LENS_OPTICAL_STABILIZATION_MODE),
                 r.get(CaptureResult.SENSOR_ROLLING_SHUTTER_SKEW), r.get(CaptureResult.SENSOR_SENSITIVITY))
+            lastMeta = m
+            meta[ts] = m
             if (meta.size > META_KEEP) meta.keys.sorted().take(meta.size - META_KEEP).forEach(meta::remove)
         }
 

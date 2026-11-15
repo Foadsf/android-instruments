@@ -67,6 +67,8 @@ class BurstRecorder(private val dir: File, private val count: Int, private val w
             put("exposure_ns", JSONArray(ts.map { meta(it)?.exposureNs ?: JSONObject.NULL }))
             put("frame_duration_ns", JSONArray(ts.map { meta(it)?.frameDurationNs ?: JSONObject.NULL }))
             put("ois_mode", JSONArray(ts.map { meta(it)?.oisMode ?: JSONObject.NULL }))
+            put("rolling_shutter_skew_ns", JSONArray(ts.map { meta(it)?.skewNs ?: JSONObject.NULL }))
+            put("iso", JSONArray(ts.map { meta(it)?.iso ?: JSONObject.NULL }))
             put("torch", torch ?: JSONObject.NULL)
             writeError?.let { put("write_error", it) }
         }

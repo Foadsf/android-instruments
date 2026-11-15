@@ -1,0 +1,32 @@
+{
+  "name": "target_screen_lg_fhd_20px",
+  "kind": "screen",
+  "board": {
+    "type": "charuco",
+    "dictionary": "DICT_5X5_100",
+    "cols": 10,
+    "rows": 8,
+    "square_mm": 7.275,
+    "marker_mm": 5.0925,
+    "origin_mm": [
+      12.0,
+      20.0
+    ]
+  },
+  "screen": {
+    "width_px": 1920,
+    "height_px": 1080,
+    "pitch_mm_nominal": 0.36375,
+    "pitch_source": "31.5-inch FHD panel, ruler-confirmed 2026-11-15",
+    "origin_px": [
+      860,
+      460
+    ],
+    "square_px": 20,
+    "size_px": [
+      200,
+      160
+    ]
+  },
+  "note": "board mm = pixels x nominal pitch; calibrate.py --board-mm takes the ruler's width,height"
+}

@@ -54,6 +54,8 @@ class Station(context: Context, private val onPreview: (IntArray, Int, Int) -> U
 
     fun meta(tsNs: Long): FrameMeta? = camera.meta(tsNs)
 
+    val lastMeta: FrameMeta? get() = camera.lastMeta
+
     /**
      * Caps the open camera's exposure at [maxNs] for hand-held capture: reads what AE chose on the
      * latest frame and, if longer, switches to manual exposure [maxNs] with the ISO raised to keep

@@ -125,6 +125,15 @@ class StartArgs(unittest.TestCase):
         b = run_live.start_args("r1", "0,2", 800, 4, series=3)
         self.assertNotIn("focus_diopters", b)
 
+    def test_scale_extras_and_nothing_else(self):
+        import run_live
+        a = run_live.start_args("r1", "0", 800, 4, scale=3, gap_ms=5000, sweep=30, focus=2.0)
+        self.assertEqual(a[a.index("scale_bursts") - 1: a.index("scale_bursts") + 2], ["--ei", "scale_bursts", "3"])
+        self.assertEqual(a[a.index("gap_ms") + 1], "5000")
+        self.assertNotIn("sweep", a)
+        self.assertNotIn("focus_diopters", a)
+        self.assertNotIn("scale_bursts", run_live.start_args("r1", "0", 800, 4))
+
     def test_sweep_extras_are_passed_only_for_a_sweep(self):
         import run_live
         a = run_live.start_args("r1", "0,2", 800, 4, ois="off", focus=2.0,

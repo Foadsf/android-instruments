@@ -17,6 +17,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import io.github.foadsf.instruments.microscope.core.CameraChoice
 import io.github.foadsf.instruments.microscope.core.FrameGate
+import io.github.foadsf.instruments.microscope.core.Optics
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -34,6 +35,7 @@ class MainActivity : Activity() {
     private lateinit var station: Station
     private lateinit var view: ImageView
     private lateinit var readout: TextView
+    private lateinit var scaleBar: ScaleBarView
     private var bitmap: Bitmap? = null
     private var cameraId: String? = null
     private var message = ""
@@ -49,16 +51,20 @@ class MainActivity : Activity() {
         station = Station(applicationContext) { px, w, h -> ui.post { draw(px, w, h) } }
         view = ImageView(this).apply { scaleType = ImageView.ScaleType.FIT_CENTER; setBackgroundColor(Color.BLACK) }
         readout = TextView(this).apply { setTextColor(Color.WHITE); setShadowLayer(3f, 0f, 0f, Color.BLACK); setPadding(16, 16, 16, 16) }
+        scaleBar = ScaleBarView(this)
+        // microscope-scale.md: the viewer runs with OIS off, so saved bursts are fusion input.
+        if (!isRunMode()) station.oisOff = true
         val buttons = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             addView(button("Camera") { nextCamera() })
             addView(button("Zoom") { station.zoom = if (station.zoom >= 4) 1 else station.zoom * 2 })
-            addView(button("Save") { saveBurst(listOfNotNull(cameraId)) })
+            addView(button("Save") { saveScaled() })
             addView(button("Pair") { saveBurst(PAIR) })
             addView(button("Torch") { toggleTorch() })
         }
         setContentView(FrameLayout(this).apply {
             addView(view)
+            addView(scaleBar)
             addView(readout, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.START))
             addView(buttons, FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL))
         })
@@ -111,7 +117,12 @@ class MainActivity : Activity() {
             val series = intent.getIntExtra(EXTRA_SERIES, 0)
             val sweep = intent.getIntExtra(EXTRA_SWEEP, 0)
             val timing = intent.getIntExtra(EXTRA_TIMING, 0)
-            val result = if (timing > 0) runCatching {
+            val scaleBursts = intent.getIntExtra(EXTRA_SCALE_BURSTS, 0)
+            val result = if (scaleBursts > 0) runCatching {
+                ScaleSave(applicationContext, station)
+                    .run(runId, scaleBursts, intent.getLongExtra(EXTRA_GAP_MS, 5000L), outDir()) { message = it }
+            }
+            else if (timing > 0) runCatching {
                 TimingMode(applicationContext, station, SensorRecorder(applicationContext), outDir()) { message = it }
                     .execute(TimingMode.Plan(runId, ids, timing,
                         maxExposureNs = intent.getLongExtra(EXTRA_MAX_EXPOSURE_US, 0L).takeIf { it > 0 }?.let { it * 1000 }))
@@ -189,6 +200,23 @@ class MainActivity : Activity() {
         if (back != null && station.openId != back) openCamera(back)
     }
 
+    /** Save: a hand-held burst with imu.csv and scale.json (microscope-scale.md). */
+    private fun saveScaled() = worker.execute {
+        val stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"))
+        message = "Saving ..."
+        message = runCatching {
+            val r = ScaleSave(applicationContext, station).save(File(outDir(), "captures/${stamp}_cam${station.openId}"))
+            "Saved $stamp: ${r.getInt("frames")} frames" + if (r.getJSONObject("scale").getBoolean("calibrated")) ", with scale" else ", no scale"
+        }.getOrElse { "Save failed: ${it.message}" }
+    }
+
+    /** µm per stream pixel on the plane in focus, for camera 0 only (the calibrated one). */
+    private fun liveScale(): Double? {
+        val s = station.size ?: return null
+        if (station.openId != "0") return null
+        return Optics.umPerPx(Optics.camera0(s.w), station.lastMeta?.focusDiopters?.toDouble())
+    }
+
     private fun draw(px: IntArray, w: Int, h: Int) {
         val b = bitmap?.takeIf { it.width == w && it.height == h }
             ?: Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888).also { bitmap = it; view.setImageBitmap(it) }
@@ -201,7 +229,15 @@ class MainActivity : Activity() {
         val s = station.size
         val line = if (s == null) "" else "cam ${station.openId} · ${s.w}x${s.h} · %.1f fps · sharpness %.0f · zoom %dx"
             .format(station.fps, station.sharpness, station.zoom)
-        readout.text = listOf(line, message).filter { it.isNotEmpty() }.joinToString("\n")
+        val um = liveScale()
+        val scale = when {
+            s == null -> ""
+            station.openId != "0" -> "no scale: only camera 0 is calibrated"
+            um == null -> "no scale: focus not reported"
+            else -> "%.1f µm/px · focus %.1f cm".format(um, 100.0 / (station.lastMeta?.focusDiopters ?: 1f))
+        }
+        scaleBar.set(um, s?.w ?: 0, s?.h ?: 0, station.zoom)
+        readout.text = listOf(line, scale, message).filter { it.isNotEmpty() }.joinToString("\n")
         if (!isFinishing) ui.postDelayed(::tick, TICK_MS)
     }
 
@@ -225,6 +261,8 @@ class MainActivity : Activity() {
         const val EXTRA_BRIDGE_WINDOW = "bridge_window_ms"
         const val EXTRA_GATE = "gate_rad_s"
         const val EXTRA_MAX_EXPOSURE_US = "max_exposure_us"
+        const val EXTRA_SCALE_BURSTS = "scale_bursts"
+        const val EXTRA_GAP_MS = "gap_ms"
         const val REQUEST_CAMERA = 1
         const val TICK_MS = 500L
         const val WARM_MS = 2000L

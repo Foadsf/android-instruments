@@ -44,6 +44,21 @@ Two references, neither computed by `Optics.kt`:
 - **Screen board at close range:** the same ChArUco board drawn small on the LG monitor (20 px squares = 7.275 mm at the 0.36375 mm pitch that Foad's ruler confirmed). The board's detected corners give the true mm per pixel on the board plane, from the local scale of the board-to-image homography at the image centre. Each of ≥ 6 hand-held frames at 10 to 30 cm (≥ 3 distances) is compared with `Optics.kt`'s prediction from that frame's reported focus.
 - **Ruler (recorded, not judged):** Foad's steel ruler photographed once. The mm ticks spanning the frame, measured by hand on the saved image against the saved scale, are recorded as a sanity check that the app's own pipeline (bar, saved JSON) carries the same number.
 
+### How `scale_check.py` judges (declared 2026-11-15, before the first run)
+
+- **Board scale per frame:**
+  - the detected corners are undistorted with camera 0's calibration (run `163037-f2e7`: K and k1, k2, p1, p2);
+  - the board's pose comes from the undistorted points (IPPE) with the calibration's K;
+  - the board's depth on the ray through the corners' centroid, over fx, is the µm per px of a plane square to the camera at that depth, which is what the model predicts. A wrong fx in K (focus breathing) scales the depth and fx alike, so it does not bias the ratio, and a hand-held tilt does not either.
+  - The first draft took the smaller singular value of the homography's Jacobian. The synthetic test showed it 0.7 % low for a board tilted 20° and off-centre, so it was replaced before any run.
+  - Without undistortion the scale is 0.9 % off on the synthetic board whose centroid sits about 270 px from the centre (k1 = 0.15). The test requires that bias to exceed 0.5 %, half the median tolerance.
+- **Frames judged:** continuous AF reports focused (PASSIVE_FOCUSED or FOCUSED_LOCKED), at least 12 corners are found, and the reported focus gives a scale. The others are recorded with their reason. The run mode waits up to 2 s for focus before each burst.
+- **Distances:** the judged frames' focus distances (100 / D cm), sorted, start a new distance wherever the gap is 2 cm or more.
+- **Per frame:** every judged frame must be within 2 %.
+- **Pipeline check:** the app's saved µm per px must equal the host's own thin-lens computation from the same focus to 0.1 %.
+- **Negative controls** run the same tool with `--model no-breathing`, `--model nominal` or `--square-mm 7.63875` (21 px). They need ≥ 6 judged frames but no distance rule, and `no-breathing` uses only the frames nearer than 12 cm. Each must come out "fail".
+- **Capture:** the run mode records 3 bursts of 16 frames, 5 s apart: about 25 s of holding at about 10, 15 and 20 cm. The board has 20 px squares, 72.75 x 58.2 mm on the LG monitor, and Foad aims at its centre.
+
 ## Thresholds (declared before the first run)
 
 | Check | Threshold | Source of the number |
@@ -57,8 +72,10 @@ Two references, neither computed by `Optics.kt`:
 ## Negative control
 
 - **Ignoring focus breathing** (fx0 used at every focus): at 10 cm the predicted scale is about 3.4 % off, which must fail the 2 % check on the near frames.
-- **Nominal focal length** (4.30 mm and the sensor's nominal pitch, without the calibration): about 3.5 % off at 40 cm and about 7 % at 10 cm, which must fail.
+- **Nominal focal length** (4.30 mm and the sensor's nominal pitch, without the calibration): about 2.5 % off at every distance from 10 to 40 cm, which must fail the 1 % median check (and most frames of the 2 % check).
 - **Wrong board size** (a spec claiming 21 px squares) must fail every frame by about 5 %.
+
+Correction (2026-11-15, before any device run, found by the hand calculation in `OpticsTest`): the first draft gave the nominal control as 3.5 % at 40 cm and 7 % at 10 cm. The thin lens gives 2.5 % at 40 cm, 2.5 % at 20 cm and 2.6 % at 10 cm. Ignoring breathing gives 3.5 % at 10 cm, 1.1 % at 20 cm and 0.4 % at 30 cm, so that control is judged on the frames nearer than 12 cm only. Hand-calculated scale at 10 D: f = 4.4062 mm, fx = 1175.8 px, 85.05 µm per px.
 
 ## Where this leads: fusion (Foad, 2026-11-15)
 

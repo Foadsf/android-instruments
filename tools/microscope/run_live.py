@@ -40,7 +40,7 @@ TORCH_MODES = ("off", "on", "request", "mode")
 def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, torch: str = "off",
                ois: str = "default", series: int = 0, still_ms: int = 1000, focus: float | None = None,
                sweep: int = 0, gate: str = "0:0.04,2:0.02", max_exposure_us: int = 0, timing: int = 0,
-               bridge_window: str | None = None) -> list[str]:
+               bridge_window: str | None = None, scale: int = 0, gap_ms: int = 5000) -> list[str]:
     """`am start` arguments. Pure: unit-testable. torch: off, on (the app picks the method),
     request (FLASH_MODE_TORCH in the open camera's request) or mode (CameraManager.setTorchMode).
     ois: default (the camera's) or off (LENS_OPTICAL_STABILIZATION_MODE_OFF requested).
@@ -49,6 +49,8 @@ def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, tor
     args = ["shell", "am", "start", "-W", "-n", ACTIVITY, "--es", "run_id", run_id,
             "--el", "stream_ms", str(stream_ms), "--ei", "burst", str(burst), "--es", "torch", torch,
             "--es", "ois", ois]
+    if scale > 0:  # microscope-scale.md: camera 0, OIS off, set by the app itself
+        return args + ["--ei", "scale_bursts", str(scale), "--el", "gap_ms", str(gap_ms)]
     if timing > 0:
         args += ["--ei", "timing", str(timing)]
     elif sweep > 0:
@@ -150,6 +152,24 @@ def run_series(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> in
     return 0
 
 
+def run_scale(adb: Adb, args: argparse.Namespace, run_id: str, out: Path) -> int:
+    """Waits for the scale run's report and pulls it and its bursts (microscope-scale.md)."""
+    name = f"microscope_scale_{run_id}.json"
+    print(f"scale {run_id}: hold the phone at the board; long beep = move to the next distance, "
+          f"short beep = burst ({args.scale} bursts, about {args.scale * (args.gap_ms // 1000 + 3)} s)")
+    if not wait_for(adb, name, max(args.timeout, args.scale * 30)):
+        print(f"could not tell: no report {name}", file=sys.stderr)
+        return 3
+    out.mkdir(parents=True, exist_ok=True)
+    local = out / f"microscope_scale_{dt.date.today():%Y%m%d}_{run_id}.json"
+    adb.run("pull", f"{REMOTE_DIR}/{name}", str(local))
+    args.bursts.mkdir(parents=True, exist_ok=True)
+    adb.run("pull", f"{REMOTE_DIR}/captures/{run_id}_scale", str(args.bursts), timeout=600)
+    print(json.dumps({"report": str(local), "folder": str(args.bursts / f"{run_id}_scale")}, indent=2))
+    print(f"next: python tools/calib/scale_check.py {args.bursts / (run_id + '_scale')} --spec ... --calibration ...")
+    return 0
+
+
 def wait_for(adb: Adb, name: str, timeout_s: int) -> bool:
     deadline = time.monotonic() + timeout_s
     while time.monotonic() < deadline:
@@ -194,7 +214,9 @@ def run(adb: Adb, args: argparse.Namespace) -> int:
         window = measure_bridge(adb, args, out)
     adb.run(*start_args(run_id, args.cameras, args.stream_ms, args.burst, args.torch, ois,
                         args.series, args.still_ms, args.focus, args.sweep, args.gate, args.max_exposure_us,
-                        args.timing, window))
+                        args.timing, window, args.scale, args.gap_ms))
+    if args.scale > 0:
+        return run_scale(adb, args, run_id, out)
     if args.timing > 0:
         return run_timing(adb, args, run_id, out)
     if args.series > 0 or args.sweep > 0:
@@ -240,6 +262,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--bridge-window", help="sweep: camera 2's exposure window START,END in ms from its stamp")
     ap.add_argument("--measure-bridge", action="store_true",
                     help="sweep: first time camera 2 on the scene (10 s of buzzing) and use its window")
+    ap.add_argument("--scale", type=int, default=0, help="scale run: N hand-held bursts on camera 0 (microscope-scale.md)")
+    ap.add_argument("--gap-ms", type=int, default=5000, help="scale: time to move between bursts")
     ap.add_argument("--timeout", type=int, default=180)
     ap.add_argument("--results", type=Path, default=REPO / "results")
     ap.add_argument("--bursts", type=Path, default=DEFAULT_BURSTS, help="where raw bursts go (keep outside the repo)")
