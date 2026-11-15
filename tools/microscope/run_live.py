@@ -52,8 +52,8 @@ def start_args(run_id: str, cameras: str | None, stream_ms: int, burst: int, tor
         args += ["--ei", "timing", str(timing)]
     elif sweep > 0:
         args += ["--ei", "sweep", str(sweep), "--es", "gate_rad_s", gate]
-        if max_exposure_us > 0:
-            args += ["--el", "max_exposure_us", str(max_exposure_us)]
+    if (timing > 0 or sweep > 0) and max_exposure_us > 0:
+        args += ["--el", "max_exposure_us", str(max_exposure_us)]
     elif series > 0:
         args += ["--ei", "series", str(series), "--el", "still_ms", str(still_ms)]
     if (series > 0 or sweep > 0) and focus is not None:

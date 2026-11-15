@@ -234,6 +234,10 @@ Run 2's camera 2 kept only 8 frames in 300 s. Its gate window is the 150 ms befo
   - It then searches windows [ts + start, ts + end] (start −300 to +100 ms, width 10 to 150 ms) for the one whose mean energy best correlates with each frame's loss of sharpness, normalised by its 31-frame running median.
   - A window with r < 0.4 counts as "could not tell".
 - **Control:** camera 0's window is known from its capture result: from the stamp to stamp + exposure + skew (0 to about 40 ms). The method is trusted for camera 2 only if it finds camera 0's window within 6 ms at the start and 10 ms at the end, the margins the synthetic tests hold.
+- **First timing run (`161917-a872`): control failed, so the camera 2 result is not used.**
+  - **Camera 0:** r = 0.29, below 0.4. It ran under AE at 12 fps, a window of about 62 ms (exposure plus skew), and gave only 155 frames with sharpness swings of ±0.4.
+  - **Camera 2:** r = 0.42, window −110 to −5 ms. A pulse-triggered average (scratch, not evidence) shows camera 2's frames softest when stamped 25 to 125 ms after a pulse onset. With a 60 ms pulse, that points to an exposure about −65 to −25 ms from the stamp.
+  - **Amendment before the second timing run:** camera 0 is timed with the sweep's 8 ms cap (30 fps), so the control runs as the sweep uses it. Nothing else changes.
 - **Use:** camera 2's gate window becomes the measured window, widened by 10 ms on each side. Its limit stays at 0.02 rad/s, since the simulation failures at 0.04 do not depend on timing.
 - **Tests (`test_frame_timing.py`):**
   - on synthetic gyroscope and frame data, a window before the stamp (−90 to −45 ms) and one after it (0 to 40 ms) are recovered within 6 and 10 ms;

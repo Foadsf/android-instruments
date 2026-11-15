@@ -113,7 +113,8 @@ class MainActivity : Activity() {
             val timing = intent.getIntExtra(EXTRA_TIMING, 0)
             val result = if (timing > 0) runCatching {
                 TimingMode(applicationContext, station, SensorRecorder(applicationContext), outDir()) { message = it }
-                    .execute(TimingMode.Plan(runId, ids, timing))
+                    .execute(TimingMode.Plan(runId, ids, timing,
+                        maxExposureNs = intent.getLongExtra(EXTRA_MAX_EXPOSURE_US, 0L).takeIf { it > 0 }?.let { it * 1000 }))
             }
             else if (sweep > 0) runCatching { runSweep(runId, ids, sweep) }
             else if (series > 0) runCatching { runSeries(runId, ids, series) } else {

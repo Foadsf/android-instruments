@@ -23,7 +23,9 @@ import kotlin.random.Random
  */
 class TimingMode(private val context: Context, private val station: Station, private val sensors: SensorRecorder,
                  private val outDir: File, private val onProgress: (String) -> Unit) {
-    data class Plan(val runId: String, val cameraIds: List<String>, val seconds: Int = 12, val warmMs: Long = 1500)
+    /** [maxExposureNs]: the sweep's exposure cap, so the control camera is timed as it is used. */
+    data class Plan(val runId: String, val cameraIds: List<String>, val seconds: Int = 12, val warmMs: Long = 1500,
+                    val maxExposureNs: Long? = null)
 
     private class FrameRow(val ts: Long, val sharpness: Double, val diff: Double)
 
@@ -48,6 +50,7 @@ class TimingMode(private val context: Context, private val station: Station, pri
     private fun timeCamera(plan: Plan, id: String, vib: Vibrator?): JSONObject {
         val size = station.open(id)
         station.stream(plan.warmMs)
+        val exposure = plan.maxExposureNs?.let { station.capExposure(it).also { station.stream(EXPOSURE_SETTLE_MS) } }
         val rows = ArrayList<FrameRow>()
         val roi = Sharpness.centreHalf(size.w, size.h)
         var prev: ByteArray? = null
@@ -79,7 +82,7 @@ class TimingMode(private val context: Context, private val station: Station, pri
         }
         station.close()
         return JSONObject().put("vibrator", vib?.hasVibrator() ?: false).put("pulse_ms", PULSE_MS)
-            .put("pulse_command_ns", pulses).put("frames", frames)
+            .put("pulse_command_ns", pulses).put("exposure", exposure ?: JSONObject.NULL).put("frames", frames)
     }
 
     /** Every 8th pixel of the region, for a cheap frame-to-frame difference. */
@@ -100,5 +103,6 @@ class TimingMode(private val context: Context, private val station: Station, pri
         const val PULSE_MS = 60L
         val PULSE_GAP_MS = 350L..800L
         const val STEP = 8
+        const val EXPOSURE_SETTLE_MS = 600L
     }
 }

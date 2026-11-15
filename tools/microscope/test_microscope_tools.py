@@ -141,8 +141,9 @@ class StartArgs(unittest.TestCase):
 
     def test_timing_extra_is_passed_only_for_a_timing_run(self):
         import run_live
-        a = run_live.start_args("r1", "0,2", 800, 4, timing=12)
+        a = run_live.start_args("r1", "0,2", 800, 4, timing=12, max_exposure_us=8000)
         self.assertEqual(a[a.index("timing") - 1: a.index("timing") + 2], ["--ei", "timing", "12"])
+        self.assertEqual(a[a.index("max_exposure_us") + 1], "8000")  # the control runs as the sweep does
         self.assertNotIn("sweep", a)
         self.assertNotIn("timing", run_live.start_args("r1", "0,2", 800, 4, sweep=30))
 
