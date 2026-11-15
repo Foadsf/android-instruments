@@ -133,3 +133,29 @@ Sensor fusion is one of the keys: the phone's pose is measured over frames, and 
 - **Run 2 judges model 2 with the thresholds unchanged:** 2 % per frame, 1 % median, ≥ 6 frames at ≥ 3 distances, and the pipeline to 0.1 %. Nothing is tuned on run 2.
 - **New negative control:** `--model uncorrected` (model 1, the run 1 model) must fail run 2's median check.
 - **Capture as run 1**, with one instruction added: after each short beep, hold steady for the second the burst takes.
+
+### Run 2: `192124-73b2` (2026-11-15, model 2): cannot judge, and per frame it would fail
+
+- **Verdict:** cannot judge. 43 of 48 frames were judged, but at only 2 distances (3 needed).
+- **Model 2:** median −0.5 % (passes 1 %), maximum 5.8 % (fails 2 %). The pipeline matches to 3e-8.
+- **Control `--model uncorrected` (model 1):** median +11.7 %, maximum 18.2 %, so it fails as it must. The offset removes most of the bias.
+- **Per burst:**
+
+  | Burst | Board scale within the burst | Reported focus | Model 2 error |
+  |---|---|---|---|
+  | 1 | 93 to 113 µm per px (moved ~2.3 cm) | 7.88, 7.43, 6.82 D | +5.8 % down to −2.5 % |
+  | 2 | 113 to 130 µm per px (moved ~2 cm) | 6.44, 5.99 D | +4.8 % down to −2.5 % |
+  | 3 | 151.4 to 152.1 µm per px (steady) | 5.14 D, all 16 frames | −3.8 to −4.2 % |
+
+- **The offset is not constant enough.** The focus that fits the board, minus the reported focus, for each settled stretch:
+  - run 1: 0.82, 0.83 and 0.82 D (1 burst each) and 0.85 D;
+  - run 2: 0.82, 0.78 and 0.59 D. The 0.59 D is the steady burst 3, at 0.008 D spread.
+  - While the phone moves, the offset reaches 1.0 to 1.1 D, because AF lags.
+  - So continuous AF stops anywhere within about ±0.15 D (0.25 D seen) of the board, inside its ±0.7 D depth of field. The reported focus is then that far from the board's distance.
+- **Consequence:** scale from AF focus is good to about 0.2 D / D per frame: about 2.5 % at 12 cm and 4 to 5 % at 20 cm. The contract's 2 % per frame cannot be met this way on the Note8, whatever the offset.
+  - This is a measured limit of the method, not a fitting problem. δ is not refitted on run 2.
+  - Results: `microscope_scale_20261115_192124-73b2.json`, `microscope_scale_check_20261115_192124-73b2_calibrated.json` and `..._uncorrected.json`.
+- **Status:** the app's scale bar (model 2) is an approximate scale, about ±5 % at 10 to 20 cm, and has not passed the contract. To be measurement-grade, the distance must come from something sharper than the AF stopping point. Candidates:
+  - a manual focus sweep with the sharpness peak fitted (depth from focus, plan 3.3/3.6), which needs its own lens-map calibration;
+  - an object of known size in view;
+  - pose from the camera 0 + 2 rig, or from structure from motion (the fusion line).
